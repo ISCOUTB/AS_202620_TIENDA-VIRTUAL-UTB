@@ -9,6 +9,7 @@ Proyecto académico para diseñar una tienda virtual dirigida a la comunidad de 
 | Levis Adrian Ortiz Cano | levortiz@utb.edu.co | T00083674 |
 | Alejandro Patron Montero | patrona@utb.edu.co | T00078181 |
 | Shalom Jhoanna Arrieta Marrugo | sharrieta@utb.edu.co | T00082962 |
+| Jasen Mihovil Yukopila Escobar| jyukopila@utb.edu.co | T00083873 |
 
 
 ## Problema
