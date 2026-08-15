@@ -19,37 +19,140 @@ contributors. See <https://arc42.org>.
 
 ## Requirements Overview {#_requirements_overview}
 
+Tienda Virtual UTB is a web system that centralizes the catalog and the
+basic purchase process for the cafeteria of Universidad Tecnológica de
+Bolívar. Today this information is managed manually and is dispersed,
+which forces buyers to visit a point of sale to find out whether a
+product is available.
+
+In scope for the current phase:
+
+- Browsing and searching the product catalog.
+- Managing a shopping cart.
+- Creating and consulting orders.
+- Catalog administration (products, prices) by authorized staff.
+- Basic inventory tracking (available stock).
+
+Explicitly out of scope for this phase (see [Architecture
+Constraints](#section-architecture-constraints)):
+
+- Online payment gateway integration — orders are created in the
+  system, but payment is coordinated outside of it.
+- Native mobile application.
+- Third-party sales.
+- National shipping.
+- AI-based product recommendations.
+- Simultaneous integration with multiple payment gateways.
+- Real data source integration — the system runs on mocked/seed
+  catalog, inventory and order data, not on a live feed from the
+  cafeteria or the university.
+
 ## Quality Goals {#_quality_goals}
+
++---+----------------+---------------------------------------------------+
+| # | Quality Goal   | Motivation                                         |
++===+================+=====================================================+
+| 1 | Security       | Only authenticated users should access the system, |
+|   |                | and each role (buyer, store admin, inventory        |
+|   |                | manager) should only be able to perform the         |
+|   |                | operations that correspond to it.                   |
++---+----------------+---------------------------------------------------+
+| 2 | Usability       | Buying a product should take few steps; adding      |
+|   |                | authentication and role checks must not turn the     |
+|   |                | purchase flow into a tedious process.               |
++---+----------------+---------------------------------------------------+
+| 3 | Performance    | Stock changes triggered by a purchase should be     |
+|   |                | reflected quickly enough that two buyers do not      |
+|   |                | both believe the same unit of an out-of-stock        |
+|   |                | product is available.                               |
++---+----------------+---------------------------------------------------+
+| 4 | Availability   | The catalog should stay reachable during peak        |
+|   |                | consultation times (e.g. lunch hour), since that is  |
+|   |                | when most of the community is expected to use it.   |
++---+----------------+---------------------------------------------------+
+
+These four goals are the same ones expanded into the utility tree and
+quality scenarios in `docs/arbol-utilidad.md` and
+`docs/escenarios-calidad.md`.
 
 ## Stakeholders {#_stakeholders}
 
-+-------------+---------------------------+---------------------------+
-| Role/Name   | Contact                   | Expectations              |
-+=============+===========================+===========================+
-| *           | *\<Contact-1\>*           | *\<Expectation-1\>*       |
-| \<Role-1\>* |                           |                           |
-+-------------+---------------------------+---------------------------+
-| *           | *\<Contact-2\>*           | *\<Expectation-2\>*       |
-| \<Role-2\>* |                           |                           |
-+-------------+---------------------------+---------------------------+
++---------------------------+---------------------------+-----------------------------------------------+
+| Role                      | Who                       | Expectations                                   |
++===========================+===========================+=================================================+
+| Buyer (*Comprador*)       | Students, professors,     | Quickly find out what is available, buy with   |
+|                            | staff and alumni of UTB   | few steps, and check the status of their order. |
++---------------------------+---------------------------+-----------------------------------------------+
+| Store administrator       | Authorized cafeteria      | Register/update products and prices, and       |
+| (*Administrador*)         | staff                     | manage order status.                           |
++---------------------------+---------------------------+-----------------------------------------------+
+| Inventory manager         | Authorized cafeteria      | Consult and update available stock so it       |
+| (*Responsable de          | staff                     | matches what buyers see in the catalog.        |
+| inventario*)               |                            |                                                 |
++---------------------------+---------------------------+-----------------------------------------------+
 
 # Architecture Constraints {#section-architecture-constraints}
+
++--------------------------------------------------+----------------+--------------------------------------------------------------------------+
+| Constraint                                        | Type           | Justification                                                            |
++====================================================+================+============================================================================+
+| Fixed stack: FastAPI (backend), Next.js            | Technical      | Early team decision to keep the same stack across every course           |
+| (frontend), PostgreSQL (database)                  |                | deliverable and avoid re-architecting the project each evidence.         |
++--------------------------------------------------+----------------+--------------------------------------------------------------------------+
+| Mocked/seed data only, no real integration with    | Scope          | There is no confirmed access to a real inventory/sales system of the     |
+| the cafeteria or university systems in this phase  |                | cafeteria yet; mocked data lets the team validate catalog, cart and      |
+|                                                     |                | inventory flows without depending on that integration.                  |
++--------------------------------------------------+----------------+--------------------------------------------------------------------------+
+| No online payment gateway in this phase            | Scope          | Gateway availability and institutional restrictions are not confirmed    |
+|                                                     |                | yet (see `docs/disponibilidad.md`); the catalog/order flow is            |
+|                                                     |                | prioritized first.                                                       |
++--------------------------------------------------+----------------+--------------------------------------------------------------------------+
+| Own authentication, no institutional SSO           | Organizational | Access to the university's institutional authentication infrastructure   |
+|                                                     |                | has not been confirmed at this point.                                    |
++--------------------------------------------------+----------------+--------------------------------------------------------------------------+
+| Deployment environment still to be confirmed       | Infrastructure | Depends on which free/academic service ends up being authorized; left    |
+|                                                     |                | open so it does not block the rest of this deliverable.                  |
++--------------------------------------------------+----------------+--------------------------------------------------------------------------+
+| No native mobile app, third-party sales, national  | Scope          | Explicit exclusions from `docs/problema.md` to keep the initial scope    |
+| shipping, AI recommendations, or multiple          |                | manageable for a 4-person team within the course schedule.               |
+| simultaneous payment gateways                      |                |                                                                            |
++--------------------------------------------------+----------------+--------------------------------------------------------------------------+
 
 # Context and Scope {#section-context-and-scope}
 
 ## Business Context {#_business_context}
 
-**\<Diagram or Table\>**
+See the C4 context diagram in
+[`docs/c4/context.md`](../c4/context.md).
 
-**\<optionally: Explanation of external domain interfaces\>**
+- **Buyer** — browses/searches the catalog, manages a cart, creates
+  and consults their own orders.
+- **Store administrator** — registers/updates products and prices,
+  and manages order status.
+- **Inventory manager** — consults and updates available stock.
+
+There are no external domain interfaces in this phase: no payment
+provider and no institutional authentication system are integrated
+yet (see Architecture Constraints above).
 
 ## Technical Context {#_technical_context}
 
-**\<Diagram or Table\>**
++------------------+---------------------------+-----------------------------------------------------+
+| Channel          | Technology                | Notes                                                |
++==================+===========================+=======================================================+
+| Web client        | Next.js                   | Used by buyers, administrators and inventory          |
+|                  |                           | managers through role-based views.                    |
++------------------+---------------------------+-----------------------------------------------------+
+| API              | FastAPI (REST over HTTP)  | Exposes catalog, cart, order and inventory            |
+|                  |                           | operations to the Next.js client.                     |
++------------------+---------------------------+-----------------------------------------------------+
+| Data storage      | PostgreSQL                | Currently seeded with mocked catalog, inventory and    |
+|                  |                           | order data; not yet fed by a real cafeteria system.    |
++------------------+---------------------------+-----------------------------------------------------+
 
-**\<optionally: Explanation of technical interfaces\>**
-
-**\<Mapping Input/Output to Channels\>**
+No external systems (payment gateway, institutional SSO) are part of
+the technical context yet; they are anticipated extension points, not
+current dependencies.
 
 # Solution Strategy {#section-solution-strategy}
 

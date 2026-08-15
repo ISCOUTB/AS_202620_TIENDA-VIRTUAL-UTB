@@ -27,6 +27,13 @@ en la [ficha del problema](docs/problema.md).
 - [Disponibilidad técnica y de despliegue](docs/disponibilidad.md)
 - [Documentación arc42](docs/arc42/arc42-template-EN.md)
 
+## Evidencia S2
+
+- [arc42 secciones 1-3](docs/arc42/arc42-template-EN.md) (Introduction and Goals, Architecture Constraints, Context and Scope)
+- [Árbol de utilidad](docs/arbol-utilidad.md)
+- [Escenarios de calidad](docs/escenarios-calidad.md)
+- [C4 de contexto](docs/c4/context.md)
+
 ## Estructura de arquitectura
 
 - `docs/arc42/`: documentación de arquitectura basada en la plantilla del curso.
