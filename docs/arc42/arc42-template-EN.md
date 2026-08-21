@@ -110,6 +110,49 @@ current dependencies.
 
 # Solution Strategy {#section-solution-strategy}
 
+The solution uses a **modular monolith** for the FastAPI backend. It keeps the
+initial deployment simple while making the boundaries between identity,
+catalog, inventory and orders explicit. The rationale, alternatives and
+consequences are recorded in
+[`ADR 0001`](../adr/0001-monolito-modular.md), supported by the
+[`architecture comparison matrix`](../matriz-comparativa-arquitectura.md).
+
+## Fundamental decisions
+
+| Decision | Approach | Contribution |
+| --- | --- | --- |
+| System structure | A Next.js web client and one modular FastAPI backend, backed by one PostgreSQL instance | Avoids distributed-system overhead while preserving functional boundaries |
+| Backend decomposition | Packages for identity, catalog, inventory and orders, plus a restricted shared package | Aligns the code with the business capabilities and role boundaries |
+| Communication | REST over HTTP between Next.js and FastAPI; explicit public interfaces or internal events for future cross-module collaboration | Keeps integration understandable and prevents imports of another module's internals |
+| Data | One PostgreSQL instance for the current phase; data ownership will be assigned to modules when persistence is implemented | Supports consistency of orders and stock without premature distribution |
+| Execution environment | Docker Compose starts the web client, API and database as one reproducible local environment | Reduces setup differences between team members and demonstrations |
+| Evolution | Keep a single deployable until measured scaling or organizational needs justify extracting a module | Preserves a path to change without paying the cost of microservices now |
+
+## Relationship to quality goals
+
+- **Security:** identity and authorization have their own module, and other
+  modules must not bypass its future public contract.
+- **Usability:** Next.js remains an independent web client so the purchase flow
+  can evolve without mixing presentation concerns into backend modules.
+- **Performance:** a single backend and database avoid network hops in the
+  initial stock-update flow.
+- **Availability:** one-command startup and explicit health checks make the
+  academic/demo environment repeatable. Production availability guarantees are
+  not claimed at this stage.
+
+## Initial deployment shape
+
+```mermaid
+flowchart LR
+    Browser[Web browser] -->|HTTP :3000| Frontend[Next.js]
+    Frontend -->|REST/HTTP :8000| Backend[FastAPI modular monolith]
+    Backend -->|SQL :5432| Database[(PostgreSQL)]
+```
+
+The repository contains only the executable mounting points and empty module
+packages required by this strategy. Business models, use cases, repositories
+and endpoints are deliberately deferred to the next increment.
+
 # Building Block View {#section-building-block-view}
 
 ## Whitebox Overall System {#_whitebox_overall_system}

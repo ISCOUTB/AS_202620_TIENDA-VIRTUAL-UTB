@@ -34,10 +34,69 @@ en la [ficha del problema](docs/problema.md).
 - [Escenarios de calidad](docs/escenarios-calidad.md)
 - [C4 de contexto](docs/c4/context.md)
 
+## Evidencia S3 — estrategia y esqueleto ejecutable
+
+- [arc42 sección 4: estrategia de solución](docs/arc42/arc42-template-EN.md)
+- [Matriz comparativa de estilos arquitectónicos](docs/matriz-comparativa-arquitectura.md)
+- [ADR 0001: monolito modular](docs/adr/0001-monolito-modular.md)
+
+La estrategia elegida es un **monolito modular**: un backend FastAPI único,
+separado inicialmente en identidad, catálogo, inventario y pedidos. Next.js es
+el cliente web y PostgreSQL el almacenamiento. En esta entrega no se incluye
+lógica de negocio.
+
+## Arranque con un solo comando
+
+### Requisito
+
+- Docker con el complemento Docker Compose.
+
+### Ejecución
+
+Desde la raíz del repositorio:
+
+```bash
+docker compose up --build
+```
+
+Cuando los servicios estén saludables:
+
+- Aplicación web: <http://localhost:3000>
+- API: <http://localhost:8000>
+- Comprobación de salud: <http://localhost:8000/health>
+- Documentación OpenAPI: <http://localhost:8000/docs>
+
+Para detener los servicios, presione `Ctrl+C`. Los datos de desarrollo de
+PostgreSQL se conservan en un volumen de Docker. Si se necesita eliminar
+también ese volumen, puede ejecutarse explícitamente `docker compose down -v`;
+esta operación borra los datos locales de la base de datos.
+
+## Pruebas automatizadas
+
+Con Python 3.12 disponible, las pruebas del backend pueden ejecutarse así:
+
+```bash
+python -m pip install -r backend/requirements-dev.txt
+python -m pytest -c backend/pytest.ini backend/tests
+```
+
+Las pruebas comprueban que la ruta de salud funciona y que existen los paquetes
+establecidos por el ADR. El mismo conjunto se ejecuta automáticamente mediante
+GitHub Actions en cada envío y solicitud de cambios.
+
+## Estructura ejecutable
+
+```text
+backend/
+  app/
+    modules/{identity,catalog,inventory,orders}/
+    shared/
+frontend/
+compose.yaml
+```
+
 ## Estructura de arquitectura
 
 - `docs/arc42/`: documentación de arquitectura basada en la plantilla del curso.
-- `docs/adr/`: registros de decisiones arquitectónicas futuras.
+- `docs/adr/`: registros de decisiones arquitectónicas.
 - `docs/c4/`: diagramas del modelo C4.
-
-En la semana inicial aún no se registran decisiones arquitectónicas ni se desarrollan los diagramas definitivos.
