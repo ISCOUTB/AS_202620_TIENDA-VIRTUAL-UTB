@@ -6,7 +6,7 @@ inteligencia artificial durante el proyecto. El equipo es responsable de revisar
 
 | Fecha | Herramienta | Propósito | Resultado utilizado | Validación humana |
 |---|---|---|---|---|
-| 2026-08-09 | ChatGPT/Codex | Interpretar la consigna y preparar una estructura inicial para la evidencia S1. | Borradores del README, ficha del problema, aspectos de calidad y disponibilidad técnica. | Revisado y aprobado por Levis Adrian Ortiz Cano; pendiente de validación por los demás integrantes. |
+| 2026-08-09 | ChatGPT/Codex | Interpretar la consigna y preparar una estructura inicial para la evidencia S1. | Borradores del README, ficha del problema, aspectos de calidad y disponibilidad técnica. | Revisado y aprobado por todos los integrantes del grupo. |
 
 ## Consulta inicial
 
