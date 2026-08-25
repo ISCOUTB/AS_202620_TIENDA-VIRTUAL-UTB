@@ -16,6 +16,8 @@ C4Context
     Person(admin, "Administrador de la tienda", "Personal autorizado para administrar la tienda")
     Person(inventario, "Responsable de inventario", "Personal encargado de las existencias")
 
+    System(espacio_izquierdo, "", "")
+    UpdateElementStyle(espacio_izquierdo, $bgColor="transparent", $fontColor="transparent", $borderColor="transparent")
     System(sistema, "Tienda Virtual UTB", "Sistema de comercio electrónico de la universidad")
 
     Rel_D(comprador, sistema, "Realiza compras")
