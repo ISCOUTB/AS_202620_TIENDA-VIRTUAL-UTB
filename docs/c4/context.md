@@ -10,15 +10,17 @@ sección *Architecture Constraints*, y `docs/problema.md`).
 C4Context
     title Diagrama de contexto — Tienda Virtual UTB
 
+    UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
+
     Person(comprador, "Comprador", "Estudiante, docente, funcionario o egresado")
     Person(admin, "Administrador de la tienda", "Personal autorizado para administrar la tienda")
     Person(inventario, "Responsable de inventario", "Personal encargado de las existencias")
 
     System(sistema, "Tienda Virtual UTB", "Sistema de comercio electrónico de la universidad")
 
-    Rel(comprador, sistema, "Consulta catálogo, gestiona carrito y crea o consulta pedidos")
-    Rel(admin, sistema, "Administra catálogo, precios y estado de pedidos")
-    Rel(inventario, sistema, "Consulta y actualiza existencias")
+    Rel_D(comprador, sistema, "Realiza compras")
+    Rel_D(admin, sistema, "Administra la tienda")
+    Rel_D(inventario, sistema, "Gestiona existencias")
 ```
 
 ## Notas
