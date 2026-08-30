@@ -30,8 +30,42 @@ h1 {
   font-size: clamp(2.5rem, 7vw, 5rem);
 }
 
-.eyebrow,
-span {
+.eyebrow {
   color: #50677b;
   font-weight: 700;
+}
+
+.catalogo {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.catalogo li {
+  display: grid;
+  gap: 0.15rem;
+  padding: 1rem 1.25rem;
+  background: #ffffff;
+  border: 1px solid #d9e2ea;
+  border-radius: 8px;
+}
+
+.catalogo .nombre {
+  font-weight: 700;
+  color: #005aa9;
+}
+
+.catalogo .descripcion {
+  color: #50677b;
+}
+
+.catalogo .precio {
+  font-weight: 700;
+}
+
+.catalogo .existencias {
+  color: #50677b;
+  font-size: 0.9rem;
 }

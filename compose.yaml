@@ -32,6 +32,8 @@ services:
   frontend:
     build:
       context: ./frontend
+    environment:
+      API_URL: http://backend:8000
     depends_on:
       backend:
         condition: service_healthy

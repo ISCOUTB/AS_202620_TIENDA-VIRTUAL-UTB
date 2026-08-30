@@ -42,8 +42,35 @@ en la [ficha del problema](docs/problema.md).
 
 La estrategia elegida es un **monolito modular**: un backend FastAPI único,
 separado inicialmente en identidad, catálogo, inventario y pedidos. Next.js es
-el cliente web y PostgreSQL el almacenamiento. En esta entrega no se incluye
-lógica de negocio.
+el cliente web y PostgreSQL el almacenamiento.
+
+## Evidencia S4 — incremento arc42, C4 y corte vertical
+
+- [arc42 secciones 1–6, 9, 10 y glosario](docs/arc42/arc42-template-EN.md)
+- [C4 nivel 1 — contexto](docs/c4/context.md) y [C4 nivel 2 — contenedores](docs/c4/container.md)
+- [Tabla de aspectos de calidad](docs/aspectos.md) (fila de disponibilidad completa hasta pruebas)
+
+### Corte vertical ejecutable: consultar el catálogo
+
+Una funcionalidad implementada de extremo a extremo sobre el esqueleto:
+
+```
+Navegador → Next.js (frontend/app/page.tsx)
+          → FastAPI  GET /catalog/products  (backend/app/modules/catalog/router.py)
+          → repositorio + ORM SQLAlchemy    (repository.py, models.py)
+          → PostgreSQL  tabla catalog_products  (sembrada al arrancar, seed.py)
+```
+
+- La API arranca creando el esquema y sembrando un catálogo mockeado de forma
+  idempotente (`backend/app/main.py`, `lifespan`).
+- El cliente web renderiza la lista de productos en el servidor; si la API no
+  responde, muestra un mensaje de error en lugar de fallar.
+- Verlo funcionando: tras `docker compose up --build`, abrir
+  <http://localhost:3000> (catálogo) y <http://localhost:8000/catalog/products>
+  (JSON).
+
+Los módulos `identity`, `inventory` y `orders` siguen siendo paquetes vacíos,
+reservados para incrementos posteriores.
 
 ## Arranque con un solo comando
 
@@ -61,8 +88,9 @@ docker compose up --build
 
 Cuando los servicios estén saludables:
 
-- Aplicación web: <http://localhost:3000>
+- Aplicación web (catálogo): <http://localhost:3000>
 - API: <http://localhost:8000>
+- Catálogo (JSON): <http://localhost:8000/catalog/products>
 - Comprobación de salud: <http://localhost:8000/health>
 - Documentación OpenAPI: <http://localhost:8000/docs>
 
@@ -80,19 +108,26 @@ python -m pip install -r backend/requirements-dev.txt
 python -m pytest -c backend/pytest.ini backend/tests
 ```
 
-Las pruebas comprueban que la ruta de salud funciona y que existen los paquetes
-establecidos por el ADR. El mismo conjunto se ejecuta automáticamente mediante
-GitHub Actions en cada envío y solicitud de cambios.
+Las pruebas comprueban que la ruta de salud funciona, que existen los paquetes
+establecidos por el ADR y que el endpoint del catálogo devuelve los productos
+sembrados con el contrato esperado. Se ejecutan sobre SQLite en memoria (sin
+contenedores). El mismo conjunto corre automáticamente mediante GitHub Actions
+en cada envío y solicitud de cambios.
 
 ## Estructura ejecutable
 
 ```text
 backend/
   app/
-    modules/{identity,catalog,inventory,orders}/
-    shared/
+    main.py                     # app FastAPI, /health, arranque (esquema + seed)
+    modules/
+      catalog/                  # corte vertical: router, repository, models, schemas, seed
+      {identity,inventory,orders}/   # paquetes reservados, aún vacíos
+    shared/database.py          # engine, sesión y Base (solo acceso a datos)
+  tests/                        # health, límites de módulos (ADR), catálogo
 frontend/
-compose.yaml
+  app/page.tsx                  # vista del catálogo (componente de servidor)
+compose.yaml                    # frontend + backend + postgres
 ```
 
 ## Estructura de arquitectura
