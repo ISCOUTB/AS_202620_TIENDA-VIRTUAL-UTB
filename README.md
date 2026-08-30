@@ -29,7 +29,7 @@ en la [ficha del problema](docs/problema.md).
 
 ## Evidencia S2
 
-- [arc42 secciones 1-3](docs/arc42/arc42-template-EN.md) (Introduction and Goals, Architecture Constraints, Context and Scope)
+- [arc42 secciones 1-3](docs/arc42/arc42-template-EN.md) (Introducción y Objetivos, Restricciones de la Arquitectura, Contexto y Alcance del Sistema)
 - [Árbol de utilidad](docs/arbol-utilidad.md)
 - [Escenarios de calidad](docs/escenarios-calidad.md)
 - [C4 de contexto](docs/c4/context.md)
@@ -46,7 +46,9 @@ el cliente web y PostgreSQL el almacenamiento.
 
 ## Evidencia S4 — incremento arc42, C4 y corte vertical
 
-- [arc42 secciones 1–6, 9, 10 y glosario](docs/arc42/arc42-template-EN.md)
+- [arc42 secciones 1–6, 9, 10 y glosario](docs/arc42/arc42-template-EN.md) — documento
+  completo en español. Incluye además, por continuidad del documento, las
+  secciones 7 (despliegue), 8 (conceptos transversales) y 11 (riesgos).
 - [C4 nivel 1 — contexto](docs/c4/context.md) y [C4 nivel 2 — contenedores](docs/c4/container.md)
 - [Tabla de aspectos de calidad](docs/aspectos.md) (fila de disponibilidad completa hasta pruebas)
 

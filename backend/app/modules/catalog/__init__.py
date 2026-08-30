@@ -1,1 +1,1 @@
-"""Módulo de catálogo, pendiente de implementación."""
+"""Módulo de catálogo: productos, precios y existencias visibles al comprador."""

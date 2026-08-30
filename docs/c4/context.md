@@ -4,7 +4,7 @@ Actores y su interacción con el sistema Tienda Virtual UTB. En esta
 fase el sistema no depende de ningún sistema externo: la
 autenticación es propia (no hay SSO institucional integrado) y no hay
 pasarela de pago en el alcance (ver `docs/arc42/arc42-template-EN.md`,
-sección *Architecture Constraints*, y `docs/problema.md`).
+sección *Restricciones de la Arquitectura*, y `docs/problema.md`).
 
 ```mermaid
 C4Context

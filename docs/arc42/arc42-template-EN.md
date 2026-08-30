@@ -1,189 +1,194 @@
 ---
-date: July 2025
-title: "![arc42](images/arc42-logo.png) Template"
+date: agosto 2026
+title: "![arc42](images/arc42-logo.png) Documentación de arquitectura — Tienda Virtual UTB"
 ---
 
 # 
 
-**About arc42**
+**Acerca de arc42**
 
-arc42, the template for documentation of software and system
-architecture.
+arc42, la plantilla para documentar la arquitectura de software y de
+sistemas.
 
-Template Version 9.0-EN. (based upon AsciiDoc version), July 2025
+Versión de la plantilla 9.0. (basada en la versión AsciiDoc), julio de 2025.
 
-Created, maintained and © by Dr. Peter Hruschka, Dr. Gernot Starke and
-contributors. See <https://arc42.org>.
+Creada y mantenida por el Dr. Peter Hruschka, el Dr. Gernot Starke y
+colaboradores. © arc42. Ver <https://arc42.org>.
 
-# Introduction and Goals {#section-introduction-and-goals}
+# Introducción y Objetivos {#section-introduction-and-goals}
 
-## Requirements Overview {#_requirements_overview}
+## Descripción de los Requisitos {#_requirements_overview}
 
-Tienda Virtual UTB is a web system that centralizes the catalog and the
-basic purchase process for the cafeteria of Universidad Tecnológica de
-Bolívar. Today this information is managed manually and is dispersed,
-which forces buyers to visit a point of sale to find out whether a
-product is available.
+Tienda Virtual UTB es un sistema web que centraliza el catálogo y el
+proceso básico de compra de la cafetería de la Universidad Tecnológica de
+Bolívar. Hoy esta información se gestiona de forma manual y está dispersa,
+lo que obliga al comprador a acercarse a un punto de venta para saber si
+un producto está disponible.
 
-In scope for the current phase:
+Dentro del alcance de la fase actual:
 
-- Browsing and searching the product catalog.
-- Managing a shopping cart.
-- Creating and consulting orders.
-- Catalog administration (products, prices) by authorized staff.
-- Basic inventory tracking (available stock).
+- Consultar y buscar en el catálogo de productos.
+- Gestionar un carrito de compras.
+- Crear y consultar pedidos.
+- Administrar el catálogo (productos, precios) por parte del personal
+  autorizado.
+- Seguimiento básico de inventario (existencias disponibles).
 
-Explicitly out of scope for this phase (see [Architecture
-Constraints](#section-architecture-constraints)):
+Explícitamente fuera del alcance de esta fase (ver [Restricciones de la
+Arquitectura](#section-architecture-constraints)):
 
-- Online payment gateway integration — orders are created in the
-  system, but payment is coordinated outside of it.
-- Native mobile application.
-- Third-party sales.
-- National shipping.
-- AI-based product recommendations.
-- Simultaneous integration with multiple payment gateways.
-- Real data source integration — the system runs on mocked/seed
-  catalog, inventory and order data, not on a live feed from the
-  cafeteria or the university.
+- Integración con pasarela de pago en línea — los pedidos se crean en el
+  sistema, pero el pago se coordina fuera de él.
+- Aplicación móvil nativa.
+- Venta de terceros.
+- Envíos a nivel nacional.
+- Recomendaciones de productos basadas en inteligencia artificial.
+- Integración simultánea con varias pasarelas de pago.
+- Integración con una fuente de datos real — el sistema funciona sobre
+  datos mockeados/sembrados de catálogo, inventario y pedidos, no sobre
+  una alimentación en vivo de la cafetería o de la universidad.
 
-## Quality Goals {#_quality_goals}
+## Objetivos de Calidad {#_quality_goals}
 
-| # | Quality Goal | Motivation |
+| # | Objetivo de calidad | Motivación |
 | --- | --- | --- |
-| 1 | Security | Only authenticated users should access the system, and each role (buyer, store admin, inventory manager) should only be able to perform the operations that correspond to it. |
-| 2 | Usability | Buying a product should take few steps; adding authentication and role checks must not turn the purchase flow into a tedious process. |
-| 3 | Performance | Stock changes triggered by a purchase should be reflected quickly enough that two buyers do not both believe the same unit of an out-of-stock product is available. |
-| 4 | Availability | The catalog should stay reachable during peak consultation times (e.g. lunch hour), since that is when most of the community is expected to use it. |
+| 1 | Seguridad | Solo los usuarios autenticados deben acceder al sistema, y cada rol (comprador, administrador de la tienda, responsable de inventario) solo debe poder ejecutar las operaciones que le corresponden. |
+| 2 | Facilidad de uso | Comprar un producto debe tomar pocos pasos; agregar autenticación y verificación de roles no debe convertir el flujo de compra en un proceso tedioso. |
+| 3 | Rendimiento | Los cambios de existencias provocados por una compra deben reflejarse con la rapidez suficiente para que dos compradores no crean, ambos, que la misma unidad de un producto agotado está disponible. |
+| 4 | Disponibilidad | El catálogo debe permanecer accesible en los momentos de mayor consulta (por ejemplo, la hora de almuerzo), que es cuando se espera que la mayor parte de la comunidad use el sistema. |
 
-These four goals are the same ones expanded into the utility tree and
-quality scenarios in `docs/arbol-utilidad.md` and
-`docs/escenarios-calidad.md`.
+Estos cuatro objetivos son los mismos que se desarrollan en el árbol de
+utilidad y en los escenarios de calidad (`docs/arbol-utilidad.md` y
+`docs/escenarios-calidad.md`).
 
-## Stakeholders {#_stakeholders}
+## Partes Interesadas {#_stakeholders}
 
-| Role | Who | Expectations |
+| Rol | Quién | Expectativas |
 | --- | --- | --- |
-| Buyer (*Comprador*) | Students, professors, staff and alumni of UTB | Quickly find out what is available, buy with few steps, and check the status of their order. |
-| Store administrator (*Administrador*) | Authorized cafeteria staff | Register/update products and prices, and manage order status. |
-| Inventory manager (*Responsable de inventario*) | Authorized cafeteria staff | Consult and update available stock so it matches what buyers see in the catalog. |
+| Comprador | Estudiantes, docentes, funcionarios y egresados de la UTB | Saber rápidamente qué hay disponible, comprar en pocos pasos y consultar el estado de su pedido. |
+| Administrador de la tienda | Personal autorizado de la cafetería | Registrar/actualizar productos y precios, y gestionar el estado de los pedidos. |
+| Responsable de inventario | Personal autorizado de la cafetería | Consultar y actualizar las existencias disponibles para que coincidan con lo que ve el comprador en el catálogo. |
 
-# Architecture Constraints {#section-architecture-constraints}
+# Restricciones de la Arquitectura {#section-architecture-constraints}
 
-| Constraint | Type | Justification |
+| Restricción | Tipo | Justificación |
 | --- | --- | --- |
-| Fixed stack: FastAPI (backend), Next.js (frontend), PostgreSQL (database) | Technical | Early team decision to keep the same stack across every course deliverable and avoid re-architecting the project each evidence. |
-| Mocked/seed data only, no real integration with the cafeteria or university systems in this phase | Scope | There is no confirmed access to a real inventory/sales system of the cafeteria yet; mocked data lets the team validate catalog, cart and inventory flows without depending on that integration. |
-| No online payment gateway in this phase | Scope | Gateway availability and institutional restrictions are not confirmed yet (see `docs/disponibilidad.md`); the catalog/order flow is prioritized first. |
-| Own authentication, no institutional SSO | Organizational | Access to the university's institutional authentication infrastructure has not been confirmed at this point. |
-| Deployment environment still to be confirmed | Infrastructure | Depends on which free/academic service ends up being authorized; left open so it does not block the rest of this deliverable. |
-| No native mobile app, third-party sales, national shipping, AI recommendations, or multiple simultaneous payment gateways | Scope | Explicit exclusions from `docs/problema.md` to keep the initial scope manageable for a 4-person team within the course schedule. |
+| Stack fijo: FastAPI (backend), Next.js (frontend), PostgreSQL (base de datos) | Técnica | Decisión temprana del equipo para mantener el mismo stack en todas las entregas del curso y no rediseñar el proyecto en cada evidencia. |
+| Solo datos mockeados/sembrados, sin integración real con los sistemas de la cafetería o de la universidad en esta fase | De alcance | Todavía no hay acceso confirmado a un sistema real de inventario/ventas de la cafetería; los datos mockeados permiten validar los flujos de catálogo, carrito e inventario sin depender de esa integración. |
+| Sin pasarela de pago en línea en esta fase | De alcance | Aún no se confirma la disponibilidad de una pasarela ni las restricciones institucionales (ver `docs/disponibilidad.md`); se prioriza primero el flujo de catálogo y pedidos. |
+| Autenticación propia, sin SSO institucional | Organizacional | A la fecha no se ha confirmado el acceso a la infraestructura de autenticación institucional de la universidad. |
+| Entorno de despliegue aún por confirmar | De infraestructura | Depende de cuál servicio gratuito/académico termine siendo autorizado; se deja abierto para que no bloquee el resto de la entrega. |
+| Sin aplicación móvil nativa, venta de terceros, envíos nacionales, recomendaciones con IA ni múltiples pasarelas de pago simultáneas | De alcance | Exclusiones explícitas de `docs/problema.md` para mantener un alcance inicial manejable por un equipo de cuatro personas dentro del cronograma del curso. |
 
-# Context and Scope {#section-context-and-scope}
+# Contexto y Alcance del Sistema {#section-context-and-scope}
 
-## Business Context {#_business_context}
+## Contexto de Negocio {#_business_context}
 
-See the C4 context diagram in
+Ver el diagrama de contexto C4 en
 [`docs/c4/context.md`](../c4/context.md).
 
-- **Buyer** — browses/searches the catalog, manages a cart, creates
-  and consults their own orders.
-- **Store administrator** — registers/updates products and prices,
-  and manages order status.
-- **Inventory manager** — consults and updates available stock.
+- **Comprador** — consulta y busca en el catálogo, gestiona un carrito, y
+  crea y consulta sus propios pedidos.
+- **Administrador de la tienda** — registra y actualiza productos y
+  precios, y gestiona el estado de los pedidos.
+- **Responsable de inventario** — consulta y actualiza las existencias
+  disponibles.
 
-There are no external domain interfaces in this phase: no payment
-provider and no institutional authentication system are integrated
-yet (see Architecture Constraints above).
+En esta fase no hay interfaces de dominio externas: todavía no se integra
+ninguna pasarela de pago ni sistema de autenticación institucional (ver
+Restricciones de la Arquitectura, arriba).
 
-## Technical Context {#_technical_context}
+## Contexto Técnico {#_technical_context}
 
-| Channel | Technology | Notes |
+| Canal | Tecnología | Notas |
 | --- | --- | --- |
-| Web client | Next.js | Used by buyers, administrators and inventory managers through role-based views. |
-| API | FastAPI (REST over HTTP) | Exposes catalog, cart, order and inventory operations to the Next.js client. |
-| Data storage | PostgreSQL | Currently seeded with mocked catalog, inventory and order data; not yet fed by a real cafeteria system. |
+| Cliente web | Next.js | Lo usan compradores, administradores y responsables de inventario mediante vistas según su rol. |
+| API | FastAPI (REST sobre HTTP) | Expone al cliente Next.js las operaciones de catálogo, carrito, pedidos e inventario. |
+| Almacenamiento de datos | PostgreSQL | Actualmente sembrado con datos mockeados de catálogo, inventario y pedidos; todavía no lo alimenta un sistema real de la cafetería. |
 
-No external systems (payment gateway, institutional SSO) are part of
-the technical context yet; they are anticipated extension points, not
-current dependencies.
+Ningún sistema externo (pasarela de pago, SSO institucional) forma parte
+aún del contexto técnico; son puntos de extensión previstos, no
+dependencias actuales.
 
-# Solution Strategy {#section-solution-strategy}
+# Estrategia de Solución {#section-solution-strategy}
 
-The solution uses a **modular monolith** for the FastAPI backend. It keeps the
-initial deployment simple while making the boundaries between identity,
-catalog, inventory and orders explicit. The rationale, alternatives and
-consequences are recorded in
-[`ADR 0001`](../adr/0001-monolito-modular.md), supported by the
-[`architecture comparison matrix`](../matriz-comparativa-arquitectura.md).
+La solución adopta un **monolito modular** para el backend en FastAPI. Mantiene
+simple el despliegue inicial y a la vez hace explícitos los límites entre
+identidad, catálogo, inventario y pedidos. La justificación, las alternativas y
+las consecuencias quedan registradas en el
+[`ADR 0001`](../adr/0001-monolito-modular.md), apoyado en la
+[`matriz comparativa de estilos arquitectónicos`](../matriz-comparativa-arquitectura.md).
 
-## Fundamental decisions
+## Decisiones fundamentales
 
-| Decision | Approach | Contribution |
+| Decisión | Enfoque | Contribución |
 | --- | --- | --- |
-| System structure | A Next.js web client and one modular FastAPI backend, backed by one PostgreSQL instance | Avoids distributed-system overhead while preserving functional boundaries |
-| Backend decomposition | Packages for identity, catalog, inventory and orders, plus a restricted shared package | Aligns the code with the business capabilities and role boundaries |
-| Communication | REST over HTTP between Next.js and FastAPI; explicit public interfaces or internal events for future cross-module collaboration | Keeps integration understandable and prevents imports of another module's internals |
-| Data | One PostgreSQL instance for the current phase; data ownership will be assigned to modules when persistence is implemented | Supports consistency of orders and stock without premature distribution |
-| Execution environment | Docker Compose starts the web client, API and database as one reproducible local environment | Reduces setup differences between team members and demonstrations |
-| Evolution | Keep a single deployable until measured scaling or organizational needs justify extracting a module | Preserves a path to change without paying the cost of microservices now |
+| Estructura del sistema | Un cliente web Next.js y un único backend FastAPI modular, respaldados por una sola instancia de PostgreSQL | Evita el sobrecosto de un sistema distribuido conservando los límites funcionales |
+| Descomposición del backend | Paquetes para identidad, catálogo, inventario y pedidos, más un paquete compartido restringido | Alinea el código con las capacidades del negocio y con los límites de rol |
+| Comunicación | REST sobre HTTP entre Next.js y FastAPI; interfaces públicas explícitas o eventos internos para la futura colaboración entre módulos | Mantiene comprensible la integración y evita importar los internos de otro módulo |
+| Datos | Una instancia de PostgreSQL en la fase actual; la propiedad de los datos se asignará a los módulos al implementar la persistencia | Favorece la consistencia de pedidos y existencias sin distribuir prematuramente |
+| Entorno de ejecución | Docker Compose levanta el cliente web, la API y la base de datos como un entorno local reproducible | Reduce las diferencias de configuración entre integrantes del equipo y en las demostraciones |
+| Evolución | Mantener un único desplegable hasta que una necesidad medida de escalamiento u organizativa justifique extraer un módulo | Preserva un camino de cambio sin pagar hoy el costo de los microservicios |
 
-## Relationship to quality goals
+## Relación con los objetivos de calidad
 
-- **Security:** identity and authorization have their own module, and other
-  modules must not bypass its future public contract.
-- **Usability:** Next.js remains an independent web client so the purchase flow
-  can evolve without mixing presentation concerns into backend modules.
-- **Performance:** a single backend and database avoid network hops in the
-  initial stock-update flow.
-- **Availability:** one-command startup and explicit health checks make the
-  academic/demo environment repeatable. Production availability guarantees are
-  not claimed at this stage.
+- **Seguridad:** identidad y autorización tienen su propio módulo, y los demás
+  módulos no deben saltarse su futuro contrato público.
+- **Facilidad de uso:** Next.js se mantiene como cliente web independiente para
+  que el flujo de compra evolucione sin mezclar la presentación con los módulos
+  del backend.
+- **Rendimiento:** un único backend y una sola base de datos evitan saltos de
+  red en el flujo inicial de actualización de existencias.
+- **Disponibilidad:** el arranque con un solo comando y las comprobaciones de
+  salud explícitas hacen repetible el entorno académico y de demostración. En
+  esta etapa no se declaran garantías de disponibilidad de producción.
 
-## Initial deployment shape
+## Forma inicial del despliegue
 
 ```mermaid
 flowchart LR
-    Browser[Web browser] -->|HTTP :3000| Frontend[Next.js]
-    Frontend -->|REST/HTTP :8000| Backend[FastAPI modular monolith]
-    Backend -->|SQL :5432| Database[(PostgreSQL)]
+    Navegador[Navegador web] -->|HTTP :3000| Frontend[Next.js]
+    Frontend -->|REST/HTTP :8000| Backend[FastAPI monolito modular]
+    Backend -->|SQL :5432| BaseDatos[(PostgreSQL)]
 ```
 
-This increment adds one **vertical slice** on top of that skeleton — *browse
-the product catalog* — implemented end to end (Next.js page → FastAPI
-`GET /catalog/products` → SQLAlchemy → PostgreSQL, seeded with mocked data).
-The remaining modules (identity, inventory, orders) stay as empty packages and
-are deferred to later increments.
+Este incremento agrega, sobre ese esqueleto, un **corte vertical** —
+*consultar el catálogo de productos*— implementado de extremo a extremo
+(página Next.js a FastAPI `GET /catalog/products`, de ahí a SQLAlchemy y a
+PostgreSQL, sembrado con datos mockeados). Los demás módulos (identidad,
+inventario y pedidos) siguen siendo paquetes vacíos y se difieren a
+incrementos posteriores.
 
-# Building Block View {#section-building-block-view}
+# Vista de Bloques de Construcción {#section-building-block-view}
 
-## Whitebox Overall System {#_whitebox_overall_system}
+## Sistema Completo como Caja Blanca {#_whitebox_overall_system}
 
-**Motivation.** The decomposition follows the business capabilities named in
-`ADR 0001`: the code structure mirrors identity, catalog, inventory and orders,
-so the modules that will hold role boundaries are visible from the start.
+**Motivación.** La descomposición sigue las capacidades de negocio nombradas en
+el `ADR 0001`: la estructura del código refleja identidad, catálogo, inventario
+y pedidos, de modo que los módulos que sostendrán los límites de rol son
+visibles desde el inicio.
 
 ```mermaid
 flowchart TB
-    subgraph WebClient["Web client — Next.js (frontend/)"]
-        Page["Catalog page (app/page.tsx)"]
+    subgraph ClienteWeb["Cliente web — Next.js (frontend/)"]
+        Pagina["Página de catálogo (app/page.tsx)"]
     end
-    subgraph API["FastAPI modular monolith (backend/app/)"]
-        Main["main.py — app factory, health, lifespan (schema + seed)"]
-        subgraph Catalog["catalog module (implemented in this increment)"]
+    subgraph API["Monolito modular FastAPI (backend/app/)"]
+        Main["main.py — creación de la app, /health, arranque (esquema y siembra)"]
+        subgraph Catalogo["módulo catalog (implementado en este incremento)"]
             CRouter["router.py — GET /catalog/products"]
             CRepo["repository.py"]
             CModel["models.py — Product"]
-            CSeed["seed.py — mocked data"]
+            CSeed["seed.py — datos mockeados"]
         end
-        Identity["identity module (empty package)"]
-        Inventory["inventory module (empty package)"]
-        Orders["orders module (empty package)"]
-        Shared["shared/database.py — engine, session, Base"]
+        Identidad["módulo identity (paquete vacío)"]
+        Inventario["módulo inventory (paquete vacío)"]
+        Pedidos["módulo orders (paquete vacío)"]
+        Shared["shared/database.py — engine, sesión, Base"]
     end
     DB[("PostgreSQL — catalog_products")]
 
-    Page -->|"HTTP GET /catalog/products"| CRouter
+    Pagina -->|"HTTP GET /catalog/products"| CRouter
     Main --> CRouter
     CRouter --> CRepo --> CModel
     CModel --> Shared
@@ -191,113 +196,116 @@ flowchart TB
     Shared -->|SQL| DB
 ```
 
-Contained building blocks:
+Bloques de construcción contenidos:
 
-| Building block | Responsibility | Location |
+| Bloque de construcción | Responsabilidad | Ubicación |
 | --- | --- | --- |
-| Web client | Server-rendered catalog view; formats prices and stock | `frontend/app/` |
-| API entry point | Creates the FastAPI app, exposes `/health`, creates the schema and seeds mocked data on startup | `backend/app/main.py` |
-| `catalog` module | Owns the `Product` table and the `/catalog/products` endpoint | `backend/app/modules/catalog/` |
-| `identity` / `inventory` / `orders` modules | Reserved packages for later increments; currently empty | `backend/app/modules/` |
-| `shared` | Transversal DB access only (engine, session, declarative base) — no business logic, per ADR 0001 | `backend/app/shared/database.py` |
-| Database | Single PostgreSQL instance; the `catalog_products` table is owned by the `catalog` module | container `database` in `compose.yaml` |
+| Cliente web | Vista del catálogo renderizada en el servidor; da formato a precios y existencias | `frontend/app/` |
+| Punto de entrada de la API | Crea la aplicación FastAPI, expone `/health`, crea el esquema y siembra los datos mockeados al arrancar | `backend/app/main.py` |
+| Módulo `catalog` | Es propietario de la tabla `Product` y del endpoint `/catalog/products` | `backend/app/modules/catalog/` |
+| Módulos `identity`, `inventory` y `orders` | Paquetes reservados para incrementos posteriores; hoy vacíos | `backend/app/modules/` |
+| `shared` | Únicamente acceso transversal a la base de datos (engine, sesión, base declarativa); sin lógica de negocio, según el ADR 0001 | `backend/app/shared/database.py` |
+| Base de datos | Instancia única de PostgreSQL; la tabla `catalog_products` es propiedad del módulo `catalog` | contenedor `database` en `compose.yaml` |
 
-Important interfaces:
+Interfaces importantes:
 
-- **`GET /catalog/products`** — returns a JSON array of
-  `{id, nombre, descripcion, precio_centavos, existencias}` ordered by name.
-  Documented at runtime under `/docs` (OpenAPI).
-- **`GET /health`** — liveness probe used by the Docker Compose healthcheck.
+- **`GET /catalog/products`** — devuelve un arreglo JSON de
+  `{id, nombre, descripcion, precio_centavos, existencias}` ordenado por
+  nombre. Documentado en tiempo de ejecución en `/docs` (OpenAPI).
+- **`GET /health`** — sonda de vida usada por la comprobación de salud de
+  Docker Compose.
 
-## Level 2 {#_level_2}
+## Nivel 2 {#_level_2}
 
-### White Box *catalog module* {#_white_box_building_block_1}
+### Caja Blanca *módulo catalog* {#_white_box_building_block_1}
 
-The only module with behaviour in this increment. It keeps a thin layered shape
-inside the module boundary:
+Es el único módulo con comportamiento en este incremento. Mantiene una
+estructura en capas delgada dentro del límite del módulo:
 
-| Element | Responsibility |
+| Elemento | Responsabilidad |
 | --- | --- |
-| `router.py` | HTTP surface: declares `GET /catalog/products`, injects a DB session via `Depends(get_session)`, maps rows to `ProductOut`. |
-| `schemas.py` | `ProductOut` — the module's public data contract (Pydantic). |
-| `repository.py` | `list_products(session)` — the only place that builds catalog queries. |
-| `models.py` | `Product` ORM mapping to `catalog_products`; the module owns this table. |
-| `seed.py` | `seed_products(session)` — idempotent insertion of the mocked catalog (only if the table is empty). |
+| `router.py` | Superficie HTTP: declara `GET /catalog/products`, inyecta una sesión de base de datos con `Depends(get_session)` y transforma las filas a `ProductOut`. |
+| `schemas.py` | `ProductOut`, el contrato público de datos del módulo (Pydantic). |
+| `repository.py` | `list_products(session)`, el único lugar donde se construyen consultas del catálogo. |
+| `models.py` | `Product`, mapeo ORM a `catalog_products`; el módulo es propietario de esta tabla. |
+| `seed.py` | `seed_products(session)`, inserción idempotente del catálogo mockeado (solo si la tabla está vacía). |
 
-Dependency rules (from ADR 0001) respected here: the module imports from
-`app.shared.database` (allowed, transversal) and from nothing inside
-`identity`, `inventory` or `orders`.
+Aquí se respetan las reglas de dependencia del ADR 0001: el módulo importa de
+`app.shared.database` (permitido, por ser transversal) y de nada dentro de
+`identity`, `inventory` u `orders`.
 
-### White Box *shared/database* {#_white_box_building_block_2}
+### Caja Blanca *shared/database* {#_white_box_building_block_2}
 
-`shared/database.py` exposes exactly three things: `engine`, `SessionLocal`
-(via `get_session` dependency) and `Base`. The database URL comes from the
-`DATABASE_URL` environment variable (PostgreSQL in Docker Compose), falling
-back to an in-memory SQLite database for the test suite. No module-specific
-model or query lives here.
+`shared/database.py` expone exactamente tres cosas: `engine`, `SessionLocal`
+(a través de la dependencia `get_session`) y `Base`. La URL de la base de datos
+proviene de la variable de entorno `DATABASE_URL` (PostgreSQL en Docker
+Compose), con un repliegue a una base SQLite en memoria para el conjunto de
+pruebas. Aquí no vive ningún modelo ni consulta específica de un módulo.
 
-# Runtime View {#section-runtime-view}
+# Vista de Tiempo de Ejecución {#section-runtime-view}
 
-## Startup — schema and seed {#_runtime_scenario_1}
+## Arranque: esquema y siembra {#_runtime_scenario_1}
 
 ```mermaid
 sequenceDiagram
     participant Compose as Docker Compose
     participant API as FastAPI (lifespan)
     participant DB as PostgreSQL
-    Compose->>DB: start, wait for healthcheck (pg_isready)
-    Compose->>API: start (database healthy)
-    API->>DB: Base.metadata.create_all() — create catalog_products
-    API->>DB: seed_products() — INSERT mocked catalog if empty
-    API-->>Compose: /health returns 200 (container healthy)
-    Compose->>Compose: start frontend (backend healthy)
+    Compose->>DB: inicia y espera la comprobación de salud (pg_isready)
+    Compose->>API: inicia (base de datos saludable)
+    API->>DB: Base.metadata.create_all() crea catalog_products
+    API->>DB: seed_products() inserta el catálogo mockeado si está vacío
+    API-->>Compose: /health responde 200 (contenedor saludable)
+    Compose->>Compose: inicia el frontend (backend saludable)
 ```
 
-Notable aspects: seeding is **idempotent** — on a restart with an existing
-volume the table is already populated and `seed_products` returns without
-writing. Ordering between containers is enforced by Compose `depends_on` +
-healthchecks, not by retry logic in the code.
+Aspectos relevantes: la siembra es **idempotente**; al reiniciar con un volumen
+existente la tabla ya está poblada y `seed_products` retorna sin escribir. El
+orden entre contenedores lo impone Compose con `depends_on` y las
+comprobaciones de salud, no una lógica de reintentos en el código.
 
-## Browsing the catalog {#_runtime_scenario_2}
+## Consulta del catálogo {#_runtime_scenario_2}
 
 ```mermaid
 sequenceDiagram
-    participant U as Buyer (browser)
-    participant F as Next.js (server component)
+    participant U as Comprador (navegador)
+    participant F as Next.js (componente de servidor)
     participant A as FastAPI /catalog/products
     participant R as catalog.repository
     participant DB as PostgreSQL
-    U->>F: GET / (home page)
-    F->>A: GET /catalog/products (cache: no-store)
+    U->>F: GET / (página de inicio)
+    F->>A: GET /catalog/products (cache no-store)
     A->>R: list_products(session)
     R->>DB: SELECT ... FROM catalog_products ORDER BY nombre
-    DB-->>R: rows
+    DB-->>R: filas
     R-->>A: [Product]
     A-->>F: 200 [ProductOut]
-    F-->>U: HTML with the product list
+    F-->>U: HTML con la lista de productos
 ```
 
-Notable aspects: the page is rendered on the server, so the browser never calls
-the API directly; `cache: "no-store"` makes the route dynamic so stock changes
-are reflected on the next request. If the API is unreachable the page renders an
-error message instead of failing the whole response.
+Aspectos relevantes: la página se renderiza en el servidor, así que el navegador
+nunca llama directamente a la API; `cache: "no-store"` vuelve dinámica la ruta,
+de modo que los cambios de existencias se reflejan en la siguiente petición. Si
+la API no está disponible, la página muestra un mensaje de error en lugar de
+fallar toda la respuesta.
 
-# Deployment View {#section-deployment-view}
+# Vista de Despliegue {#section-deployment-view}
 
-## Infrastructure Level 1 {#_infrastructure_level_1}
+## Infraestructura Nivel 1 {#_infrastructure_level_1}
 
-**Motivation.** A single `docker compose up --build` must bring up the whole
-system reproducibly on any team member's machine for development and demos. No
-cloud environment is committed yet (see Architecture Constraints).
+**Motivación.** Un solo `docker compose up --build` debe levantar todo el
+sistema de forma reproducible en la máquina de cualquier integrante, para
+desarrollo y demostraciones. Todavía no se compromete ningún entorno en la nube
+(ver Restricciones de la Arquitectura).
 
 ```mermaid
 flowchart LR
-    Dev["Developer machine — Docker Engine"]
+    Dev["Máquina del desarrollador — Docker Engine"]
     subgraph Compose["docker compose (compose.yaml)"]
-        FE["frontend container — Next.js :3000"]
-        BE["backend container — Uvicorn/FastAPI :8000"]
-        PG["database container — postgres:17-alpine :5432"]
-        VOL[("volume postgres_data")]
+        FE["contenedor frontend — Next.js :3000"]
+        BE["contenedor backend — Uvicorn/FastAPI :8000"]
+        PG["contenedor database — postgres:17-alpine :5432"]
+        VOL[("volumen postgres_data")]
     end
     Dev --> FE
     FE --> BE
@@ -305,102 +313,107 @@ flowchart LR
     PG --- VOL
 ```
 
-Mapping of building blocks to infrastructure:
+Correspondencia entre bloques de construcción e infraestructura:
 
-| Building block | Container | Image / build | Ports |
+| Bloque de construcción | Contenedor | Imagen o construcción | Puertos |
 | --- | --- | --- | --- |
-| Web client | `frontend` | build `./frontend` (node:22-alpine) | 3000 |
-| API (modular monolith) | `backend` | build `./backend` (python:3.12-slim) | 8000 |
-| Database | `database` | `postgres:17-alpine` | 5432 (internal) |
-| Persistent data | volume `postgres_data` | — | — |
+| Cliente web | `frontend` | construye `./frontend` (node:22-alpine) | 3000 |
+| API (monolito modular) | `backend` | construye `./backend` (python:3.12-slim) | 8000 |
+| Base de datos | `database` | `postgres:17-alpine` | 5432 (interno) |
+| Datos persistentes | volumen `postgres_data` | — | — |
 
-Quality features: healthchecks on `database` (`pg_isready`) and `backend`
-(`/health`) plus `depends_on: condition: service_healthy` guarantee start-up
-order; the named volume preserves local data across restarts.
+Características de calidad: las comprobaciones de salud de `database`
+(`pg_isready`) y de `backend` (`/health`), junto con
+`depends_on: condition: service_healthy`, garantizan el orden de arranque; el
+volumen con nombre conserva los datos locales entre reinicios.
 
-# Cross-cutting Concepts {#section-concepts}
+# Conceptos Transversales {#section-concepts}
 
-## Persistence and data ownership {#_concept_1}
+## Persistencia y propiedad de los datos {#_concept_1}
 
-One PostgreSQL instance, one SQLAlchemy `Base`. Each module declares and owns
-its own tables (`catalog` owns `catalog_products`); other modules must go
-through the owning module's public interface, never its ORM models. The schema
-is created at startup with `create_all` — migrations (Alembic) are deferred
-until the schema stabilises.
+Una instancia de PostgreSQL y una sola `Base` de SQLAlchemy. Cada módulo declara
+y es propietario de sus tablas (`catalog` es propietario de `catalog_products`);
+los demás módulos deben pasar por la interfaz pública del módulo propietario,
+nunca por sus modelos ORM. El esquema se crea al arrancar con `create_all`; las
+migraciones (Alembic) se difieren hasta que el esquema se estabilice.
 
-## Configuration {#_concept_2}
+## Configuración {#_concept_2}
 
-Configuration is read from environment variables set in `compose.yaml`
-(`DATABASE_URL` for the API, `API_URL` for the web client). Code ships with
-safe local defaults so the test suite runs with no environment set.
+La configuración se lee de variables de entorno definidas en `compose.yaml`
+(`DATABASE_URL` para la API y `API_URL` para el cliente web). El código trae
+valores por defecto seguros para el entorno local, de modo que el conjunto de
+pruebas se ejecuta sin configurar nada.
 
-## Mocked data {#_concept_3}
+## Datos mockeados {#_concept_3}
 
-Per the constraints, there is no real data source. Seed data lives in the
-owning module (`catalog/seed.py`) and is inserted idempotently on startup, so
-the running system always has a catalog to show without a manual step.
+Según las restricciones, no existe una fuente de datos real. Los datos de
+siembra viven en el módulo propietario (`catalog/seed.py`) y se insertan de
+forma idempotente al arrancar, así el sistema en ejecución siempre tiene un
+catálogo que mostrar sin ningún paso manual.
 
-## Testing {#_concept_4}
+## Pruebas {#_concept_4}
 
-Tests run against in-memory SQLite (no container needed) and cover: the health
-route, the ADR module boundaries, and the catalog endpoint (contract, ordering,
-seeded content). GitHub Actions runs the same suite on every push and PR.
+Las pruebas se ejecutan contra SQLite en memoria (sin necesidad de
+contenedores) y cubren la ruta de salud, los límites entre módulos del ADR y el
+endpoint del catálogo (contrato, orden y contenido sembrado). GitHub Actions
+ejecuta el mismo conjunto en cada envío y en cada solicitud de cambios.
 
-# Architecture Decisions {#section-design-decisions}
+# Decisiones de Arquitectura {#section-design-decisions}
 
-| ADR | Decision | Status |
+| ADR | Decisión | Estado |
 | --- | --- | --- |
-| [0001](../adr/0001-monolito-modular.md) | Modular monolith for the FastAPI backend, split into `identity`, `catalog`, `inventory`, `orders` + a restricted `shared` package, with explicit inter-module dependency rules | Accepted (2026-08-21) |
+| [0001](../adr/0001-monolito-modular.md) | Monolito modular para el backend FastAPI, dividido en `identity`, `catalog`, `inventory` y `orders`, más un paquete `shared` restringido, con reglas explícitas de dependencia entre módulos | Aceptada (2026-08-21) |
 
-Decisions still open (candidates for future ADRs): authentication mechanism,
-adoption of database migrations, whether any module adopts a hexagonal shape
-internally, and the deployment target.
+Decisiones aún abiertas (candidatas a futuros ADR): el mecanismo de
+autenticación, la adopción de migraciones de base de datos, si algún módulo
+adopta internamente una forma hexagonal, y el destino de despliegue.
 
-# Quality Requirements {#section-quality-scenarios}
+# Requisitos de Calidad {#section-quality-scenarios}
 
-## Quality Requirements Overview {#_quality_requirements_overview}
+## Resumen de Requisitos de Calidad {#_quality_requirements_overview}
 
-The utility tree (`docs/arbol-utilidad.md`) prioritises leaves along two axes,
-business impact (IN) and architectural risk (RA). The highest-priority leaves
-(IN: H) are role-based authorization, the minimal-steps purchase flow, and
-stock becoming visible to other users shortly after an order.
+El árbol de utilidad (`docs/arbol-utilidad.md`) prioriza las hojas en dos ejes:
+impacto en el negocio (IN) y riesgo arquitectónico (RA). Las hojas de mayor
+prioridad (IN alto) son la autorización por rol, el flujo de compra en el
+mínimo número de pasos, y que las existencias se vuelvan visibles para otros
+usuarios poco después de un pedido.
 
-## Quality Scenarios {#_quality_scenarios}
+## Escenarios de Calidad {#_quality_scenarios}
 
-Full scenarios (Source / Stimulus / Environment / Artifact / Response /
-Response measure) are in `docs/escenarios-calidad.md`. Summary:
+Los escenarios completos (Fuente / Estímulo / Ambiente / Artefacto / Respuesta /
+Medida de respuesta) están en `docs/escenarios-calidad.md`. Resumen:
 
-| # | Quality goal | Scenario | Response measure | Covered in this increment |
+| # | Objetivo de calidad | Escenario | Medida de respuesta | Cubierto en este incremento |
 | --- | --- | --- | --- | --- |
-| 1 | Security | An inventory manager tries to change a product price | 100% of the defined out-of-role operations are rejected (403) | No — needs the `identity` module |
-| 2 | Usability | A buyer completes a purchase | Flow completed in ≤ 4 screens/steps | Partially — catalog view exists; cart/checkout pending |
-| 3 | Performance | An order reduces a product's stock | Change visible to another session in < 2 s on reload | Enabler in place — dynamic (`no-store`) catalog read; order flow pending |
-| 4 | Availability | ~5 concurrent buyers browse the catalog | All get a correct response, local server stays up | Testable now — `GET /catalog/products` is live |
+| 1 | Seguridad | Un responsable de inventario intenta cambiar el precio de un producto | El 100% de las operaciones fuera de rol definidas se rechazan (403) | No; requiere el módulo `identity` |
+| 2 | Facilidad de uso | Un comprador completa una compra | Flujo completado en 4 pantallas o pasos como máximo | Parcialmente; existe la vista de catálogo, faltan carrito y confirmación |
+| 3 | Rendimiento | Un pedido reduce las existencias de un producto | Cambio visible para otra sesión en menos de 2 s al recargar | Habilitador en su lugar: lectura dinámica del catálogo (`no-store`); flujo de pedidos pendiente |
+| 4 | Disponibilidad | Unos 5 compradores consultan el catálogo a la vez | Todos obtienen una respuesta correcta y el servidor local no se cae | Verificable ya: `GET /catalog/products` está en funcionamiento |
 
-# Risks and Technical Debts {#section-technical-risks}
+# Riesgos y Deuda Técnica {#section-technical-risks}
 
-| Risk / debt | Impact | Current mitigation |
+| Riesgo o deuda | Impacto | Mitigación actual |
 | --- | --- | --- |
-| Module boundaries are convention-based, not enforced by the network | Undesired coupling between modules | ADR dependency rules + `test_architecture.py`; stricter dependency test planned when more code exists |
-| `create_all` instead of migrations | Schema changes on populated databases will be manual | Acceptable while the schema is small; Alembic ADR pending |
-| Deployment target not chosen | Cannot demo outside a local machine | System runs fully with one Compose command; target to be confirmed (`docs/disponibilidad.md`) |
-| Mocked data only | Behaviour not validated against real cafeteria data | Explicit scope constraint; seed data models realistic products |
-| `next@15.5.2` has a known CVE | Security exposure in the web client | Noted; upgrade to a patched Next.js release is a follow-up task |
+| Los límites entre módulos son una convención, no están impuestos por la red | Acoplamiento indeseado entre módulos | Reglas de dependencia del ADR y `test_architecture.py`; se prevé una prueba de dependencias más estricta cuando exista más código |
+| `create_all` en lugar de migraciones | Los cambios de esquema sobre bases de datos pobladas serán manuales | Aceptable mientras el esquema sea pequeño; ADR de Alembic pendiente |
+| Destino de despliegue sin elegir | No se puede demostrar fuera de una máquina local | El sistema funciona por completo con un solo comando de Compose; destino por confirmar (`docs/disponibilidad.md`) |
+| Solo datos mockeados | El comportamiento no se valida contra datos reales de la cafetería | Restricción explícita de alcance; los datos sembrados modelan productos realistas |
+| La versión fijada de Next.js (`15.5.2`) no es la última publicada | Posible exposición a fallos ya corregidos aguas arriba | Registrado como tarea de seguimiento: revisar los avisos de seguridad vigentes y actualizar Next.js antes de cualquier despliegue real |
 
-# Glossary {#section-glossary}
+# Glosario {#section-glossary}
 
-| Term | Definition |
+| Término | Definición |
 | --- | --- |
-| Buyer (*Comprador*) | UTB student, professor, staff member or alumnus who browses the catalog and places/consults orders. |
-| Store administrator (*Administrador*) | Authorized cafeteria staff who manages products, prices and order status. |
-| Inventory manager (*Responsable de inventario*) | Authorized cafeteria staff who consults and updates available stock. |
-| Catalog | Set of products offered by the cafeteria, with description, price and available stock. |
-| Modular monolith | A single deployable backend divided into modules with explicit boundaries by business capability (see ADR 0001). |
-| Module | A backend package for one business capability (`identity`, `catalog`, `inventory`, `orders`); owns its tables and public contract. |
-| `shared` | Package for genuinely transversal code only (currently database access); never a home for a module's logic. |
-| Vertical slice | A single feature implemented through every layer (web → API → persistence) rather than one layer at a time. |
-| Seed / mocked data | Example data inserted automatically so the system is usable without a real integration. |
-| `precio_centavos` | Product price stored as an integer number of cents (COP) to avoid floating-point rounding. |
-| ADR | Architecture Decision Record — a short document capturing one decision, its context and consequences. |
-| C4 | Model for visualising software architecture at four zoom levels: Context, Container, Component, Code. |
-| Health check | `GET /health` endpoint used by Docker Compose to decide when a container is ready. |
+| Comprador | Estudiante, docente, funcionario o egresado de la UTB que consulta el catálogo y realiza o consulta pedidos. |
+| Administrador de la tienda | Personal autorizado de la cafetería que gestiona productos, precios y el estado de los pedidos. |
+| Responsable de inventario | Personal autorizado de la cafetería que consulta y actualiza las existencias disponibles. |
+| Catálogo | Conjunto de productos ofrecidos por la cafetería, con descripción, precio y existencias disponibles. |
+| Monolito modular | Un único backend desplegable dividido en módulos con límites explícitos por capacidad de negocio (ver ADR 0001). |
+| Módulo | Paquete del backend correspondiente a una capacidad de negocio (`identity`, `catalog`, `inventory`, `orders`); es propietario de sus tablas y de su contrato público. |
+| `shared` | Paquete reservado únicamente para código realmente transversal (hoy, el acceso a la base de datos); nunca es el lugar para la lógica de un módulo. |
+| Corte vertical | Una sola funcionalidad implementada a través de todas las capas (web, API y persistencia) en lugar de una capa a la vez. |
+| Datos sembrados o mockeados | Datos de ejemplo insertados automáticamente para que el sistema sea utilizable sin una integración real. |
+| `precio_centavos` | Precio del producto almacenado como número entero de centavos (COP) para evitar errores de redondeo de punto flotante. |
+| ADR | *Architecture Decision Record*, o registro de decisión de arquitectura: documento breve que registra una decisión, su contexto y sus consecuencias. |
+| C4 | Modelo para visualizar la arquitectura de software en cuatro niveles de acercamiento: Contexto, Contenedores, Componentes y Código. |
+| Comprobación de salud | Endpoint `GET /health` que Docker Compose usa para decidir cuándo un contenedor está listo. |
