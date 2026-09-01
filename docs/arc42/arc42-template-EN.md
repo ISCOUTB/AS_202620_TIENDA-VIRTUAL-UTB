@@ -77,26 +77,44 @@ Constraints](#section-architecture-constraints)):
   catalog, inventory and order data, not on a live feed from the
   cafeteria or the university.
 
+## Business Goals {#_business_goals}
+
+What the system is meant to achieve for the organization, independently of how it
+is built. These goals are derived from `docs/problema.md` (sections *Contexto y
+problema* and *Resultado esperado*); the last column names who the goal belongs
+to, so that every later decision can be traced back to someone's interest.
+
+| # | Business goal | Why it matters | Primary stakeholder |
+| --- | --- | --- | --- |
+| BG-1 | Centralize the catalog, prices and availability of the cafeteria in a single web system | Today this information is handled manually and is dispersed, so nobody has a single reliable view of what is on offer | Store administrator |
+| BG-2 | Let a buyer find out whether a product is available **before** walking to a point of sale | Avoids the wasted trip and the queue, which is the everyday frustration that motivates the project | Buyer |
+| BG-3 | Reduce the manual work needed to keep catalog, stock and order status up to date | Manual upkeep does not scale with the cafeteria's activity and is where errors appear | Store administrator, inventory manager |
+| BG-4 | Make the browsing and purchase process traceable: orders are recorded and can be consulted afterwards | Both sides need to be able to answer "what was ordered, and in what state is it" without asking in person | Buyer, store administrator |
+
 ## Quality Goals {#_quality_goals}
 
-| # | Quality Goal | Motivation |
-| --- | --- | --- |
-| 1 | Security | Only authenticated users should access the system, and each role (buyer, store admin, inventory manager) should only be able to perform the operations that correspond to it. |
-| 2 | Usability | Buying a product should take few steps; adding authentication and role checks must not turn the purchase flow into a tedious process. |
-| 3 | Performance | Stock changes triggered by a purchase should be reflected quickly enough that two buyers do not both believe the same unit of an out-of-stock product is available. |
-| 4 | Availability | The catalog should stay reachable during peak consultation times (e.g. lunch hour), since that is when most of the community is expected to use it. |
+Each quality goal exists to serve at least one business goal. The *Supports*
+column is that link, and *Stakeholder who cares most* names who loses out if the
+goal is missed.
 
-These four goals are the same ones expanded into the utility tree and
-quality scenarios in `docs/arbol-utilidad.md` and
-`docs/escenarios-calidad.md`.
+| # | Quality Goal | Motivation | Supports | Stakeholder who cares most |
+| --- | --- | --- | --- | --- |
+| 1 | Security | Only authenticated users should access the system, and each role (buyer, store admin, inventory manager) should only be able to perform the operations that correspond to it. | BG-1, BG-3 | Store administrator — a price or stock changed by the wrong person destroys the single reliable view BG-1 promises |
+| 2 | Usability | Buying a product should take few steps; adding authentication and role checks must not turn the purchase flow into a tedious process. | BG-2, BG-4 | Buyer — a flow more tedious than walking to the counter defeats the purpose of the system |
+| 3 | Performance | Stock changes triggered by a purchase should be reflected quickly enough that two buyers do not both believe the same unit of an out-of-stock product is available. | BG-2 | Buyer — availability that is shown but not real is worse than no information at all |
+| 4 | Availability | The catalog should stay reachable during peak consultation times (e.g. lunch hour), since that is when most of the community is expected to use it. | BG-2 | Buyer — the catalog is worth least precisely when it is needed most |
+
+These four goals are the same ones expanded into the
+[utility tree](../arbol-utilidad.md) and the
+[quality scenarios](../escenarios-calidad.md).
 
 ## Stakeholders {#_stakeholders}
 
-| Role | Who | Expectations |
-| --- | --- | --- |
-| Buyer (*Comprador*) | Students, professors, staff and alumni of UTB | Quickly find out what is available, buy with few steps, and check the status of their order. |
-| Store administrator (*Administrador*) | Authorized cafeteria staff | Register/update products and prices, and manage order status. |
-| Inventory manager (*Responsable de inventario*) | Authorized cafeteria staff | Consult and update available stock so it matches what buyers see in the catalog. |
+| Role | Who | Expectations | Business goals |
+| --- | --- | --- | --- |
+| Buyer (*Comprador*) | Students, professors, staff and alumni of UTB | Quickly find out what is available, buy with few steps, and check the status of their order. | BG-2 (availability known before travelling), BG-4 (own orders consultable) |
+| Store administrator (*Administrador*) | Authorized cafeteria staff | Register/update products and prices, and manage order status. | BG-1 (single view of the offer), BG-3 (less manual upkeep), BG-4 (order status traceable) |
+| Inventory manager (*Responsable de inventario*) | Authorized cafeteria staff | Consult and update available stock so it matches what buyers see in the catalog. | BG-3 (less manual upkeep), and feeds the stock accuracy BG-2 depends on |
 
 # Architecture Constraints {#section-architecture-constraints}
 
