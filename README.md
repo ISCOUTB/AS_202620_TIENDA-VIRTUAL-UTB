@@ -151,3 +151,5 @@ compose.yaml                    # frontend + backend + postgres
 - `docs/arc42/`: documentación de arquitectura basada en la plantilla del curso.
 - `docs/adr/`: registros de decisiones arquitectónicas.
 - `docs/c4/`: diagramas del modelo C4.
+
+Hasta aqui llega todos los avances relacionados con el primer corte
