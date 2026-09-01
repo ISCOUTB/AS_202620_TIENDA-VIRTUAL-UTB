@@ -1,9 +1,15 @@
 
 # Aspectos de calidad
 
-Cada fila enlaza un atributo de calidad con su escenario, la prioridad del
-árbol de utilidad, la decisión arquitectónica que lo soporta, el lugar del
-repositorio donde vive esa decisión y las pruebas que lo verifican.
+Cada fila enlaza un atributo de calidad con su escenario (sección *Quality
+Requirements* de `docs/arc42/arc42-template-EN.md` y `docs/escenarios-calidad.md`),
+la prioridad del árbol de utilidad, la decisión arquitectónica que lo soporta, el
+lugar del repositorio donde vive esa decisión y las pruebas que lo verifican.
+
+La fila de **disponibilidad** está completa de extremo a extremo (escenario →
+prioridad → táctica → ubicación → pruebas ejecutándose en CI). La de seguridad
+queda parcialmente cubierta a propósito: depende del módulo `identity`, aún no
+implementado.
 
 - **IN** = impacto en el negocio, **RA** = riesgo arquitectónico (Alto / Medio / Bajo),
   según `docs/arbol-utilidad.md`.

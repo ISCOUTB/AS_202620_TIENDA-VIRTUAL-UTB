@@ -29,7 +29,7 @@ en la [ficha del problema](docs/problema.md).
 
 ## Evidencia S2
 
-- [arc42 secciones 1-3](docs/arc42/arc42-template-EN.md) (Introducción y Objetivos, Restricciones de la Arquitectura, Contexto y Alcance del Sistema)
+- [arc42 secciones 1-3](docs/arc42/arc42-template-EN.md) (Introduction and Goals, Architecture Constraints, Context and Scope)
 - [Árbol de utilidad](docs/arbol-utilidad.md)
 - [Escenarios de calidad](docs/escenarios-calidad.md)
 - [C4 de contexto](docs/c4/context.md)
@@ -46,9 +46,12 @@ el cliente web y PostgreSQL el almacenamiento.
 
 ## Evidencia S4 — incremento arc42, C4 y corte vertical
 
-- [arc42 secciones 1–6, 9, 10 y glosario](docs/arc42/arc42-template-EN.md) — documento
-  completo en español. Incluye además, por continuidad del documento, las
-  secciones 7 (despliegue), 8 (conceptos transversales) y 11 (riesgos).
+- [arc42 secciones 1–6, 9, 10 y glosario](docs/arc42/arc42-template-EN.md) — el
+  documento arc42 se mantiene en inglés (`arc42-template-EN.md`). Este incremento
+  añade las secciones 5–6 (bloques de construcción y tiempo de ejecución), 9
+  (decisiones), 10 (requisitos de calidad) y el glosario inicial; por continuidad
+  del documento también quedan pobladas 7 (despliegue), 8 (conceptos
+  transversales) y 11 (riesgos).
 - [C4 nivel 1 — contexto](docs/c4/context.md) y [C4 nivel 2 — contenedores](docs/c4/container.md)
 - [Tabla de aspectos de calidad](docs/aspectos.md) (fila de disponibilidad completa hasta pruebas)
 
@@ -67,9 +70,20 @@ Navegador → Next.js (frontend/app/page.tsx)
   idempotente (`backend/app/main.py`, `lifespan`).
 - El cliente web renderiza la lista de productos en el servidor; si la API no
   responde, muestra un mensaje de error en lugar de fallar.
-- Verlo funcionando: tras `docker compose up --build`, abrir
-  <http://localhost:3000> (catálogo) y <http://localhost:8000/catalog/products>
-  (JSON).
+
+Comandos:
+
+```bash
+# Arrancar el corte vertical completo (web + API + base de datos)
+docker compose up --build
+
+# Correr la prueba automatizada del corte vertical (sin contenedores)
+python -m pip install -r backend/requirements-dev.txt
+python -m pytest -c backend/pytest.ini backend/tests/test_catalog.py
+```
+
+Tras el arranque: <http://localhost:3000> (catálogo) y
+<http://localhost:8000/catalog/products> (JSON).
 
 Los módulos `identity`, `inventory` y `orders` siguen siendo paquetes vacíos,
 reservados para incrementos posteriores.
