@@ -160,15 +160,23 @@ consequences are recorded in
 
 ## Relationship to quality goals
 
-- **Security:** identity and authorization have their own module, and other
-  modules must not bypass its future public contract.
-- **Usability:** Next.js remains an independent web client so the purchase flow
-  can evolve without mixing presentation concerns into backend modules.
-- **Performance:** a single backend and database avoid network hops in the
-  initial stock-update flow.
-- **Availability:** one-command startup and explicit health checks make the
-  academic/demo environment repeatable. Production availability guarantees are
-  not claimed at this stage.
+The four scenarios come from the [utility tree](../arbol-utilidad.md) and are
+written out in [quality scenarios](../escenarios-calidad.md); they are numbered
+as in section 10 below. How each architectural style scores against them is in
+the [architecture comparison matrix](../matriz-comparativa-arquitectura.md).
+
+- **Security** (scenario 1: an out-of-role price change is rejected with 403):
+  identity and authorization have their own module, sole owner of the contract,
+  and other modules must not bypass its future public contract.
+- **Usability** (scenario 2: a purchase completed in at most 4 screens): Next.js
+  remains an independent web client so the purchase flow can evolve without
+  mixing presentation concerns into backend modules.
+- **Performance** (scenario 3: stock visible to another session in under 2 s): a
+  single backend and database avoid network hops and eventual consistency in the
+  stock-update flow.
+- **Availability** (scenario 4: about 5 concurrent catalog requests): one-command
+  startup and explicit health checks make the academic/demo environment
+  repeatable. Production availability guarantees are not claimed at this stage.
 
 ## Initial deployment shape
 

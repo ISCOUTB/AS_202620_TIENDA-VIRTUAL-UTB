@@ -16,6 +16,23 @@ capacidades del sistema y no en configurar infraestructura distribuida. Al
 mismo tiempo, debe evitar que toda la lógica futura termine mezclada en un solo
 paquete.
 
+Los escenarios que motivan esta decisión son los priorizados en el
+[árbol de utilidad](../arbol-utilidad.md) y desarrollados en
+[escenarios de calidad](../escenarios-calidad.md). Los dos determinantes, por
+impacto alto en el negocio y riesgo arquitectónico medio, son:
+
+- [Escenario 1 — Seguridad, autorización por rol](../escenarios-calidad.md#1-seguridad--autorización-por-rol):
+  exige que un único responsable de autorización no pueda ser eludido por el
+  resto del sistema.
+- [Escenario 3 — Rendimiento, reflejo del inventario](../escenarios-calidad.md#3-rendimiento--reflejo-de-inventario):
+  exige que la existencia se refleje en menos de 2 segundos tras confirmar un
+  pedido, sin recurrir a consistencia eventual.
+
+Los escenarios 2 (usabilidad) y 4 (disponibilidad) no discriminan entre las
+alternativas en el alcance actual, por lo que no pesan en esta decisión; el
+análisis por escenario está en la
+[matriz comparativa](../matriz-comparativa-arquitectura.md).
+
 ## Alternativas consideradas
 
 ### Arquitectura por capas
@@ -45,7 +62,8 @@ límites explícitos.
 - Desventaja: los límites no los impone la red; el equipo debe conservarlos
   mediante convenciones y pruebas.
 
-La evaluación detallada está en
+La evaluación detallada —tanto por criterios generales como por escenario del
+árbol de utilidad— está en
 [`docs/matriz-comparativa-arquitectura.md`](../matriz-comparativa-arquitectura.md).
 
 ## Decisión
