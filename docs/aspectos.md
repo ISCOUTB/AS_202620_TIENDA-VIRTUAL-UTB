@@ -1,6 +1,12 @@
 
 # Aspectos de calidad
 
+> **Nota (Evidencia S6):** por dueño único de datos, la existencia disponible
+> (`existencias`) pertenece al módulo **`inventory`**, no a `catalog`. Hoy el
+> corte vertical la persiste en `catalog_products` (ver violación V1 en
+> [`docs/violaciones-s6.md`](violaciones-s6.md)), lo que se planifica trasladar
+> al módulo `inventory` en un incremento posterior.
+
 Cada fila enlaza un atributo de calidad con su escenario (sección *Quality
 Requirements* de `docs/arc42/arc42-template-EN.md` y
 [escenarios de calidad](escenarios-calidad.md)), la prioridad del árbol de

@@ -88,6 +88,15 @@ Tras el arranque: <http://localhost:3000> (catálogo) y
 Los módulos `identity`, `inventory` y `orders` siguen siendo paquetes vacíos,
 reservados para incrementos posteriores.
 
+## Evidencia S6 — contextos delimitados y deuda arquitectónica
+
+- [Mapa de contextos (bounded contexts) y tabla de módulos con dueño único](docs/bounded-contexts.md)
+- [Violaciones detectadas en el código actual con plan de corrección](docs/violaciones-s6.md)
+
+El mapa reinterpreta los módulos del ADR 0001 como contextos delimitados con
+dueño único (rol de negocio), y `violaciones-s6.md` lista las desviaciones
+reales del código frente a esa propiedad de datos y la propuesta de corrección.
+
 ## Arranque con un solo comando
 
 ### Requisito
