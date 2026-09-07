@@ -32,3 +32,5 @@ inteligencia artificial durante el proyecto. El equipo es responsable de revisar
 - Las celdas marcadas como *sin declarar* corresponden a sesiones cuyo detalle
   solo conoce quien las ejecutó; quedan a la espera de esa declaración y no se
   rellenan con supuestos.
+
+| 2026-09-07 | Codex | Contrastar la revisión del corte 1 y documentar las correcciones solicitadas por el equipo. | `correcciones.md` con evidencia histórica y estados no revisados; tabla de aspectos ampliada a ocho columnas, conservando prioridades. | Se descartó afirmar que se ejecutó el sistema o se midió disponibilidad; inventar una consigna, mediciones o descartes históricos; y equiparar un commit con una etiqueta de entrega. La aclaración de que no se solicitó un ADR adicional se atribuye al equipo. | El equipo confirmó el alcance S1–S4 y el funcionamiento del primer corte vertical y solicitó estas correcciones y el commit `corte-1`. Enlaces y estructura revisados localmente; no se atribuye al equipo una validación de mediciones no ejecutadas. |
