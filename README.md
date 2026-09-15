@@ -97,6 +97,15 @@ El mapa reinterpreta los módulos del ADR 0001 como contextos delimitados con
 dueño único (rol de negocio), y `violaciones-s6.md` lista las desviaciones
 reales del código frente a esa propiedad de datos y la propuesta de corrección.
 
+## Evidencia de contrato e integración
+
+- [Documentación de la API, diagramas y explicación de `/health`](docs/api/contrato-api.md)
+- [Guía de la evidencia y comandos de verificación](docs/api/README.md)
+- [Contrato OpenAPI 3.1.0, versión de API 0.2.0](docs/api/openapi.json)
+- [ADR 0002: integración HTTP y contrato versionado](docs/adr/0002-contrato-integracion-http.md)
+- [Pruebas de contrato](backend/tests/contract/test_openapi.py) ejecutadas en el
+  [pipeline](.github/workflows/tests.yml), con reporte descargable.
+
 ## Arranque con un solo comando
 
 ### Requisito

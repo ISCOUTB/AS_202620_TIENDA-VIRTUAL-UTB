@@ -1,0 +1,108 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Tienda Virtual UTB",
+    "version": "0.2.0"
+  },
+  "paths": {
+    "/catalog/products": {
+      "get": {
+        "tags": [
+          "catalogo"
+        ],
+        "summary": "Get Products",
+        "description": "Lista los productos disponibles en el catálogo.",
+        "operationId": "get_products_catalog_products_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ProductOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Products Catalog Products Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "operacion"
+        ],
+        "summary": "Health",
+        "description": "Confirma que el proceso de la API está disponible.",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HealthOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "HealthOut"
+      },
+      "ProductOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion"
+          },
+          "precio_centavos": {
+            "type": "integer",
+            "title": "Precio Centavos"
+          },
+          "existencias": {
+            "type": "integer",
+            "title": "Existencias"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "nombre",
+          "descripcion",
+          "precio_centavos",
+          "existencias"
+        ],
+        "title": "ProductOut"
+      }
+    }
+  }
+}

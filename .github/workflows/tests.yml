@@ -21,5 +21,16 @@ jobs:
           cache-dependency-path: backend/requirements-dev.txt
       - name: Instalar dependencias
         run: pip install -r requirements-dev.txt
-      - name: Ejecutar pruebas
-        run: pytest
+      - name: Verificar contrato OpenAPI y respuestas HTTP
+        run: python -m pytest tests/contract -v -p no:cacheprovider --junitxml=reports/contract.xml
+        env:
+          DATABASE_URL: sqlite+pysqlite:///:memory:
+      - name: Guardar resultado de pruebas de contrato
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pruebas-contrato
+          path: backend/reports/contract.xml
+          if-no-files-found: warn
+      - name: Ejecutar pruebas funcionales y de arquitectura
+        run: python -m pytest tests --ignore=tests/contract

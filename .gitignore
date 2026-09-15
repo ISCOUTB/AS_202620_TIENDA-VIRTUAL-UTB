@@ -2,6 +2,7 @@ __pycache__/
 *.py[cod]
 .pytest_cache/
 .venv/
+.contract-tools/
 .env
 node_modules/
 .next/
