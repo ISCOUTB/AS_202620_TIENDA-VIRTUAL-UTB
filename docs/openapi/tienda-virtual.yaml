@@ -1,0 +1,741 @@
+openapi: 3.1.0
+info:
+  title: Tienda Virtual UTB
+  description: |
+    API REST del monolito modular de la Tienda Virtual UTB.
+    
+    ## Arquitectura
+    
+    El backend está organizado en módulos de dominio (bounded contexts):
+    
+    - **identity** — Autenticación, registro y gestión de usuarios
+    - **catalog** — Catálogo de productos disponibles para la venta
+    - **inventory** — Control de existencias y movimientos de stock
+    - **orders** — Gestión de pedidos de compra
+    
+    ## Convenciones
+    
+    - Precios en **centavos COP** (ej: 350000 = $3.500 COP)
+    - Autenticación via **Bearer JWT** (endpoints protegidos)
+    - IDs incrementales enteros
+    - Fechas en formato ISO 8601 UTC
+  version: 0.2.0
+  contact:
+    name: Equipo Tienda Virtual UTB
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:8000
+    description: Desarrollo local
+
+tags:
+  - name: operacion
+    description: Health checks y operaciones de infraestructura
+  - name: identity
+    description: Autenticación y gestión de usuarios
+  - name: catalogo
+    description: Consulta del catálogo de productos
+  - name: inventory
+    description: Control de existencias (solo administradores)
+  - name: orders
+    description: Gestión de pedidos de compra
+
+paths:
+  # ──────────────────────────────────────────────
+  # OPERACIONES
+  # ──────────────────────────────────────────────
+  /health:
+    get:
+      operationId: healthCheck
+      tags: [operacion]
+      summary: Health check
+      description: Confirma que el proceso de la API está disponible.
+      responses:
+        "200":
+          description: Servicio operativo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  # ──────────────────────────────────────────────
+  # IDENTITY
+  # ──────────────────────────────────────────────
+  /identity/register:
+    post:
+      operationId: registerUser
+      tags: [identity]
+      summary: Registrar nuevo usuario
+      description: Crea una cuenta de usuario con credenciales.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Usuario registrado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOut"
+        "409":
+          description: El correo ya está registrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /identity/login:
+    post:
+      operationId: loginUser
+      tags: [identity]
+      summary: Iniciar sesión
+      description: Autentica un usuario y devuelve un token JWT.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Autenticación exitosa
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+        "401":
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /identity/me:
+    get:
+      operationId: getCurrentUser
+      tags: [identity]
+      summary: Obtener usuario actual
+      description: Retorna el perfil del usuario autenticado.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Perfil del usuario
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserOut"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  # ──────────────────────────────────────────────
+  # CATALOG
+  # ──────────────────────────────────────────────
+  /catalog/products:
+    get:
+      operationId: listProducts
+      tags: [catalogo]
+      summary: Listar productos
+      description: |
+        Retorna todos los productos del catálogo ordenados alfabéticamente.
+        **Endpoint implementado actualmente.**
+      responses:
+        "200":
+          description: Lista de productos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ProductOut"
+
+  /catalog/products/{productId}:
+    get:
+      operationId: getProductById
+      tags: [catalogo]
+      summary: Obtener producto por ID
+      description: Retorna un producto específico del catálogo.
+      parameters:
+        - $ref: "#/components/parameters/ProductId"
+      responses:
+        "200":
+          description: Detalle del producto
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductOut"
+        "404":
+          description: Producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  # ──────────────────────────────────────────────
+  # INVENTORY
+  # ──────────────────────────────────────────────
+  /inventory:
+    get:
+      operationId: listInventory
+      tags: [inventory]
+      summary: Listar inventario
+      description: |
+        Retorna el stock de todos los productos.
+        **Requiere rol administrador.**
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Inventario completo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InventoryItemOut"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  /inventory/{productId}:
+    get:
+      operationId: getInventoryByProduct
+      tags: [inventory]
+      summary: Consultar stock de un producto
+      description: Retorna las existencias de un producto específico.
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ProductId"
+      responses:
+        "200":
+          description: Stock del producto
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemOut"
+        "404":
+          description: Producto no encontrado en inventario
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+    put:
+      operationId: updateInventory
+      tags: [inventory]
+      summary: Actualizar stock de un producto
+      description: |
+        Establece la cantidad de existencias de un producto.
+        **Requiere rol administrador.**
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ProductId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventoryUpdateRequest"
+      responses:
+        "200":
+          description: Stock actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemOut"
+        "400":
+          description: Cantidad inválida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /inventory/{productId}/adjust:
+    post:
+      operationId: adjustInventory
+      tags: [inventory]
+      summary: Ajustar stock (incremento/decremento)
+      description: |
+        Ajusta el stock de un producto de forma relativa (positivo o negativo).
+        Útil para ventas, devoluciones o ajustes por merma.
+        **Requiere rol administrador.**
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ProductId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InventoryAdjustRequest"
+      responses:
+        "200":
+          description: Stock ajustado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InventoryItemOut"
+        "400":
+          description: Ajuste inválido (stock insuficiente o cantidad cero)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+
+  # ──────────────────────────────────────────────
+  # ORDERS
+  # ──────────────────────────────────────────────
+  /orders:
+    get:
+      operationId: listOrders
+      tags: [orders]
+      summary: Listar pedidos del usuario
+      description: |
+        Retorna los pedidos del usuario autenticado.
+        Los administradores pueden ver todos los pedidos.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/OrderStatus"
+          description: Filtrar por estado del pedido
+      responses:
+        "200":
+          description: Lista de pedidos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderOut"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+    post:
+      operationId: createOrder
+      tags: [orders]
+      summary: Crear nuevo pedido
+      description: |
+        Crea un pedido con uno o más productos.
+        Se valida automáticamente el stock disponible.
+        El total se calcula sumando (precio × cantidad) de cada ítem.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCreateRequest"
+      responses:
+        "201":
+          description: Pedido creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderOut"
+        "400":
+          description: Stock insuficiente o carrito vacío
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+  /orders/{orderId}:
+    get:
+      operationId: getOrderById
+      tags: [orders]
+      summary: Obtener detalle de un pedido
+      description: Retorna el detalle completo de un pedido específico.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del pedido
+      responses:
+        "200":
+          description: Detalle del pedido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderOut"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          description: No tiene acceso a este pedido
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Pedido no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /orders/{orderId}/cancel:
+    post:
+      operationId: cancelOrder
+      tags: [orders]
+      summary: Cancelar un pedido
+      description: |
+        Cancela un pedido pendiente y repone el stock.
+        No se pueden cancelar pedidos ya entregados.
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del pedido
+      responses:
+        "200":
+          description: Pedido cancelado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderOut"
+        "400":
+          description: El pedido no se puede cancelar
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          description: Pedido no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+# ════════════════════════════════════════════════
+# COMPONENTS
+# ════════════════════════════════════════════════
+components:
+  # ── Seguridad ─────────────────────────────────
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Token JWT obtenido en /identity/login
+
+  # ── Parámetros reutilizables ──────────────────
+  parameters:
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: ID del producto
+
+  # ── Respuestas reutilizables ──────────────────
+  responses:
+    Unauthorized:
+      description: Token ausente o inválido
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    Forbidden:
+      description: Sin permisos suficientes
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  # ── Schemas ───────────────────────────────────
+  schemas:
+    # --- Operacion ---
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok]
+          example: ok
+
+    # --- Identity ---
+    RegisterRequest:
+      type: object
+      required: [nombre, email, password]
+      properties:
+        nombre:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "Juan Pérez"
+        email:
+          type: string
+          format: email
+          example: "juan@utb.edu.co"
+        password:
+          type: string
+          minLength: 8
+          maxLength: 128
+          example: "MiContraseña123"
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "juan@utb.edu.co"
+        password:
+          type: string
+          example: "MiContraseña123"
+
+    TokenResponse:
+      type: object
+      required: [access_token, token_type, expires_in]
+      properties:
+        access_token:
+          type: string
+          description: Token JWT
+          example: "eyJhbGciOiJIUzI1NiIs..."
+        token_type:
+          type: string
+          enum: [bearer]
+          example: "bearer"
+        expires_in:
+          type: integer
+          description: TTL en segundos
+          example: 3600
+
+    UserOut:
+      type: object
+      required: [id, nombre, email, rol, creado_en]
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          example: "Juan Pérez"
+        email:
+          type: string
+          format: email
+          example: "juan@utb.edu.co"
+        rol:
+          $ref: "#/components/schemas/UserRole"
+        creado_en:
+          type: string
+          format: date-time
+          example: "2026-09-15T10:30:00Z"
+
+    UserRole:
+      type: string
+      enum: [admin, cliente]
+      description: |
+        - **admin** — Acceso total al sistema
+        - **cliente** — Solo puede realizar pedidos
+      example: "cliente"
+
+    # --- Catalog ---
+    ProductOut:
+      type: object
+      required: [id, nombre, descripcion, precio_centavos, existencias]
+      description: Contrato actual del módulo catálogo (implementado)
+      properties:
+        id:
+          type: integer
+          example: 1
+        nombre:
+          type: string
+          maxLength: 120
+          example: "Café americano"
+        descripcion:
+          type: string
+          maxLength: 400
+          example: "Vaso de 8 oz"
+        precio_centavos:
+          type: integer
+          description: Precio en centavos COP (350000 = $3.500)
+          example: 350000
+        existencias:
+          type: integer
+          description: Cantidad disponible (temporal, mover a inventory)
+          minimum: 0
+          example: 40
+
+    # --- Inventory ---
+    InventoryItemOut:
+      type: object
+      required: [product_id, product_nombre, cantidad, actualizado_en]
+      properties:
+        product_id:
+          type: integer
+          example: 1
+        product_nombre:
+          type: string
+          example: "Café americano"
+        cantidad:
+          type: integer
+          minimum: 0
+          description: Unidades disponibles en stock
+          example: 40
+        actualizado_en:
+          type: string
+          format: date-time
+          example: "2026-09-15T12:00:00Z"
+
+    InventoryUpdateRequest:
+      type: object
+      required: [cantidad]
+      properties:
+        cantidad:
+          type: integer
+          minimum: 0
+          description: Nueva cantidad absoluta de stock
+          example: 50
+
+    InventoryAdjustRequest:
+      type: object
+      required: [delta, motivo]
+      properties:
+        delta:
+          type: integer
+          description: |
+            Incremento relativo del stock.
+            Positivo = reposición, negativo = venta/merma.
+          example: -5
+        motivo:
+          type: string
+          maxLength: 200
+          description: Razón del ajuste (obligatorio para auditoría)
+          example: "Venta realizada"
+
+    # --- Orders ---
+    OrderStatus:
+      type: string
+      enum: [pendiente, confirmado, enviado, entregado, cancelado]
+      description: |
+        Estados del ciclo de vida de un pedido:
+        - **pendiente** — Creado, esperando confirmación
+        - **confirmado** — Stock reservado, preparando envío
+        - **enviado** — En camino al cliente
+        - **entregado** — Recibido por el cliente
+        - **cancelado** — Anulado (stock repuesto)
+      example: "pendiente"
+
+    OrderCreateRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          description: Productos a incluir en el pedido
+          items:
+            $ref: "#/components/schemas/OrderItemRequest"
+
+    OrderItemRequest:
+      type: object
+      required: [product_id, cantidad]
+      properties:
+        product_id:
+          type: integer
+          description: ID del producto a comprar
+          example: 1
+        cantidad:
+          type: integer
+          minimum: 1
+          description: Unidades a solicitar
+          example: 2
+
+    OrderOut:
+      type: object
+      required: [id, usuario_id, items, total_centavos, estado, creado_en]
+      properties:
+        id:
+          type: integer
+          example: 1
+        usuario_id:
+          type: integer
+          description: ID del usuario que realizó el pedido
+          example: 1
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/OrderItemOut"
+        total_centavos:
+          type: integer
+          description: Total del pedido en centavos COP
+          example: 700000
+        estado:
+          $ref: "#/components/schemas/OrderStatus"
+        creado_en:
+          type: string
+          format: date-time
+          example: "2026-09-15T14:30:00Z"
+
+    OrderItemOut:
+      type: object
+      required: [product_id, product_nombre, cantidad, precio_unitario_centavos, subtotal_centavos]
+      properties:
+        product_id:
+          type: integer
+          example: 1
+        product_nombre:
+          type: string
+          example: "Café americano"
+        cantidad:
+          type: integer
+          example: 2
+        precio_unitario_centavos:
+          type: integer
+          description: Precio al momento de la compra
+          example: 350000
+        subtotal_centavos:
+          type: integer
+          description: precio_unitario × cantidad
+          example: 700000
+
+    # --- Errores ---
+    ErrorResponse:
+      type: object
+      required: [detail]
+      properties:
+        detail:
+          type: string
+          description: Mensaje descriptivo del error
+          example: "Producto no encontrado"
