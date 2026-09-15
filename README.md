@@ -97,6 +97,33 @@ El mapa reinterpreta los módulos del ADR 0001 como contextos delimitados con
 dueño único (rol de negocio), y `violaciones-s6.md` lista las desviaciones
 reales del código frente a esa propiedad de datos y la propuesta de corrección.
 
+## Evidencia S7 — contratos OpenAPI
+
+- [Contrato de diseño anticipado (YAML, 4 módulos)](docs/openapi/tienda-virtual.yaml)
+- [Script de exportación del contrato generado](backend/scripts/exportar_openapi.py)
+- [Pruebas de contrato OpenAPI](backend/tests/test_openapi.py)
+
+El despliegue OpenAPI de la Tienda Virtual UTB se gestiona en dos niveles:
+
+1. **Contrato generado**: FastAPI publica el OpenAPI real de los endpoints
+   implementados en <http://localhost:8000/openapi.json> y la UI interactiva
+   en <http://localhost:8000/docs>. El script dev
+   `backend/scripts/exportar_openapi.py` lo guarda versionado en
+   `docs/openapi/openapi.generado.json` para evidencia reproducible.
+2. **Contrato de diseño anticipado**: `docs/openapi/tienda-virtual.yaml` declara
+   la API completa de los cuatro contextos (identity, catalog, inventory,
+   orders) con sus schemas, estados y seguridad JWT, sirviendo de blanco de
+   contrato para los incrementos siguientes. Está disponible en crudo en
+   <http://localhost:8000/openapi/diseno>.
+
+Regenerar el contrato generado:
+
+```bash
+cd backend
+python -m pip install -r requirements-dev.txt
+python scripts/exportar_openapi.py
+```
+
 ## Arranque con un solo comando
 
 ### Requisito
@@ -144,15 +171,18 @@ en cada envío y solicitud de cambios.
 ```text
 backend/
   app/
-    main.py                     # app FastAPI, /health, arranque (esquema + seed)
+    main.py                     # app FastAPI, /health, /openapi/diseno, arranque (esquema + seed)
     modules/
       catalog/                  # corte vertical: router, repository, models, schemas, seed
       {identity,inventory,orders}/   # paquetes reservados, aún vacíos
     shared/database.py          # engine, sesión y Base (solo acceso a datos)
-  tests/                        # health, límites de módulos (ADR), catálogo
+    scripts/exportar_openapi.py # dev: guarda el OpenAPI generado en docs/openapi/
+  tests/                        # health, límites de módulos (ADR), catálogo, contrato OpenAPI
 frontend/
   app/page.tsx                  # vista del catálogo (componente de servidor)
 compose.yaml                    # frontend + backend + postgres
+docs/openapi/tienda-virtual.yaml               # contrato de diseño anticipado (4 módulos)
+docs/openapi/openapi.generado.json             # contrato generado (regenerable por script)
 ```
 
 ## Estructura de arquitectura
