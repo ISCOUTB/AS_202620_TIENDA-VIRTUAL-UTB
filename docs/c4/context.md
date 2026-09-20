@@ -23,11 +23,17 @@ C4Context
     System(sistema, "Tienda Virtual UTB", "Sistema de comercio electrónico de la universidad")
 
     Rel_D(comprador, sistema, "Realiza compras")
-    Rel_D(admin, sistema, "Administra la tienda")
+    Rel_D(admin, sistema, "Registra y edita productos; habilita su venta")
     Rel_D(inventario, sistema, "Gestiona existencias")
 ```
 
 ## Notas
+
+- **Administración del catálogo.** El administrador de la tienda opera mediante
+  la aplicación; no necesita acceso directo a la base de datos. Su
+  [flujo de gestión de productos](../api/administracion-catalogo.md) está documentado
+  como diseño previsto para S7. Las capacidades administrativas y de inventario
+  de este contexto representan el alcance objetivo, no funciones implementadas.
 
 - **Leyenda.** `Person` = rol humano (no un cargo). La caja resaltada (*Tienda Virtual UTB*) es el sistema en alcance. Cada flecha es una relación unidireccional etiquetada con su propósito; en el nivel 1 no se especifica protocolo (eso aparece desde el nivel 2, ver `container.md`).
 - **Alcance del diagrama.** Muestra únicamente actores y frontera del sistema; ninguna estructura interna (contenedores, base de datos) aparece aquí; ver `docs/c4/container.md`.

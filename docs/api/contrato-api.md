@@ -28,11 +28,15 @@ parámetros de consulta ni cuerpo de petición.
 
 ## 2. Diagrama de la consulta del catálogo
 
+Este flujo corresponde al comprador que consulta productos. El administrador
+de la tienda tiene un [flujo de gestión propio, documentado como diseño previsto](administracion-catalogo.md),
+para registrar productos nuevos, editar sus datos y habilitar su venta.
+
 [Descargar imagen para presentación](images/consulta-catalogo-presentacion.png).
 
 ```mermaid
 sequenceDiagram
-    actor Usuario
+    actor Usuario as Comprador
     participant Web as Next.js (servidor)
     participant API as FastAPI
     participant Catalogo as Repositorio de catálogo
@@ -175,7 +179,9 @@ petición siempre tendrá éxito ni que `/health` devuelve un estado `error`:
 esa variante no está definida.
 
 No se incluyen operaciones de creación de pedidos, autenticación ni modificación
-de inventario. Se documentarán cuando se implementen y prueben.
+de inventario. La [gestión administrativa del catálogo](administracion-catalogo.md)
+se documenta como diseño previsto y tampoco forma parte del contrato ejecutable.
+Estas operaciones se incorporarán a OpenAPI cuando se implementen y prueben.
 
 ## 6. Cómo se mantiene el acuerdo
 

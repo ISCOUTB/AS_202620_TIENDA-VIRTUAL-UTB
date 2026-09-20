@@ -1,16 +1,11 @@
+import os
 from contextlib import asynccontextmanager
-<<<<<<< HEAD
+from pathlib import Path
 from typing import Literal
 
 from fastapi import FastAPI
-from pydantic import BaseModel
-=======
-import os
-from pathlib import Path
-
-from fastapi import FastAPI
 from fastapi.responses import PlainTextResponse
->>>>>>> 290608b2d0a3fbcae89ecab6d295c2ddbc9b40ce
+from pydantic import BaseModel
 
 from app.modules.catalog import models as catalog_models  # noqa: F401  (registra tablas)
 from app.modules.catalog.router import router as catalog_router
@@ -27,13 +22,13 @@ _PATH_CONTRATO_DISENO_DOCKER = (
 
 def _abrir_contrato_diseno() -> PlainTextResponse:
     """Devuelve el YAML del contrato de diseño, adaptable a local y Docker."""
-    candidatas = [
-        Path(os.environ.get("CONTRATO_DISENO", "")),  # override explícito
+    ruta_configurada = os.environ.get("CONTRATO_DISENO")
+    candidatas = ([Path(ruta_configurada)] if ruta_configurada else []) + [
         _PATH_CONTRATO_DISENO,  # repositorio local (raíz/backend/app/main.py)
         _PATH_CONTRATO_DISENO_DOCKER,  # imagen Docker (WORKDIR /app)
     ]
     for ruta in candidatas:
-        if ruta.exists():
+        if ruta.is_file():
             return PlainTextResponse(ruta.read_text(encoding="utf-8"))
     return PlainTextResponse("Contrato de diseño no encontrado.", status_code=404)
 
@@ -61,7 +56,11 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.get("/openapi/diseno", tags=["operacion"], response_class=PlainTextResponse)
+@app.get(
+    "/openapi/diseno",
+    response_class=PlainTextResponse,
+    include_in_schema=False,  # Documento auxiliar, como /docs y /openapi.json.
+)
 def openapi_diseno() -> PlainTextResponse:
     """Sirve en crudo el contrato OpenAPI de diseño anticipado (YAML)."""
     return _abrir_contrato_diseno()

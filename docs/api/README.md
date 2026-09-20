@@ -3,6 +3,9 @@
 Consulta la [documentación del contrato y sus diagramas](contrato-api.md) para
 entender las operaciones, los campos de respuesta y el propósito de `GET /health`.
 
+La corrección de S7 incorpora al [administrador de la tienda y su flujo de gestión](administracion-catalogo.md)
+como diseño previsto: actores, diagramas, operaciones propuestas y alcance pendiente.
+
 ## Archivos para entregar
 
 | Requisito | Evidencia |
