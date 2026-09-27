@@ -1,13 +1,15 @@
 """Pruebas de que la API expone el contrato OpenAPI (generado y de diseño)."""
 
-from fastapi.testclient import TestClient
 import yaml
+from fastapi.testclient import TestClient
 
 from app import main
 from app.main import _PATH_CONTRATO_DISENO, app
 
 RUTAS_ESPERADAS_DISENO = [
     "/health",
+    "/health/ready",
+    "/metrics",
     "/identity/register",
     "/identity/login",
     "/identity/me",

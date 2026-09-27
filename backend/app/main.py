@@ -3,14 +3,21 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Literal
 
-from fastapi import FastAPI
-from fastapi.responses import PlainTextResponse
+from fastapi import Depends, FastAPI
+from fastapi.responses import JSONResponse, PlainTextResponse
 from pydantic import BaseModel
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
-from app.modules.catalog import models as catalog_models  # noqa: F401  (registra tablas)
+from app.modules.catalog import (
+    models as catalog_models,  # noqa: F401  (registra tablas)
+)
 from app.modules.catalog.router import router as catalog_router
 from app.modules.catalog.seed import seed_products
-from app.shared.database import Base, SessionLocal, engine
+from app.shared.database import Base, SessionLocal, engine, get_session
+from app.shared.logging import configure_logging
+from app.shared.metrics import ObservabilityMiddleware, snapshot
 
 _PATH_CONTRATO_DISENO = (
     Path(__file__).resolve().parents[2] / "docs" / "openapi" / "tienda-virtual.yaml"
@@ -35,14 +42,16 @@ def _abrir_contrato_diseno() -> PlainTextResponse:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    """Prepara el esquema y el catálogo mockeado al arrancar."""
+    """Configura logs JSON, prepara el esquema y el catálogo mockeado."""
+    configure_logging()
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as session:
         seed_products(session)
     yield
 
 
-app = FastAPI(title="Tienda Virtual UTB", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title="Tienda Virtual UTB", version="0.2.1", lifespan=lifespan)
+app.add_middleware(ObservabilityMiddleware)
 app.include_router(catalog_router)
 
 
@@ -50,10 +59,39 @@ class HealthOut(BaseModel):
     status: Literal["ok"]
 
 
+class ReadinessOut(BaseModel):
+    status: Literal["ok", "error"]
+    detalle: str | None = None
+
+
 @app.get("/health", tags=["operacion"], response_model=HealthOut)
 def health() -> dict[str, str]:
-    """Confirma que el proceso de la API está disponible."""
+    """Liveness: confirma que el proceso de la API está disponible."""
     return {"status": "ok"}
+
+
+@app.get(
+    "/health/ready",
+    tags=["operacion"],
+    response_model=ReadinessOut,
+    responses={503: {"model": ReadinessOut, "description": "Base de datos no disponible"}},
+)
+def health_ready(session: Session = Depends(get_session)) -> ReadinessOut | JSONResponse:
+    """Readiness: además del proceso, verifica que la base de datos responde."""
+    try:
+        session.execute(text("SELECT 1"))
+    except SQLAlchemyError:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "error", "detalle": "base de datos no disponible"},
+        )
+    return ReadinessOut(status="ok")
+
+
+@app.get("/metrics", tags=["operacion"])
+def metrics() -> dict:
+    """Métricas HTTP del proceso, ligadas al escenario de disponibilidad."""
+    return snapshot()
 
 
 @app.get(

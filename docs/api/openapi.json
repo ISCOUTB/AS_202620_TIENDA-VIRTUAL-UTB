@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Tienda Virtual UTB",
-    "version": "0.2.0"
+    "version": "0.2.1"
   },
   "paths": {
     "/catalog/products": {
@@ -37,7 +37,7 @@
           "operacion"
         ],
         "summary": "Health",
-        "description": "Confirma que el proceso de la API está disponible.",
+        "description": "Liveness: confirma que el proceso de la API está disponible.",
         "operationId": "health_health_get",
         "responses": {
           "200": {
@@ -46,6 +46,62 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/HealthOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health/ready": {
+      "get": {
+        "tags": [
+          "operacion"
+        ],
+        "summary": "Health Ready",
+        "description": "Readiness: además del proceso, verifica que la base de datos responde.",
+        "operationId": "health_ready_health_ready_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessOut"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Base de datos no disponible",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessOut"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "tags": [
+          "operacion"
+        ],
+        "summary": "Metrics",
+        "description": "Métricas HTTP del proceso, ligadas al escenario de disponibilidad.",
+        "operationId": "metrics_metrics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "type": "object",
+                  "title": "Response Metrics Metrics Get"
                 }
               }
             }
@@ -102,6 +158,34 @@
           "existencias"
         ],
         "title": "ProductOut"
+      },
+      "ReadinessOut": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "detalle": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Detalle"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status"
+        ],
+        "title": "ReadinessOut"
       }
     }
   }

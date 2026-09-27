@@ -19,7 +19,7 @@ info:
     - Autenticación via **Bearer JWT** (endpoints protegidos)
     - IDs incrementales enteros
     - Fechas en formato ISO 8601 UTC
-  version: 0.2.0
+  version: 0.2.1
   contact:
     name: Equipo Tienda Virtual UTB
   license:
@@ -49,7 +49,7 @@ paths:
     get:
       operationId: healthCheck
       tags: [operacion]
-      summary: Health check
+      summary: Health check (liveness)
       description: Confirma que el proceso de la API está disponible.
       responses:
         "200":
@@ -58,6 +58,42 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthResponse"
+
+  /health/ready:
+    get:
+      operationId: readinessCheck
+      tags: [operacion]
+      summary: Readiness check
+      description: Verifica que el proceso y la base de datos responden.
+      responses:
+        "200":
+          description: Servicio listo para atender tráfico
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+        "503":
+          description: Base de datos no disponible
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReadinessResponse"
+
+  /metrics:
+    get:
+      operationId: getMetrics
+      tags: [operacion]
+      summary: Métricas HTTP del proceso
+      description: |
+        Conteo de peticiones, errores 5xx y percentiles de latencia por ruta.
+        Métrica ligada al escenario 4 de disponibilidad.
+      responses:
+        "200":
+          description: Resumen de métricas en memoria
+          content:
+            application/json:
+              schema:
+                type: object
 
   # ──────────────────────────────────────────────
   # IDENTITY
@@ -491,6 +527,20 @@ components:
           type: string
           enum: [ok]
           example: ok
+
+    ReadinessResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ok, error]
+          example: ok
+        detalle:
+          type: string
+          nullable: true
+          description: Motivo del fallo cuando status = error
+          example: "base de datos no disponible"
 
     # --- Identity ---
     RegisterRequest:

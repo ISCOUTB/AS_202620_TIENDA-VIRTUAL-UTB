@@ -9,22 +9,22 @@ actualización están en la [guía de evidencia](README.md).
 
 | Aspecto | Valor actual |
 |---|---|
-| Versión de la API (`info.version`) | `0.2.0` |
+| Versión de la API (`info.version`) | `0.2.1` |
 | Versión del formato de especificación (`openapi`) | `3.1.0` |
 | Comunicación | HTTP síncrono, respuestas JSON |
 | Dirección local con Docker Compose | `http://localhost:8000` |
 | Dirección usada por Next.js dentro de Compose | `http://backend:8000` |
-| Autenticación | Las dos operaciones actuales no requieren credenciales. |
+| Autenticación | Las operaciones actuales no requieren credenciales. |
 | Documentación interactiva con la API encendida | `http://localhost:8000/docs` |
 | Especificación generada por la aplicación encendida | `http://localhost:8000/openapi.json` |
 
-`0.2.0` identifica la versión de nuestra API; `3.1.0` identifica el formato
+`0.2.1` identifica la versión de nuestra API; `3.1.0` identifica el formato
 OpenAPI utilizado para describirla. Las direcciones anteriores corresponden
 al entorno local; el contrato no declara una sección `servers`.
 
 Un **endpoint** es una operación accesible mediante un método HTTP y una ruta.
-`GET` indica una consulta. Estas dos operaciones no reciben parámetros de ruta,
-parámetros de consulta ni cuerpo de petición.
+`GET` indica una consulta. Ninguna de las cuatro operaciones actuales recibe
+parámetros de ruta, parámetros de consulta ni cuerpo de petición.
 
 ## 2. Diagrama de la consulta del catálogo
 
@@ -170,13 +170,50 @@ El chequeo actual tampoco reinicia automáticamente el backend ni garantiza la
 disponibilidad permanente del sistema; la dependencia del frontend en Compose
 se usa para ordenar su arranque.
 
+### 4.1 Readiness: `GET /health/ready`
+
+A diferencia de `/health` (liveness), esta operación ejecuta `SELECT 1` contra
+la base de datos y responde `503` si no responde:
+
+```json
+{ "status": "ok", "detalle": null }
+```
+
+| Campo | Tipo | Obligatorio | Restricción |
+|---|---|---|---|
+| `status` | `string` | Sí | `"ok"` o `"error"` |
+| `detalle` | `string` o `null` | Sí | Motivo del fallo cuando `status` es `"error"` |
+
+## 4.2 Métricas consultables: `GET /metrics`
+
+Devuelve el resumen en memoria del middleware de observabilidad: tiempo de
+proceso activo (`uptime_segundos`), el escenario asociado y, por ruta, el
+conteo de peticiones, errores 5xx y latencias (promedio, p50, p95, máximo) en
+milisegundos. Es la métrica ligada al escenario 4 (disponibilidad bajo
+consultas concurrentes); las muestras viven en el proceso y se reinician con
+él. Ejemplo recortado:
+
+```json
+{
+  "uptime_segundos": 12.4,
+  "escenario_asociado": "disponibilidad — ~5 consultas concurrentes al catálogo",
+  "rutas": {
+    "GET /catalog/products": {
+      "peticiones": 3,
+      "errores_5xx": 0,
+      "latencia_ms": { "promedio": 2.8, "p50": 2.8, "p95": 3.1, "max": 3.4 }
+    }
+  }
+}
+```
+
 ## 5. Errores y límites del contrato
 
-La especificación guardada solo declara respuestas `200` para estas operaciones.
+Las operaciones declaran respuestas `200` y `/health/ready` además `503`.
 Pueden ocurrir fallos de conexión o errores del servidor, pero todavía no existe
-un esquema contractual de errores de negocio. No debe interpretarse que cada
-petición siempre tendrá éxito ni que `/health` devuelve un estado `error`:
-esa variante no está definida.
+un esquema contractual de errores de negocio. `/health` es solo liveness: no
+declara un estado `error`; la variante que sí puede devolverlo es
+`/health/ready`.
 
 No se incluyen operaciones de creación de pedidos, autenticación ni modificación
 de inventario. La [gestión administrativa del catálogo](administracion-catalogo.md)

@@ -3,6 +3,7 @@ __pycache__/
 .pytest_cache/
 .venv/
 .contract-tools/
+.security-tools/
 .env
 node_modules/
 .next/
@@ -12,3 +13,7 @@ coverage/
 
 # Guía interna de trabajo, no es un entregable
 /guia-documentacion-arquitectonica-agentes.md
+.neon
+
+# Skills de agente instaladas por `neon skills` (se regeneran)
+.agents/

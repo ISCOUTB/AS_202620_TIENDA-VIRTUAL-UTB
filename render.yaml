@@ -1,0 +1,18 @@
+# Blueprint de Render — infraestructura como código de la API.
+# Render lo detecta al crear un "Blueprint" apuntando a este repo.
+# Procedimiento completo y evidencias: docs/despliegue-s8.md
+services:
+  - type: web
+    name: tienda-utb-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: free
+    branch: main
+    autoDeploy: true
+    healthCheckPath: /health
+    envVars:
+      # Cadena de conexión de Neon (postgresql://...). Es un secreto:
+      # sync: false obliga a definirla en el dashboard, nunca en el repo.
+      - key: DATABASE_URL
+        sync: false

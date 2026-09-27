@@ -102,12 +102,35 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 - [Administrador de la tienda y flujo de gestión de productos (diseño previsto)](docs/api/administracion-catalogo.md)
 - [Documentación de la API, diagramas y explicación de `/health`](docs/api/contrato-api.md)
 - [Guía de la evidencia y comandos de verificación](docs/api/README.md)
-- [Contrato OpenAPI 3.1.0, versión de API 0.2.0](docs/api/openapi.json)
+- [Contrato OpenAPI 3.1.0, versión de API 0.2.1](docs/api/openapi.json)
 - [ADR 0002: integración HTTP y contrato versionado](docs/adr/0002-contrato-integracion-http.md)
 - [Pruebas de contrato](backend/tests/contract/test_openapi.py) ejecutadas en el
   [pipeline](.github/workflows/tests.yml), con reporte descargable.
 
-## Arranque con un solo comando
+## Evidencia S8 — despliegue reproducible, CI y observabilidad
+
+- [Guía de despliegue reproducible](docs/despliegue-s8.md): pieza a pieza
+  (Vercel → Render → Neon → UptimeRobot), protección de secretos y protección
+  de rama.
+- [Estimación de costo mensual con supuestos](docs/costos-despliegue.md)
+  ($0/mes en capas gratuitas sin tarjeta).
+- ADR por decisión de plataforma:
+  [0003 cliente web en Vercel](docs/adr/0003-frontend-vercel.md),
+  [0004 API como contenedor en Render](docs/adr/0004-api-contenedor-render.md),
+  [0005 PostgreSQL en Neon](docs/adr/0005-postgres-neon.md).
+- Infraestructura como código: [`render.yaml`](render.yaml) (blueprint de la
+  API), [`frontend/vercel.json`](frontend/vercel.json) y
+  [`compose.yaml`](compose.yaml) para el entorno local.
+- Pipeline: [`.github/workflows/tests.yml`](.github/workflows/tests.yml) corre
+  pruebas funcionales, de contrato y análisis estático (Ruff + SonarCloud).
+- Observabilidad: `GET /health` (liveness), `GET /health/ready` (readiness con
+  verificación de base de datos), `GET /metrics` (conteo, errores 5xx y
+  latencia p50/p95 por ruta, ligada al escenario 4 de disponibilidad) y logs
+  JSON por petición en stdout.
+- Secretos: `compose.yaml` exige `POSTGRES_PASSWORD` vía `.env` (ver
+  [`.env.example`](.env.example)); ninguna credencial está versionada.
+
+## Arranque local
 
 ### Requisito
 
@@ -115,9 +138,11 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 
 ### Ejecución
 
-Desde la raíz del repositorio:
+Desde la raíz del repositorio —la creación de `.env` es una sola vez; después
+basta `docker compose up`—:
 
 ```bash
+cp .env.example .env   # completar POSTGRES_PASSWORD
 docker compose up --build
 ```
 
@@ -144,28 +169,37 @@ python -m pytest -c backend/pytest.ini backend/tests
 ```
 
 Las pruebas comprueban que la ruta de salud funciona, que existen los paquetes
-establecidos por el ADR y que el endpoint del catálogo devuelve los productos
-sembrados con el contrato esperado. Se ejecutan sobre SQLite en memoria (sin
-contenedores). El mismo conjunto corre automáticamente mediante GitHub Actions
-en cada envío y solicitud de cambios.
+establecidos por el ADR, que el endpoint del catálogo devuelve los productos
+sembrados con el contrato esperado, que el contrato OpenAPI guardado coincide
+con el generado y que la observabilidad (readiness, métricas, logs JSON)
+responde. Se ejecutan sobre SQLite en memoria (sin contenedores). El mismo
+conjunto corre automáticamente mediante GitHub Actions en cada envío y
+solicitud de cambios, junto con el análisis estático (Ruff + SonarCloud).
 
 ## Estructura ejecutable
 
 ```text
 backend/
   app/
-    main.py                     # app FastAPI, /health, /openapi/diseno, arranque (esquema + seed)
+    main.py                     # app FastAPI, /health, /health/ready, /metrics, /openapi/diseno, arranque
     modules/
       catalog/                  # corte vertical: router, repository, models, schemas, seed
       {identity,inventory,orders}/   # paquetes reservados, aún vacíos
-    shared/database.py          # engine, sesión y Base (solo acceso a datos)
-    scripts/exportar_openapi.py # dev: guarda el OpenAPI generado en docs/openapi/
-  tests/                        # health, límites de módulos (ADR), catálogo, contrato OpenAPI
+    shared/
+      database.py               # engine, sesión y Base (solo acceso a datos)
+      logging.py                # logs estructurados JSON (S8)
+      metrics.py                # middleware de métricas HTTP por ruta (S8)
+  scripts/export_openapi.py     # dev: exporta el contrato a docs/api/openapi.json
+  tests/                        # health, límites de módulos (ADR), catálogo, contrato, observabilidad
 frontend/
   app/page.tsx                  # vista del catálogo (componente de servidor)
-compose.yaml                    # frontend + backend + postgres
+  vercel.json                   # IaC del despliegue del cliente web (S8)
+compose.yaml                    # frontend + backend + postgres (local; secretos vía .env)
+render.yaml                     # IaC: blueprint de Render para la API (S8)
+.env.example                    # variables locales requeridas; .env no se versiona
+sonar-project.properties        # análisis estático SonarCloud (org ISCO-UTB)
 docs/openapi/tienda-virtual.yaml               # contrato de diseño anticipado (4 módulos)
-docs/openapi/openapi.generado.json             # contrato generado (regenerable por script)
+docs/api/openapi.json                          # contrato generado y versionado (regenerable por script)
 ```
 
 ## Estructura de arquitectura
@@ -174,4 +208,5 @@ docs/openapi/openapi.generado.json             # contrato generado (regenerable 
 - `docs/adr/`: registros de decisiones arquitectónicas.
 - `docs/c4/`: diagramas del modelo C4.
 
-Hasta aqui llega todos los avances relacionados con el primer corte
+Las evidencias S1–S7 corresponden al primer corte; la sección S8 (despliegue,
+CI y observabilidad) abre el segundo.

@@ -1,0 +1,4 @@
+# Análisis estático del backend, ejecutado en el pipeline de CI.
+# B008 se ignora a propósito: `Depends(...)` en argumentos por defecto es el
+# idiom de FastAPI para inyección de dependencias, no un efecto secundario.
+lint.ignore = ["B008"]

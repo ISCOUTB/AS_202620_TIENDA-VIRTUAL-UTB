@@ -2,9 +2,10 @@ services:
   database:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: tienda_utb
-      POSTGRES_USER: tienda_utb
-      POSTGRES_PASSWORD: tienda_utb_dev
+      POSTGRES_DB: ${POSTGRES_DB:-tienda_utb}
+      POSTGRES_USER: ${POSTGRES_USER:-tienda_utb}
+      # Requerida vía .env (ver .env.example): los secretos no se versionan.
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD - copia .env.example a .env}"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U tienda_utb -d tienda_utb"]
       interval: 5s
@@ -18,7 +19,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     environment:
-      DATABASE_URL: postgresql://tienda_utb:tienda_utb_dev@database:5432/tienda_utb
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-tienda_utb}:${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
     depends_on:
       database:
         condition: service_healthy

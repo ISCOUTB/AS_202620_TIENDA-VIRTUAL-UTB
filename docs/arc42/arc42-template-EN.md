@@ -125,6 +125,8 @@ These four goals are the same ones expanded into the
 | No online payment gateway in this phase | Scope | Gateway availability and institutional restrictions are not confirmed yet (see `docs/disponibilidad.md`); the catalog/order flow is prioritized first. |
 | Own authentication, no institutional SSO | Organizational | Access to the university's institutional authentication infrastructure has not been confirmed at this point. |
 | Deployment environment still to be confirmed | Infrastructure | Depends on which free/academic service ends up being authorized; left open so it does not block the rest of this deliverable. |
+| Zero monthly cost and no credit card required for the deployment | Organizational | Course constraint: at least one deliverable alternative must be usable without a credit card. The chosen platforms (Vercel, Render, Neon, UptimeRobot) all offer verified free tiers without a card (see ADRs 0003–0005). |
+| The deployed system must be reachable from outside the university network | Infrastructure | The evaluator opens the public URL from home; the deployment cannot rely on the campus network or a private lab-only address. |
 | No native mobile app, third-party sales, national shipping, AI recommendations, or multiple simultaneous payment gateways | Scope | Explicit exclusions from `docs/problema.md` to keep the initial scope manageable for a 4-person team within the course schedule. |
 
 # Context and Scope {#section-context-and-scope}
@@ -451,6 +453,57 @@ Quality features: the health checks on `database` (`pg_isready`) and `backend`
 (`/health`), together with `depends_on: condition: service_healthy`, enforce
 startup order; the named volume keeps local data across restarts.
 
+## Infrastructure Level 2 — public deployment {#_infrastructure_level_2}
+
+**Motivation.** The S8 deliverable requires the system to be reachable from
+outside the university network at zero monthly cost and without a credit card.
+Each piece runs on a different platform, chosen per piece (ADRs
+[0003](../adr/0003-frontend-vercel.md), [0004](../adr/0004-api-contenedor-render.md),
+[0005](../adr/0005-postgres-neon.md)); the cost estimate is in
+[`docs/costos-despliegue.md`](../costos-despliegue.md).
+
+```mermaid
+flowchart LR
+    Eval(["Evaluator / buyer<br/>browser, any network"]):::actor
+    subgraph Cloud["Public cloud — free tiers, no credit card"]
+        FE["Web client<br/>Vercel · SSR + CDN<br/>https://&lt;app&gt;.vercel.app"]:::node
+        BE["API<br/>Render · Docker container (render.yaml)<br/>https://tienda-utb-api.onrender.com"]:::node
+        PG[("PostgreSQL<br/>Neon serverless · 0.5 GB free")]:::data
+        MON["Monitor<br/>UptimeRobot · ping /health every 5 min"]:::ext
+    end
+    Eval -->|"HTTPS · opens the shop page"| FE
+    FE -->|"REST/JSON server-side · API_URL"| BE
+    BE -->|"SQL · DATABASE_URL (secret)"| PG
+    MON -->|"keeps the free API awake<br/>+ availability evidence"| BE
+
+    classDef actor fill:#ffffff,stroke:#333333,color:#000000
+    classDef node fill:#d5e8d4,stroke:#2d6a2d,color:#000000
+    classDef data fill:#dae8fc,stroke:#1f5fa8,color:#000000
+    classDef ext fill:#eeeeee,stroke:#999999,color:#333333
+    style Cloud fill:#fbfbfb,stroke:#bbbbbb
+```
+
+*Fig. 7.2 — Deployment, level 2: the public, zero-cost deployment (flowchart).
+One box per piece with where it runs — the decision per piece and its rejected
+alternative are in ADRs 0003–0005. Scope: the production-like environment only;
+the local Compose environment is Fig. 7.1.*
+
+Mapping of pieces to platforms:
+
+|| Piece | Platform | Form | Free tier used |
+|| --- | --- | --- | --- |
+|| Web client | Vercel Hobby | Next.js SSR functions + CDN | Hosting + HTTPS + CDN |
+|| API | Render free | Docker container from `backend/Dockerfile` | 750 instance-hours/month web service |
+|| Database | Neon free | Managed serverless PostgreSQL | 0.5 GB storage, autosuspend to zero |
+|| External monitor | UptimeRobot free | HTTP check on `/health` every 5 min | 50 monitors |
+|| CI + static analysis | GitHub Actions + SonarCloud | Tests, contract tests, Ruff, SonarCloud scan | Public repo: unlimited |
+
+Observability in this environment: every HTTP request produces one JSON log
+line (method, route, status, latency) visible in the Render log stream;
+`GET /health` is liveness, `GET /health/ready` checks the database, and
+`GET /metrics` exposes per-route counts, 5xx errors and p50/p95 latency —
+the metric tied to availability scenario 4.
+
 # Cross-cutting Concepts {#section-concepts}
 
 ## Persistence and data ownership {#_concept_1}
@@ -486,10 +539,14 @@ request.
 | ADR | Decision | Status |
 | --- | --- | --- |
 | [0001](../adr/0001-monolito-modular.md) | Modular monolith for the FastAPI backend, split into `identity`, `catalog`, `inventory` and `orders`, plus a restricted `shared` package, with explicit inter-module dependency rules | Accepted (2026-08-21) |
+| [0002](../adr/0002-contrato-integracion-http.md) | Synchronous HTTP integration with a versioned, committed OpenAPI contract | Implemented (2026-09-15) |
+| [0003](../adr/0003-frontend-vercel.md) | Web client deployed on Vercel (free Hobby tier) | Proposed (2026-09-26) |
+| [0004](../adr/0004-api-contenedor-render.md) | API deployed as an always-on Docker container on Render, not a serverless function | Proposed (2026-09-26) |
+| [0005](../adr/0005-postgres-neon.md) | Database on Neon serverless PostgreSQL (free tier) | Proposed (2026-09-26) |
 
 Decisions still open (candidates for future ADRs): the authentication mechanism,
-adopting database migrations, whether any module adopts a hexagonal shape
-internally, and the deployment target.
+adopting database migrations, and whether any module adopts a hexagonal shape
+internally.
 
 # Quality Requirements {#section-quality-scenarios}
 
@@ -522,6 +579,8 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | Deployment target not chosen | Cannot be demonstrated outside a local machine | The system runs fully with a single Compose command; target to be confirmed (`docs/disponibilidad.md`) |
 | Mocked data only | Behavior is not validated against real cafeteria data | Explicit scope constraint; the seed data models realistic products |
 | The pinned Next.js version (`15.5.2`) is not the latest published release | Possible exposure to issues already fixed upstream | Tracked as a follow-up task: review current security advisories and update Next.js before any real deployment |
+| Free-tier suspensions (Render sleeps the API after ~15 min idle; Neon autosuspends compute) | First request after idle pays a cold start (~50 s worst case) | UptimeRobot pings `/health` every 5 min; the same monitor doubles as external availability evidence |
+| Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | No secrets in tracked files: `compose.yaml` interpolates `${VAR:?}`, `.env` is git-ignored, `DATABASE_URL`/`SONAR_TOKEN` live only in platform secret stores (see `docs/despliegue-s8.md`) |
 
 # Glossary {#section-glossary}
 

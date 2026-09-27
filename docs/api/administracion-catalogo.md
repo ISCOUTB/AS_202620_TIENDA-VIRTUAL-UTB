@@ -2,8 +2,9 @@
 
 **Estado:** diseño documentado, pendiente de implementación. Esta ampliación
 incorpora al administrador en la explicación de la integración. El
-[contrato ejecutable actual](openapi.json), versión `0.2.0`, sigue cubriendo
-únicamente `GET /catalog/products` y `GET /health`.
+[contrato ejecutable actual](openapi.json), versión `0.2.1`, cubre las
+operaciones implementadas: `GET /catalog/products`, `GET /health`,
+`GET /health/ready` y `GET /metrics`.
 
 ## Actores y responsabilidades
 
@@ -62,7 +63,7 @@ sequenceDiagram
     participant Catalogo as Módulo Catálogo
     participant BD as PostgreSQL
 
-    Note over Admin,BD: Diseño previsto: no implementado en la versión 0.2.0
+    Note over Admin,BD: Diseño previsto: no implementado en la versión 0.2.1
     Admin->>Web: Completar formulario de producto y guardar
     Web->>API: Solicitar creación con datos y credencial
     API->>Identity: Verificar identidad y permiso de gestión
