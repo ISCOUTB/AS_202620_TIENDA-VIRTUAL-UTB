@@ -25,9 +25,9 @@ C4Container
         ContainerDb(db, "Base de datos", "PostgreSQL 17", "Tabla catalog_products (propiedad del módulo catalog); datos mockeados")
     }
 
-    Rel(comprador, web, "Consulta el catálogo", "HTTPS")
-    Rel(admin, web, "Administra la tienda (futuro)", "HTTPS")
-    Rel(inventario, web, "Gestiona existencias (futuro)", "HTTPS")
+    Rel(comprador, web, "Consulta el catálogo", "HTTPS · HTML (SSR)")
+    Rel(admin, web, "Administra la tienda (futuro)", "HTTPS · HTML (SSR)")
+    Rel(inventario, web, "Gestiona existencias (futuro)", "HTTPS · HTML (SSR)")
     Rel(web, api, "Llama a /catalog/products", "REST/JSON sobre HTTP")
     Rel(api, db, "Lee y escribe", "SQL (SQLAlchemy)")
 ```

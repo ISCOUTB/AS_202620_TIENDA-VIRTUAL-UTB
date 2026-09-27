@@ -13,6 +13,17 @@ todavía son paquetes reservados; no existen integraciones por mensajería.
 El tipo `Product` del frontend se mantiene manualmente, por lo que un cambio
 en nombres o tipos de campos del backend podría romper la vista.
 
+**Escenario de calidad asociado** *(vínculo añadido 2026-09-27 para cerrar la
+no conformidad señalada en la revisión S7)*: el
+[escenario 4 — disponibilidad](../escenarios-calidad.md) mide la consecuencia
+de acoplamiento de esta decisión: al ser HTTP síncrono, la página del catálogo
+solo renderiza si la API responde, y con ~5 consultas concurrentes todas deben
+recibir respuesta correcta. El
+[escenario 3 — rendimiento](../escenarios-calidad.md) acota el presupuesto de
+latencia del salto síncrono: el cambio de existencias debe reflejarse al
+recargar la vista en menos de 2 segundos, lo que descarta introducir un salto
+de mensajería adicional en el camino de lectura.
+
 ## Alternativas consideradas
 
 | Alternativa | Ventajas | Costos y adecuación al alcance actual |
