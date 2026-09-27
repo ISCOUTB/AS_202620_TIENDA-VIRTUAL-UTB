@@ -116,6 +116,10 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 [`/metrics`](https://tienda-utb-api.onrender.com/metrics) y
 [`/catalog/products`](https://tienda-utb-api.onrender.com/catalog/products))
 
+**Análisis estático público (SonarCloud):**
+<https://sonarcloud.io/dashboard?id=ISCOUTB_AS_202620_TIENDA-VIRTUAL-UTB>
+(organización `isco-utb`, Quality Gate verificable sin autenticación)
+
 - [Guía de despliegue reproducible](docs/despliegue-s8.md): pieza a pieza
   (Vercel → Render → Neon → UptimeRobot), protección de secretos y protección
   de rama.

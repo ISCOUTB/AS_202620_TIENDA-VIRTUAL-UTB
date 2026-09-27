@@ -97,19 +97,30 @@ Pasos (dashboard) o CLI:
 
 ## Paso 5 — SonarCloud en el pipeline
 
-1. En <https://sonarcloud.io> (organización `isco-utb`) registrar el
-   repositorio y copiar el `projectKey` generado; si difiere del de
-   `sonar-project.properties`, ajustar ese archivo.
-2. Generar token (`My Account → Security`) y crear en GitHub el secreto de
-   repositorio `SONAR_TOKEN` (Settings → Secrets and variables → Actions).
-3. El job `sonarcloud` de `.github/workflows/tests.yml` corre en cada push/PR.
+> **Hecho:** el proyecto está registrado en la organización `isco-utb` con la
+> clave `ISCOUTB_AS_202620_TIENDA-VIRTUAL-UTB` (coincide con
+> `sonar-project.properties`) y SonarCloud lo analiza automáticamente en cada
+> push — **Automatic Analysis, sin necesidad de `SONAR_TOKEN`**. Quality Gate
+> público y verificable sin autenticación:
+> <https://sonarcloud.io/dashboard?id=ISCOUTB_AS_202620_TIENDA-VIRTUAL-UTB>
+> — **en verde** desde el análisis del 2026-09-27 20:20 UTC. Los hallazgos del
+> primer análisis se corrigieron (action pineada a SHA, `--only-binary` en pip)
+> y `.sonarcloud.properties` excluye los HTML generados (`docs/**/*.html`),
+> que producían falsos positivos. El check `SonarCloud Code Analysis` aparece
+> directamente en cada commit/PR de GitHub.
+>
+> Nota: el job `sonarcloud` del workflow queda como camino alternativo si se
+> decide analizar desde CI — para activarlo hay que crear `SONAR_TOKEN` **y**
+> desactivar Automatic Analysis (Administration → Analysis Method); con ambos
+> activos el scan de CI falla por conflicto.
 
 ## Protección de rama (bloqueo del merge)
 
 En GitHub → Settings → Branches → regla sobre `main`: activar *Require status
-checks to pass before merging* y marcar los checks `backend` y `sonarcloud`.
-Es configuración de la plataforma, no de archivos: este paso es el que convierte
-«pipeline en verde» en «bloquea el merge ante fallos».
+checks to pass before merging* y marcar los checks `backend`, `sonarcloud` y
+`SonarCloud Code Analysis`. Es configuración de la plataforma, no de archivos:
+este paso es el que convierte «pipeline en verde» en «bloquea el merge ante
+fallos». **Pendiente del equipo.**
 
 ## Protección de secretos — evidencia
 
@@ -127,9 +138,9 @@ no devuelve valores literales, solo interpolaciones `${...}`.
 
 | Ítem | Comprobación |
 |---|---|
-| URL pública | Abrir `https://<proyecto>.vercel.app` desde fuera de la red UTB |
-| IaC versionada | `render.yaml` + `frontend/vercel.json` + `compose.yaml` en el repo |
-| Pipeline en verde | Checks `backend` + `sonarcloud` pasando en el último commit de `main` |
+| URL pública | Abrir `https://tienda-virtual-utb-acme-8eed.vercel.app` desde fuera de la red UTB — verificado 2026-09-27: 200 con los 4 productos del catálogo |
+| IaC versionada | `render.yaml` + `frontend/vercel.json` + `neon.ts` + `compose.yaml` en el repo |
+| Pipeline en verde | Checks `backend` + `SonarCloud Code Analysis` pasando en el último commit de `main` — verificado en `b35b3e7` |
 | Health check | `/health` (liveness) y `/health/ready` (readiness contra la BD) |
 | Logs estructurados | Dashboard de Render → Logs: una línea JSON por petición. Ejemplo real (`backend/app/shared/logging.py` + `metrics.py`): `{"timestamp":"2026-09-26T00:00:25.984+00:00","level":"info","logger":"tienda.http","message":"http_request","method":"GET","path":"/catalog/products","route":"/catalog/products","status_code":200,"duration_ms":2.83}` |
 | Métrica consultable | `GET /metrics` devuelve conteo, errores 5xx y latencia p50/p95 por ruta, ligada al escenario 4 |
