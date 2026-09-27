@@ -578,7 +578,7 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | `create_all` instead of migrations | Schema changes over populated databases will be manual | Acceptable while the schema is small; Alembic ADR pending |
 | Deployment target not chosen | Cannot be demonstrated outside a local machine | The system runs fully with a single Compose command; target to be confirmed (`docs/disponibilidad.md`) |
 | Mocked data only | Behavior is not validated against real cafeteria data | Explicit scope constraint; the seed data models realistic products |
-| The pinned Next.js version (`15.5.2`) is not the latest published release | Possible exposure to issues already fixed upstream | Tracked as a follow-up task: review current security advisories and update Next.js before any real deployment |
+| Next.js `15.5.2` carried published critical advisories (RSC: CVE-2025-66478 RCE, CVE-2025-55183/55184) | Vercel refused to deploy the vulnerable version; unpatched RSC exposure | **Resolved 2026-09-27:** upgraded to `next@15.5.9`, the fully patched release of the 15.5.x line (build verified locally and deployed on Vercel) |
 | Free-tier suspensions (Render sleeps the API after ~15 min idle; Neon autosuspends compute) | First request after idle pays a cold start (~50 s worst case) | UptimeRobot pings `/health` every 5 min; the same monitor doubles as external availability evidence |
 | Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | No secrets in tracked files: `compose.yaml` interpolates `${VAR:?}`, `.env` is git-ignored, `DATABASE_URL`/`SONAR_TOKEN` live only in platform secret stores (see `docs/despliegue-s8.md`) |
 
