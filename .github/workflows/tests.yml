@@ -20,7 +20,7 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements-dev.txt
       - name: Instalar dependencias
-        run: pip install -r requirements-dev.txt
+        run: 'pip install --only-binary :all: -r requirements-dev.txt'
       - name: Verificar contrato OpenAPI y respuestas HTTP
         run: python -m pytest tests/contract -v -p no:cacheprovider --junitxml=reports/contract.xml
         env:
@@ -53,4 +53,4 @@ jobs:
           fetch-depth: 0  # historial completo mejora la relevancia del análisis
       - name: Análisis SonarCloud
         if: env.SONAR_TOKEN != ''
-        uses: SonarSource/sonarqube-scan-action@v8.2.2
+        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
