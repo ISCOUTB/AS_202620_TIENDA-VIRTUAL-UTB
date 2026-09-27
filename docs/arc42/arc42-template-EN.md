@@ -466,10 +466,10 @@ Each piece runs on a different platform, chosen per piece (ADRs
 flowchart LR
     Eval(["Evaluator / buyer<br/>browser, any network"]):::actor
     subgraph Cloud["Public cloud — free tiers, no credit card"]
-        FE["Web client<br/>Vercel · SSR + CDN<br/>https://&lt;app&gt;.vercel.app"]:::node
-        BE["API<br/>Render · Docker container (render.yaml)<br/>https://tienda-utb-api.onrender.com"]:::node
+        FE["Web client<br/>Vercel · SSR + CDN<br/>tienda-virtual-utb-acme-8eed.vercel.app"]:::node
+        BE["API<br/>Render · Docker container (render.yaml)<br/>tienda-utb-api.onrender.com"]:::node
         PG[("PostgreSQL<br/>Neon serverless · 0.5 GB free")]:::data
-        MON["Monitor<br/>UptimeRobot · ping /health every 5 min"]:::ext
+        MON["Keep-alive<br/>GitHub Actions cron · GET /health /10 min"]:::ext
     end
     Eval -->|"HTTPS · opens the shop page"| FE
     FE -->|"REST/JSON server-side · API_URL"| BE
@@ -540,9 +540,9 @@ request.
 | --- | --- | --- |
 | [0001](../adr/0001-monolito-modular.md) | Modular monolith for the FastAPI backend, split into `identity`, `catalog`, `inventory` and `orders`, plus a restricted `shared` package, with explicit inter-module dependency rules | Accepted (2026-08-21) |
 | [0002](../adr/0002-contrato-integracion-http.md) | Synchronous HTTP integration with a versioned, committed OpenAPI contract | Implemented (2026-09-15) |
-| [0003](../adr/0003-frontend-vercel.md) | Web client deployed on Vercel (free Hobby tier) | Proposed (2026-09-26) |
-| [0004](../adr/0004-api-contenedor-render.md) | API deployed as an always-on Docker container on Render, not a serverless function | Proposed (2026-09-26) |
-| [0005](../adr/0005-postgres-neon.md) | Database on Neon serverless PostgreSQL (free tier) | Proposed (2026-09-26) |
+| [0003](../adr/0003-frontend-vercel.md) | Web client deployed on Vercel (free Hobby tier) | Implemented (2026-09-27) |
+| [0004](../adr/0004-api-contenedor-render.md) | API deployed as an always-on Docker container on Render, not a serverless function | Implemented (2026-09-27) |
+| [0005](../adr/0005-postgres-neon.md) | Database on Neon serverless PostgreSQL (free tier) | Implemented (2026-09-27) |
 
 Decisions still open (candidates for future ADRs): the authentication mechanism,
 adopting database migrations, and whether any module adopts a hexagonal shape

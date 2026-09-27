@@ -1,8 +1,19 @@
 # Despliegue S8 — guía reproducible
 
-> **Estado:** infraestructura como código y pipeline listos; el despliegue lo
-> ejecuta el equipo siguiendo esta guía (las cuentas son personales).
-> **Fecha:** 2026-09-26. **Trazabilidad:** ADR [0003](adr/0003-frontend-vercel.md),
+> **Estado: DESPLEGADO el 2026-09-27.** URLs verificadas:
+>
+> - **Aplicación (URL de entrega):** <https://tienda-virtual-utb-acme-8eed.vercel.app>
+> - **API:** <https://tienda-utb-api.onrender.com>
+>   ([/health](https://tienda-utb-api.onrender.com/health),
+>   [/health/ready](https://tienda-utb-api.onrender.com/health/ready),
+>   [/metrics](https://tienda-utb-api.onrender.com/metrics))
+> - **BD:** Neon `wandering-star-51602409`, rama `production`
+>
+> Verificado end-to-end desde fuera de cualquier red UTB: la página renderiza
+> los 4 productos del catálogo (SSR → API → Neon), `http=200` en todos los
+> endpoints operativos.
+>
+> **Trazabilidad:** ADR [0003](adr/0003-frontend-vercel.md),
 > [0004](adr/0004-api-contenedor-render.md), [0005](adr/0005-postgres-neon.md);
 > costos en [`costos-despliegue.md`](costos-despliegue.md).
 
@@ -42,34 +53,47 @@ debe copiarse a las variables de entorno de Render, nunca al repositorio.
 
 ## Paso 2 — API (Render, IaC con `render.yaml`)
 
+> **Hecho:** servicio `tienda-utb-api` (`srv-dasmvs0473hc73921aj0`) creado vía
+> API de Render el 2026-09-27, equivalente al blueprint `render.yaml`
+> (Docker, plan free, `healthCheckPath: /health`, autodeploy en `main`),
+> `DATABASE_URL` inyectada como variable de entorno del servicio.
+
+Pasos (dashboard) o equivalente API (`POST /v1/services`):
+
 1. Crear cuenta en <https://render.com> (login con GitHub).
 2. `New +` → `Blueprint` → seleccionar este repositorio → Render detecta
-   `render.yaml` y crea el web service `tienda-utb-api` (Docker, plan free,
-   `healthCheckPath: /health`, autodeploy en `main`).
-3. Al crearse, pedirá el valor de `DATABASE_URL` (`sync: false` lo marca como
-   secreto): pegar la cadena de Neon.
-4. Cuando el deploy termine, la API queda en
-   `https://tienda-utb-api.onrender.com`. Verificar:
-   `curl https://tienda-utb-api.onrender.com/health` → `{"status":"ok"}`.
+   `render.yaml` y crea el web service `tienda-utb-api`.
+3. `DATABASE_URL` es secreto (`sync: false`): se define en el dashboard o por
+   API, nunca en el repo.
+4. Verificar: `curl https://tienda-utb-api.onrender.com/health` → `{"status":"ok"}`.
 
 ## Paso 3 — Cliente web (Vercel)
 
+> **Hecho:** proyecto `tienda-virtual-utb` (equipo `acme-8eed`) desplegado con
+> `vercel deploy --prod`; `API_URL` definida como secreto de producción.
+> Nota: la cuenta tenía "Deployment Protection" (SSO) activa en dominios
+> `*.vercel.app` — se desactivó vía `PATCH /v9/projects` (`ssoProtection:
+> null`) para que la URL sea pública. El `git connect` automático queda
+> pendiente de vincular la cuenta de Vercel con GitHub en el dashboard.
+
+Pasos (dashboard) o CLI:
+
 1. Crear cuenta en <https://vercel.com> (login con GitHub).
-2. `Add New → Project` → importar este repo → **Root Directory: `frontend`**.
+2. `Add New → Project` → importar este repo → **Root Directory: `frontend`**
+   (o `vercel link` + `vercel deploy --prod` dentro de `frontend/`).
 3. Variable de entorno `API_URL=https://tienda-utb-api.onrender.com`
    (la petición la hace el servidor de Next.js, no el navegador, así que no se
    necesita `NEXT_PUBLIC_` ni CORS).
-4. Deploy → URL pública `https://<proyecto>.vercel.app`. **Esta es la URL que
-   se entrega**: el evaluador la abre y la página consulta la API.
+4. URL pública: <https://tienda-virtual-utb-acme-8eed.vercel.app>.
+   **Esta es la URL que se entrega.**
 
-## Paso 4 — Monitor (UptimeRobot)
+## Paso 4 — Monitor anti-suspensión
 
-1. Cuenta gratuita en <https://uptimerobot.com> (sin tarjeta).
-2. Monitor tipo HTTP(s) → `https://tienda-utb-api.onrender.com/health`,
-   intervalo 5 min.
-3. Efecto doble: el plan free de Render suspende el servicio tras ~15 min sin
-   tráfico (cold start ~50 s en la primera carga); el ping lo mantiene activo
-   **y** deja un registro externo de disponibilidad del escenario 4.
+> **Hecho vía CI:** `.github/workflows/keepalive.yml` hace `curl /health` cada
+> 10 min (GitHub Actions cron) — mantiene despierto el plan free de Render sin
+> depender de otra cuenta. Alternativa externa con dashboard de uptime:
+> monitor gratuito de <https://uptimerobot.com> sobre `/health` cada 5 min
+> (además produce evidencia de disponibilidad del escenario 4).
 
 ## Paso 5 — SonarCloud en el pipeline
 

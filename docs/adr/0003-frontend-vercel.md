@@ -1,6 +1,8 @@
 # ADR 0003: Cliente web desplegado en Vercel
 
-- **Estado:** Propuesta, pendiente de verificación del despliegue real.
+- **Estado:** Implementada — desplegada el 2026-09-27 en
+  <https://tienda-virtual-utb-acme-8eed.vercel.app> (verificada desde red
+  externa).
 - **Fecha:** 2026-09-26
 - **Relacionada:** [ADR 0002](0002-contrato-integracion-http.md) (la integración HTTP se conserva; cambia dónde corre el cliente).
 

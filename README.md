@@ -109,6 +109,13 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 
 ## Evidencia S8 — despliegue reproducible, CI y observabilidad
 
+**Sistema desplegado:** <https://tienda-virtual-utb-acme-8eed.vercel.app>
+(API: <https://tienda-utb-api.onrender.com> — probar
+[`/health`](https://tienda-utb-api.onrender.com/health),
+[`/health/ready`](https://tienda-utb-api.onrender.com/health/ready),
+[`/metrics`](https://tienda-utb-api.onrender.com/metrics) y
+[`/catalog/products`](https://tienda-utb-api.onrender.com/catalog/products))
+
 - [Guía de despliegue reproducible](docs/despliegue-s8.md): pieza a pieza
   (Vercel → Render → Neon → UptimeRobot), protección de secretos y protección
   de rama.

@@ -1,0 +1,18 @@
+name: Keep-alive
+
+# El plan free de Render suspende el servicio tras ~15 min sin tráfico externo
+# (los health checks internos de Render no cuentan). Este cron hace un GET a
+# /health cada 10 min para mantener la API despierta durante la evaluación.
+# Alternativa externa documentada: monitor UptimeRobot (docs/despliegue-s8.md).
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping al health check de la API desplegada
+        run: curl -fsS --max-time 30 https://tienda-utb-api.onrender.com/health
