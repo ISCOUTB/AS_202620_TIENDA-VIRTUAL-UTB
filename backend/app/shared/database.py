@@ -19,6 +19,12 @@ if DATABASE_URL.startswith("sqlite"):
     if ":memory:" in DATABASE_URL:
         # Una sola conexión compartida para que las tablas sobrevivan entre sesiones.
         _kwargs["poolclass"] = StaticPool
+else:
+    # Neon suspende el compute tras inactividad y el pooler cierra conexiones:
+    # pre_ping descarta conexiones muertas antes de usarlas y pool_recycle las
+    # renueva antes del timeout del lado del servidor, evitando 500 transitorios.
+    _kwargs["pool_pre_ping"] = True
+    _kwargs["pool_recycle"] = 280
 
 engine = create_engine(DATABASE_URL, **_kwargs)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
