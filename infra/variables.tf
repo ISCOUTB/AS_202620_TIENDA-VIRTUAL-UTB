@@ -100,9 +100,16 @@ variable "render_plan" {
 }
 
 variable "render_region" {
-  description = "Región de Render: frankfurt, ohio, oregon, singapore o virginia."
+  description = <<-EOT
+    Región de Render. `ohio` es la del servicio de producción
+    `srv-dasmvs0473hc73921aj0`, confirmado contra la API de Render. No es
+    `oregon`: se dejó ese valor por defecto sin verificar y habría creado la
+    API nueva en un continente distinto del actual, con la latencia y el
+    cumplimiento de datos que eso implica. Si en algún momento se cambia de
+    región, hay que declararlo también en el `.tfvars`.
+  EOT
   type        = string
-  default     = "oregon"
+  default     = "ohio"
 }
 
 variable "render_owner_id" {

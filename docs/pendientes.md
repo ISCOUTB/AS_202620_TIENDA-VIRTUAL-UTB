@@ -69,13 +69,29 @@ funcionando.
 Procedimiento completo y en orden: [`despliegue-terraform.md`](despliegue-terraform.md).
 Este es solo el índice.
 
+> **Estado de las credenciales, comprobado contra cada API el 2026-09-28.** Tres
+> de las cuatro keys no sirven todavía, y una de ellas es peligrosa:
+>
+> | Credencial | Estado | Qué hacer |
+> |---|---|---|
+> | `RENDER_API_KEY` | **Vale.** El servicio de producción responde | Ninguno |
+> | `render_owner_id` | **Corregido.** El valor de partida `usr-…` no existe; el real es el equipo `tea-…` de "Sekken's workspace", único owner que ve la key | Ya está en `terraform.tfvars` |
+> | `NEON_API_KEY` | **No sirve para este plan.** Está limitada al proyecto `wandering-star-51602409`, que es el de producción: la API responde *"not allowed to perform actions outside the project this key is scoped to"* | Crear una key a nivel de cuenta u organización, no de proyecto |
+> | `VERCEL_API_TOKEN` | **No sirve.** Es un token personal: la API responde `team_unauthorized` para `acme-8eed` y `forbidden` al listar equipos. Solo ve el proyecto de producción, sin `teamId` | Crear el token con el equipo `acme-8eed` seleccionado |
+> | `GITHUB_TOKEN` | **No existe.** Los dos recursos de GitHub aparecen en el plan, pero es porque no necesitan lecturas de API; fallarán en el `apply` | Crear un PAT clásico con ámbito `repo` |
+>
+> La key de Neon es la que más importa vigilar: como está acotada al proyecto de
+> producción, un `apply` intentaría crear `tienda-utb-tf` con una credencial que
+> solo puede tocar `wandering-star-51602409`. Que hoy devuelva 4 recursos en el
+> plan no significa que el Neon esté listo.
+
 | # | Paso | Bloqueado por |
 |---|---|---|
-| 2.1 | Crear `NEON_API_KEY`, `RENDER_API_KEY`, `VERCEL_API_TOKEN`, `GITHUB_TOKEN` | Cada persona, en su cuenta |
-| 2.2 | Obtener `render_owner_id` (`usr-…` o `tea-…`) y ponerlo en `infra/terraform.tfvars` | Dashboard de Render |
-| 2.3 | Confirmar la región del servicio existente; si no es `oregon`, declararla | API de Render |
+| 2.1 | Crear `NEON_API_KEY` (de cuenta, no de proyecto), `RENDER_API_KEY` ✓, `VERCEL_API_TOKEN` (de equipo), `GITHUB_TOKEN` | Cada persona, en su cuenta |
+| 2.2 | `render_owner_id` = `tea-dai5cb0ae00c73dpqrug`. Ya escrito en `infra/terraform.tfvars` | **Hecho** |
+| 2.3 | Confirmado: la región del servicio existente es `ohio`, no `oregon`. Ya corregido como default en `variables.tf` | **Hecho** |
 | 2.4 | `terraform init` (hay que repetirlo si se reinicia la máquina: está en `/tmp`) | — |
-| 2.5 | `terraform plan` — deben salir **6** recursos a crear y 0 a destruir | 2.1–2.4 |
+| 2.5 | `terraform plan` — deben salir **6** recursos a crear y 0 a destruir. Con el token de Vercel sin permisos solo salen **4**: los dos de Vercel no llegan a planificarse porque el provider aborta antes | 2.1–2.4 |
 | 2.6 | `apply` de Neon; verificar `connection_uri_pooler` y TLS | 2.5 |
 | 2.7 | `apply` de Render; verificar `/health/ready` y `/catalog/products` | 2.6 |
 | 2.8 | `apply` de Vercel; `vercel link` al proyecto `-tf`, **desplegar con la CLI** y quitar el SSO con `PATCH /v9/projects` | 2.7 |
