@@ -226,6 +226,17 @@ docs/openapi/tienda-virtual.yaml               # contrato de diseño anticipado 
 docs/api/openapi.json                          # contrato generado y versionado (regenerable por script)
 ```
 
+## Pendientes
+
+Todo lo que queda abierto —rotación de credenciales expuestas, aplicación de
+Terraform, deudas del equipo— está consolidado en
+**[`docs/pendientes.md`](docs/pendientes.md)**, con lo que bloquea cada paso y
+quién lo desbloquea.
+
+Lo más urgente: la contraseña de producción de la base de datos quedó expuesta y
+**hay que rotarla**. Verificado que no está en el repositorio ni en el historial
+de git.
+
 ## Estructura de arquitectura
 
 - `docs/arc42/`: documentación de arquitectura basada en la plantilla del curso.
