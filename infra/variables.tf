@@ -4,9 +4,16 @@
 # --- Neon -----------------------------------------------------------------
 
 variable "neon_project_name" {
-  description = "Nombre del proyecto de PostgreSQL en Neon."
+  description = <<-EOT
+    Nombre del proyecto de PostgreSQL en Neon.
+
+    Lleva el sufijo `-tf` a propósito: mientras el stack recreado por Terraform
+    convive con el stack ya en producción (que se llama `tienda-utb`), los
+    nombres deben ser distinguibles para no operar sobre el recurso equivocado.
+    En el corte definitivo se renombra a `tienda-utb` y se vuelve a aplicar.
+  EOT
   type        = string
-  default     = "tienda-utb"
+  default     = "tienda-utb-tf"
 }
 
 variable "neon_region_id" {
@@ -68,9 +75,16 @@ variable "neon_suspend_timeout_seconds" {
 # --- Render ---------------------------------------------------------------
 
 variable "render_service_name" {
-  description = "Nombre del web service que aloja la API."
+  description = <<-EOT
+    Nombre del web service que aloja la API.
+
+    Lleva el sufijo `-tf` a propósito: convive con el servicio ya en producción
+    (`tienda-utb-api`) durante la validación en paralelo, y dos servicios con el
+    mismo nombre serían indistinguibles al leer un log o una factura. En el corte
+    definitivo pasa a `tienda-utb-api`.
+  EOT
   type        = string
-  default     = "tienda-utb-api"
+  default     = "tienda-utb-api-tf"
 }
 
 variable "render_plan" {
@@ -103,9 +117,18 @@ variable "render_owner_id" {
 # --- Vercel ---------------------------------------------------------------
 
 variable "vercel_project_name" {
-  description = "Nombre del proyecto de Vercel. Determina el subdominio de entrega."
+  description = <<-EOT
+    Nombre del proyecto de Vercel. Determina el subdominio de entrega.
+
+    Lleva el sufijo `-tf` a propósito: con el nombre del proyecto en producción
+    el output `web_url` devolvería la URL de la web ya desplegada, y eso haría
+    pensar que la verificación posterior pasó cuando en realidad se estaría
+    mirando la infraestructura antigua. Con el sufijo, la URL esperada
+    `https://tienda-virtual-utb-tf-<equipo>.vercel.app` es inequívocamente la
+    nueva. En el corte definitivo pasa a `tienda-virtual-utb`.
+  EOT
   type        = string
-  default     = "tienda-virtual-utb"
+  default     = "tienda-virtual-utb-tf"
 }
 
 variable "vercel_team_slug" {
@@ -132,4 +155,29 @@ variable "github_default_branch" {
   description = "Rama desde la que se despliega automáticamente."
   type        = string
   default     = "main"
+}
+
+variable "github_required_status_checks" {
+  description = <<-EOT
+    Checks de GitHub Actions que deben pasar para poder mergear en la rama
+    principal. Se parametriza porque el nombre del check depende de quién lo
+    emite, y exigir uno que nadie emite bloquea los merges de forma indefinida
+    sin señal visible del motivo.
+
+    De momento solo se exige `backend`, que es el nombre del job del workflow
+    `tests.yml` y por tanto un check que la CI reporta siempre.
+
+    `SonarCloud Code Analysis` NO se incluye, y no por descuido: no es el nombre
+    de ningún job (el job se llama `sonarcloud`), sino el que crea la app de
+    SonarCloud, y además el job va condicionado a `if: env.SONAR_TOKEN != ''`.
+    Mientras el equipo no cree ese secreto, el job se omite entero y ese check
+    no llega a existir.
+
+    Cuando se cree `SONAR_TOKEN`, se desactive el análisis automático de
+    SonarCloud y se confirme que el check aparece en la pestaña de PR, basta con
+    añadir el nombre a esta lista y volver a aplicar. No hace falta reescribir
+    el recurso.
+  EOT
+  type        = list(string)
+  default     = ["backend"]
 }

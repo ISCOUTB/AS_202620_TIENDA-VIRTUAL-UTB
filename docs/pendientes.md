@@ -75,11 +75,11 @@ Este es solo el índice.
 | 2.2 | Obtener `render_owner_id` (`usr-…` o `tea-…`) y ponerlo en `infra/terraform.tfvars` | Dashboard de Render |
 | 2.3 | Confirmar la región del servicio existente; si no es `oregon`, declararla | API de Render |
 | 2.4 | `terraform init` (hay que repetirlo si se reinicia la máquina: está en `/tmp`) | — |
-| 2.5 | `terraform plan` — deben salir 4 recursos a crear y 0 a destruir | 2.1–2.4 |
+| 2.5 | `terraform plan` — deben salir **6** recursos a crear y 0 a destruir | 2.1–2.4 |
 | 2.6 | `apply` de Neon; verificar `connection_uri_pooler` y TLS | 2.5 |
 | 2.7 | `apply` de Render; verificar `/health/ready` y `/catalog/products` | 2.6 |
-| 2.8 | `apply` de Vercel; **desplegar con la CLI**, no se hace solo | 2.7 |
-| 2.9 | `apply` de GitHub: variable y protección de rama | 2.5 |
+| 2.8 | `apply` de Vercel; `vercel link` al proyecto `-tf`, **desplegar con la CLI** y quitar el SSO con `PATCH /v9/projects` | 2.7 |
+| 2.9 | `apply` de GitHub: variable y protección de rama (exige solo el check `backend`) | 2.5 |
 | 2.10 | Corte: actualizar la URL de entrega y el keep-alive | 2.7–2.9 verificados |
 | 2.11 | Destruir la infraestructura antigua **con la API de cada plataforma**, no con Terraform | 2.10 |
 | 2.12 | Borrar `render.yaml`, `neon.ts`, `package.json` y `package-lock.json` raíz; quitar `.neon` del `.gitignore` | 2.11 |
@@ -128,6 +128,10 @@ No urgente, pero registrada. Ninguna se ha approachable en esta iteración.
 ## 5. Verificación del estado actual
 
 Para comprobar que producción responde, sin necesidad de tokens:
+
+> Estas dos URLs son las del stack **ya en producción**, sin sufijo. El stack
+> que crea Terraform lleva sufijo `-tf` en las tres plataformas y, hasta que se
+> haga el corte, convive con este. Verificar uno no dice nada del otro.
 
 ```bash
 API="https://tienda-utb-api.onrender.com"

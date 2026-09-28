@@ -43,3 +43,7 @@ crash.*.log
 # Valores concretos de este despliegue, que tampoco se versionan.
 terraform.tfvars
 *.auto.tfvars
+
+# Vercel CLI: guarda a qué proyecto está enlazada esta copia del repo. Sin esto,
+# un `vercel deploy` desde frontend/ podría ir al proyecto equivocado.
+frontend/.vercel/

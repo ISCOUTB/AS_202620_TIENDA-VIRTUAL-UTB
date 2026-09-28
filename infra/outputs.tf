@@ -10,7 +10,18 @@ output "api_url" {
 }
 
 output "web_url" {
-  description = "URL pública del cliente web, esperada a partir del nombre del proyecto y el equipo."
+  description = <<-EOT
+    URL pública del cliente web.
+
+    Es una predicción construida a partir del nombre del proyecto y el slug del
+    equipo, no un valor leído de Vercel: `vercel_project` solo expone `id` y
+    `name`. La URL definitiva es la que asigne el primer despliegue a producción.
+
+    Mientras el nombre del proyecto lleve el sufijo `-tf`, esta URL es la del
+    stack nuevo y no coincide con la web ya en producción. Ese desajuste es
+    intencionado y es lo que impide validar por error la infraestructura
+    antigua.
+  EOT
   value       = local.vercel_default_url
 }
 
@@ -68,14 +79,4 @@ output "render_service_id" {
 output "vercel_project_id" {
   description = "ID del proyecto de Vercel."
   value       = vercel_project.web.id
-}
-
-output "web_default_url" {
-  description = <<-EOT
-    Dominio por defecto esperado del cliente web, construido a partir del nombre
-    del proyecto y el slug del equipo. Es una predicción, no un valor leído de
-    Vercel: `vercel_project` solo expone `id` y `name`. La URL definitiva es la
-    que asigne el primer despliegue a producción.
-  EOT
-  value       = local.vercel_default_url
 }

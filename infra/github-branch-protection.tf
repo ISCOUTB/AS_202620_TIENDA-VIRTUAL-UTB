@@ -8,21 +8,26 @@ resource "github_branch_protection" "main" {
   repository_id = var.github_repository
   pattern       = var.github_default_branch
 
-  # Los checks exigidos son `backend` y `SonarCloud Code Analysis`.
+  # Los checks exigidos vienen de `var.github_required_status_checks`, que hoy
+  # solo contiene `backend`.
   #
-  # El check `sonarcloud` del workflow NO se exige, y es deliberado: ese job
-  # está condicionado a `if: env.SONAR_TOKEN != ''`, de modo que mientras el
-  # equipo no cree ese secreto el job no se ejecuta y nunca reporta estado. Un
-  # check requerido que no reporta bloquea todos los merges de forma indefinida,
-  # sin señal visible de por qué. Si algún día se crea `SONAR_TOKEN` y se
-  # desactiva el análisis automático de SonarCloud, entonces sí tiene sentido
-  # exigirlos.
+  # Hay que ser cuidadoso aquí. Un check requerido que no se emite bloquea todos
+  # los merges para siempre, sin explicar por qué, así que solo se exige lo que
+  # la CI reporta de verdad:
+  #
+  # - `backend` es el nombre del job en tests.yml. La CI lo reporta siempre. Se
+  #   exige.
+  # - `SonarCloud Code Analysis` no es el nombre de ningún job, sino el que crea
+  #   la app de SonarCloud. Además el job `sonarcloud` va condicionado a
+  #   `if: env.SONAR_TOKEN != ''`, así que mientras no exista ese secreto se
+  #   omite entero y el check nunca aparece. No se exige, por diseño.
+  #
+  # El comment anterior daba a entender que exigirlos era correcto "si algún día
+  # se crea SONAR_TOKEN", pero el código sí los exigía, que es justo el estado
+  # que bloquea los merges. La lista es ahora un dato declarativo: se amplía
+  # añadiendo el nombre a la variable.
   required_status_checks {
-    strict = true
-
-    contexts = [
-      "backend",
-      "SonarCloud Code Analysis",
-    ]
+    strict   = true
+    contexts = var.github_required_status_checks
   }
 }

@@ -70,7 +70,15 @@ usando cuatro proveedores: `kislerdm/neon`, `render-oss/render`, `vercel/vercel`
 `integrations/github`. Se **recrea en paralelo** y se corta cuando la nueva esté
 verificada. El estado es **local y git-ignorado**.
 
-Tres decisiones dentro de esa que merecen justificación aparte:
+Cuatro decisiones dentro de esa que merecen justificación aparte:
+
+**Los recursos nuevos llevan sufijo `-tf` mientras coexisten.** `tienda-utb-tf`,
+`tienda-utb-api-tf`, `tienda-virtual-utb-tf`. No es decoración: durante la
+convivencia, dos recursos con el mismo nombre en la misma plataforma son
+indistinguibles al leer un log, una factura o un output. Con el nombre del stack
+en producción, el output `web_url` devolvería la URL de la web antigua y la
+verificación posterior "pasaría" mirando la infraestructura equivocada. En el
+corte definitivo se quitan los tres sufijos y se vuelve a aplicar.
 
 **El proyecto de Neon se declara con un único recurso.** Su bloque `branch` crea
 la rama, el rol y la base a la vez, que es lo que hace el propio proyecto al
@@ -112,6 +120,14 @@ pipeline, y Terraform gobierna el proyecto y su configuración.
   se actualizan en el mismo `apply`. Es la mitad de los pasos manuales que
   quedan.
 - La protección de `main` deja de ser un paso pendiente: pasa a ser un recurso.
+  Exige el check `backend`, que es el nombre del job en `tests.yml` y siempre
+  reporta. Los checks exigidos están en la variable
+  `github_required_status_checks` porque exigir uno que nadie emite bloquearía
+  los merges de forma indefinida y sin explicar por qué: `SonarCloud Code
+  Analysis` no es el nombre de ningún job, lo crea la app de SonarCloud, y el
+  job `sonarcloud` va condicionado a `if: env.SONAR_TOKEN != ''`, así que
+  mientras no exista ese secreto no se emite. Ampliar la lista cuando
+  SonarCloud esté montado es cambiar un valor.
 - `render.yaml` deja de describir un servicio que nunca se creó con él, y
   `neon.ts` deja de ser la fuente de verdad de la base de datos.
 - Un `plan` muestra el cambio antes de aplicarlo, que es justo lo que faltaba

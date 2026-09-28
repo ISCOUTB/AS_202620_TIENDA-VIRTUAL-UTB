@@ -125,30 +125,59 @@ paralelo con la que está en producción.** Nada de lo anterior se ha tocado.
 
 ```bash
 terraform apply -target=vercel_project.web -target=vercel_project_environment_variable.api_url
-terraform output web_default_url
+terraform output web_url
 ```
 
 El proyecto se crea con `framework = "nextjs"` y `root_directory = "frontend"`.
 `API_URL` queda apuntando a la API del paso 2.
 
+Los nombres de este paso llevan sufijo `-tf` (`tienda-virtual-utb-tf`) mientras
+coexisten con el stack en producción. Por eso `web_url` devuelve la URL del
+proyecto **nuevo** y no la de la web actual, que es justo lo que permite
+distinguir una validación correcta de un falso positivo.
+
 El despliegue a producción **no** lo dispara Terraform. El plan Hobby de Vercel
 no conecta proyectos con repositorios de una organización de GitHub —este
 repositorio está en la organización `ISCOUTB`—, así que no hay despliegue
-automático al hacer push. Se hace desde el pipeline o en local:
+automático al hacer push. Se hace en local, y **el enlace al proyecto hay que
+hacerlo explícitamente**: la CLI guarda en `frontend/.vercel/project.json` a qué
+proyecto apunta, y esa carpeta está en `.gitignore` para que nadie la versione
+por error.
 
 ```bash
 cd frontend
+npx vercel link --yes --project tienda-virtual-utb-tf --token "$VERCEL_API_TOKEN" --scope acme-8eed
 npx vercel deploy --prod --token "$VERCEL_API_TOKEN" --scope acme-8eed
 ```
 
-Comprobar que la URL es pública, sin "Deployment Protection": si sale un aviso
-de autenticación SSO, es que el proyecto nuevo nació con la protección activa y
-hay que desactivarla.
+Sin el `vercel link` explícito, la CLI pediría el proyecto de forma
+interactiva y es fácil acabar desplegando sobre el proyecto antiguo.
+
+**Quitar la protección SSO del proyecto nuevo.** Este es el paso que la API de
+Vercel no deja automatizar desde Terraform: ninguno de los cuatro providers
+usados tiene un atributo `sso*`, así que un proyecto creado por Terraform hereda
+la protección de la cuenta y su URL responde 401. Hay que hacerlo a mano, una
+sola vez por proyecto:
 
 ```bash
-terraform output web_default_url
-curl -fsS "$(terraform output -raw web_default_url)" | grep -c '<h1'   # SSR real
+# El ID del proyecto sale del output
+terraform output vercel_project_id
+curl -fsS -X PATCH "https://api.vercel.com/v9/projects/<ID_DEL_PROYECTO>" \
+  -H "Authorization: Bearer $VERCEL_API_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"ssoProtection": null}'
 ```
+
+Comprobar que la URL es pública y que renderiza de verdad:
+
+```bash
+terraform output web_url
+curl -fsS "$(terraform output -raw web_url)" | grep -c '<h1'   # SSR real
+```
+
+Un `0` en el `grep` significa que llegó una página vacía o una redirección: eso
+es el síntoma de la protección SSO sin desactivar. Si sale un aviso de
+autenticación, repite el `PATCH` anterior.
 
 ### 4. GitHub
 
@@ -158,8 +187,17 @@ terraform apply -target=github_branch_protection.main
 ```
 
 La variable `API_HEALTH_URL` pasa a existir en el repositorio y
-`.github/workflows/keepalive.yml` deja de tener la URL escrita a mano. La
-protección de `main` exige los checks `backend` y `SonarCloud Code Analysis`.
+`.github/workflows/keepalive.yml` deja de usar el valor de reserva que tenía
+mientras tanto.
+
+La protección de `main` exige **solo el check `backend`**, que es el nombre del
+job en `tests.yml` y por tanto un check que la CI reporta siempre. No exige
+`SonarCloud Code Analysis`: ese nombre lo crea la app de SonarCloud, no el
+workflow, y el job `sonarcloud` va condicionado a `if: env.SONAR_TOKEN != ''`,
+de modo que mientras no exista ese secreto no se emite. Exigirlo bloquearía
+todos los merges de forma indefinida. La lista de checks está en la variable
+`github_required_status_checks`, así que ampliarlo cuando SonarCloud esté
+montado es añadir el nombre y volver a aplicar.
 
 > **El check `sonarcloud` no se exige, y es deliberado.** Ese job del workflow
 > está condicionado a `if: env.SONAR_TOKEN != ''`: mientras el equipo no cree el
@@ -207,7 +245,7 @@ completo.
 
 | Comprobación | Cómo |
 |---|---|
-| Aplicación pública | `terraform output web_default_url` desde fuera de la red UTB, con el catálogo de 4 productos |
+| Aplicación pública | `terraform output web_url` desde fuera de la red UTB, con el catálogo de 4 productos |
 | API viva | `terraform output api_health_url` → `{"status":"ok"}` |
 | API contra la base de datos | `terraform output api_ready_url` → 200 |
 | Cadena completa | `terraform output api_catalog_url` → 4 productos |
