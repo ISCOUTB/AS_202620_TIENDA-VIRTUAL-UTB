@@ -1,6 +1,17 @@
-# Blueprint de Render — infraestructura como código de la API.
-# Render lo detecta al crear un "Blueprint" apuntando a este repo.
-# Procedimiento completo y evidencias: docs/despliegue-s8.md
+# SUSTITUIDO — no usar como Blueprint de Render.
+#
+# La API se gestiona ahora con Terraform en `infra/render-web-service.tf`.
+# Este archivo se conserva hasta el corte de la migración
+# (docs/despliegue-terraform.md) como referencia de la configuración anterior,
+# y describe el servicio tal como se creó, que fue mediante la API de Render y
+# no mediante este blueprint.
+#
+# Una diferencia que conviene tener presente al comparar: el blueprint
+# declaraba `DATABASE_URL` con `sync: false`, que obliga a definirla a mano en el
+# dashboard. El recurso de Terraform no tiene equivalente, así que la
+# separación entre secreto y no secreto la hace el propio repositorio: el valor
+# no está escrito en ningún archivo, sale del proyecto de Neon.
+
 services:
   - type: web
     name: tienda-utb-api

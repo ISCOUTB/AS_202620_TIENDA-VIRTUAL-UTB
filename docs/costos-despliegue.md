@@ -23,7 +23,7 @@ Derivados del escenario 4 (`docs/escenarios-calidad.md`) y del alcance académic
 | Cliente web | Vercel Hobby | ~10 mil renders SSR + ancho de banda mínimo | Incluye hosting, CDN y HTTPS | $0 |
 | API | Render free (Docker) | 720 h/mes de un web service | 750 h de instancia/mes; suspende a los 15 min sin tráfico (mitigado con monitor) | $0 |
 | Base de datos | Neon free | ≤50 MB, cómputo intermitente | 0,5 GB + 190 h de cómputo; auto-suspende a cero | $0 |
-| Monitor | UptimeRobot free | 1 check cada 5 min | 50 monitores gratis | $0 |
+| Monitor | GitHub Actions (cron en `keepalive.yml`) | 1 ping cada 10 min a `/health` | Repositorio público: minutos de Actions ilimitados | $0 |
 | CI + análisis | GitHub Actions + SonarCloud | minutos de build por push | Repo público: Actions ilimitado; SonarCloud gratis para OSS | $0 |
 | **Total** | | | | **$0/mes** |
 
@@ -45,14 +45,24 @@ Volumen al que cada pieza deja de ser gratis — comparado con el supuesto
 | Pieza | Se rompe la capa gratuita cuando… | Holgura vs. supuesto |
 |---|---|---|
 | Vercel Hobby | >100 GB de ancho de banda/mes o límites de ejecución de funciones | >100× |
-| Render free | >750 h de instancia/mes (un servicio 24/7 = ~720 h) o cuando el monitor deje de evitar la suspensión | Justa en horas; el primer escalón es Starter (~USD 7/mes) |
+| Render free | >750 h de instancia/mes **por espacio de trabajo** (no por servicio: un servicio 24/7 = ~720 h) o cuando el monitor deje de evitar la suspensión | Justa en horas, y con un solo servicio; ver la advertencia de coexistencia |
 | Neon free | >0,5 GB de datos o >190 CU-horas de cómputo/mes | ~10× en datos; el cómputo suspende a cero sin tráfico |
-| UptimeRobot free | >50 monitores | 50× |
+| Monitor (Actions) | Se agota el allotment de minutos de Actions del repositorio, o los jobs se desactivan por inactividad a 60 días sin actividad en repositorios públicos | Irrelevante: repositorio público, ~4 320 llamadas/mes de curl de segundos |
+
+> **Corrección 2026-09-28.** Esta tabla decía UptimeRobot con un check cada
+> 5 min. UptimeRobot **se descartó** —requería una cuenta más, que es la misma
+> fricción que hizo rechazar Terraform Cloud— y la función la cumple el cron de
+> `.github/workflows/keepalive.yml` cada 10 min. El total no cambia: $0/mes.
 
 ## Riesgos de costo
 
 - El plan free de Render **suspende sin tráfico**: si el monitor falla, la
   primera carga del evaluador pagaría un cold start (~50 s), no dinero.
+- Las 750 h de Render son **por espacio de trabajo y mes**, no por servicio. Por
+  eso la migración a Terraform
+  ([`despliegue-terraform.md`](despliegue-terraform.md)) tiene que apurar el
+  corte: dos servicios en marcha un mes entero superarían el límite y Render
+  suspendería **ambos** hasta el mes siguiente.
 - Neon free limita a 0,5 GB y suspende el cómputo inactivo; superar la capa
   llevaría al escalón ~USD 19/mes — improbable con ≤50 MB.
 - Ninguna capa gratuita garantiza SLA: el sistema es una demo académica, no

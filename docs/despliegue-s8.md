@@ -16,6 +16,15 @@
 > **Trazabilidad:** ADR [0003](adr/0003-frontend-vercel.md),
 > [0004](adr/0004-api-contenedor-render.md), [0005](adr/0005-postgres-neon.md);
 > costos en [`costos-despliegue.md`](costos-despliegue.md).
+>
+> **Este documento describe la infraestructura que está en servicio, no la
+> forma en que se declarará a partir de ahora.** La siguiente iteración la
+> declara con Terraform (ADR
+> [0006](adr/0006-infra-como-codigo-terraform.md)), lo que deja obsoletos el
+> paso 2, el paso 3 y la protección de rama como *procedimiento*, aunque lo que
+> aquí se verificó sigue siendo cierto. Ese proceso —y el corte— está en
+> [`despliegue-terraform.md`](despliegue-terraform.md). Hasta que se aplique,
+> esta guía sigue siendo la que describe producción.
 
 ## Dónde corre cada pieza
 
@@ -24,7 +33,7 @@
 | Cliente web (Next.js) | **Vercel** | Funciones/SSR + CDN | Desplegar Next.js en su plataforma nativa es gratis sin tarjeta y da HTTPS + CDN automáticos |
 | API (FastAPI) | **Render** | Contenedor Docker | El `lifespan` crea esquema+seed y mantiene pool de conexiones: es proceso de larga duración, no función (cold start rompería el escenario 3, <2 s) |
 | Base de datos | **Neon** | PostgreSQL serverless gestionado | Capa gratuita sin tarjeta, no expira (la Postgres gratis de Render expira a los ~30 días) |
-| Monitor externo | **UptimeRobot** | Ping HTTP cada 5 min a `/health` | Gratis sin tarjeta; evita la suspensión del plan free de Render y produce evidencia de disponibilidad |
+| Monitor externo | **GitHub Actions** | Cron `curl /health` cada 10 min | Gratis sin tarjeta ni cuenta nueva; evita la suspensión del plan free de Render. UptimeRobot se evaluó y se descartó por requerir una cuenta más (`docs/ia.md`) |
 
 Todas las piezas tienen capa gratuita **sin tarjeta de crédito** (restricción de
 la consigna). La URL pública la entrega Vercel (`*.vercel.app`) y es accesible
@@ -57,6 +66,12 @@ debe copiarse a las variables de entorno de Render, nunca al repositorio.
 > API de Render el 2026-09-27, equivalente al blueprint `render.yaml`
 > (Docker, plan free, `healthCheckPath: /health`, autodeploy en `main`),
 > `DATABASE_URL` inyectada como variable de entorno del servicio.
+>
+> **Sustituido por ADR 0006:** el servicio se declara ahora en
+> `infra/render-web-service.tf`, que además aporta algo que este paso no
+> lograba: `DATABASE_URL` se toma del proyecto de Neon declarado en el mismo
+> repositorio, así que la copia manual entre consolas desaparece. `render.yaml`
+> conserva el histórico hasta el corte.
 
 Pasos (dashboard) o equivalente API (`POST /v1/services`):
 
@@ -75,6 +90,13 @@ Pasos (dashboard) o equivalente API (`POST /v1/services`):
 > `*.vercel.app` — se desactivó vía `PATCH /v9/projects` (`ssoProtection:
 > null`) para que la URL sea pública. El `git connect` automático queda
 > pendiente de vincular la cuenta de Vercel con GitHub en el dashboard.
+>
+> **Lo que ADR 0006 aclara:** no es un paso olvidado, es una limitación del
+> plan. Vercel Hobby no conecta proyectos con repositorios de una
+> **organización** de GitHub, y este repositorio está en la organización
+> `ISCOUTB`. Por eso la infraestructura declarada en Terraform incluye el
+> proyecto y su variable `API_URL`, pero no la conexión a GitHub: el
+> despliegue a producción lo dispara el pipeline o la CLI.
 
 Pasos (dashboard) o CLI:
 
@@ -121,6 +143,18 @@ checks to pass before merging* y marcar los checks `backend`, `sonarcloud` y
 `SonarCloud Code Analysis`. Es configuración de la plataforma, no de archivos:
 este paso es el que convierte «pipeline en verde» en «bloquea el merge ante
 fallos». **Pendiente del equipo.**
+
+> **Sustituido por ADR 0006:** la regla pasa a ser el recurso
+> `github_branch_protection.main` de `infra/`, y con ella queda versionada. Al
+> aplicarlo desaparece la parte manual de este paso.
+>
+> **Un ajuste respecto a lo que se pedía aquí:** se requiere `backend` y
+> `SonarCloud Code Analysis`, pero **no** el job `sonarcloud`, porque está
+> condicionado a `if: env.SONAR_TOKEN != ''`. Mientras el equipo no cree ese
+> secreto no se ejecuta y nunca reporta estado, y un check requerido sin estado
+> bloquea todos los merges sin señal visible. Si algún día se crea
+> `SONAR_TOKEN` y se desactiva el Análisis Automático, entonces sí conviene
+> exigirlo también.
 
 ## Protección de secretos — evidencia
 

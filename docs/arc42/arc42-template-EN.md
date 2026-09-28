@@ -124,8 +124,8 @@ These four goals are the same ones expanded into the
 | Mocked/seed data only, no real integration with the cafeteria or university systems in this phase | Scope | There is no confirmed access to a real inventory/sales system of the cafeteria yet; mocked data lets the team validate catalog, cart and inventory flows without depending on that integration. |
 | No online payment gateway in this phase | Scope | Gateway availability and institutional restrictions are not confirmed yet (see `docs/disponibilidad.md`); the catalog/order flow is prioritized first. |
 | Own authentication, no institutional SSO | Organizational | Access to the university's institutional authentication infrastructure has not been confirmed at this point. |
-| Deployment environment still to be confirmed | Infrastructure | Depends on which free/academic service ends up being authorized; left open so it does not block the rest of this deliverable. |
-| Zero monthly cost and no credit card required for the deployment | Organizational | Course constraint: at least one deliverable alternative must be usable without a credit card. The chosen platforms (Vercel, Render, Neon, UptimeRobot) all offer verified free tiers without a card (see ADRs 0003–0005). |
+| Production infrastructure is declared in the repository with Terraform, not in platform dashboards | Infrastructure | A dashboard is not reviewable and cannot be rebuilt from a clone. `infra/` is the declared form; see ADR 0006 |
+| Zero monthly cost and no credit card required for the deployment | Organizational | Course constraint: at least one deliverable alternative must be usable without a credit card. The chosen platforms (Vercel, Render, Neon, GitHub Actions) all offer verified free tiers without a card (see ADRs 0003–0005). |
 | The deployed system must be reachable from outside the university network | Infrastructure | The evaluator opens the public URL from home; the deployment cannot rely on the campus network or a private lab-only address. |
 | No native mobile app, third-party sales, national shipping, AI recommendations, or multiple simultaneous payment gateways | Scope | Explicit exclusions from `docs/problema.md` to keep the initial scope manageable for a 4-person team within the course schedule. |
 
@@ -495,14 +495,45 @@ Mapping of pieces to platforms:
 || Web client | Vercel Hobby | Next.js SSR functions + CDN | Hosting + HTTPS + CDN |
 || API | Render free | Docker container from `backend/Dockerfile` | 750 instance-hours/month web service |
 || Database | Neon free | Managed serverless PostgreSQL | 0.5 GB storage, autosuspend to zero |
-|| External monitor | UptimeRobot free | HTTP check on `/health` every 5 min | 50 monitors |
+|| External monitor | GitHub Actions (`keepalive.yml`) | Cron ping to `/health` every 10 min | Public repo: unlimited minutes |
 || CI + static analysis | GitHub Actions + SonarCloud | Tests, contract tests, Ruff, SonarCloud scan | Public repo: unlimited |
+|| Production infrastructure | Terraform (`infra/`) | Neon, Render, Vercel and GitHub resources | $0; local git-ignored state |
 
 Observability in this environment: every HTTP request produces one JSON log
 line (method, route, status, latency) visible in the Render log stream;
 `GET /health` is liveness, `GET /health/ready` checks the database, and
 `GET /metrics` exposes per-route counts, 5xx errors and p50/p95 latency —
 the metric tied to availability scenario 4.
+
+## Infrastructure as code {#_concept_5}
+
+The production environment above is declared in [`infra/`](../../infra) with
+Terraform: the Neon project, the Render web service, the Vercel project and the
+GitHub repository variable and branch protection. Three things follow from
+declaring it that way rather than configuring the dashboards.
+
+The links between pieces are **references, not copies**. `DATABASE_URL` is read
+from the Neon project, and the Vercel variable `API_URL` from the Render
+service's own URL, so a changed host propagates in a single `apply` instead of
+being copied between consoles.
+
+The API connects with a **dedicated role** (`tienda_app`) whose password the
+provider generates, instead of the project owner's credentials. The state file
+that records it is therefore the most sensitive file in the repository and is
+git-ignored explicitly.
+
+Three things are deliberately *outside* Terraform, because no provider covers
+them: the keep-alive cron's schedule (the GitHub provider has no resource for
+workflow scheduling, so it stays in the YAML), the Vercel-to-GitHub connection
+(Hobby tier refuses organization repositories), and SonarCloud (no provider;
+the project is in automatic-analysis mode). The Neon object-storage bucket that
+`neon.ts` declared was empty and unused, and was removed — expressing it would
+have forced `neon.ts` and a root `package.json` to stay outside Terraform.
+
+CI validates this configuration with `fmt`, `validate` and `tflint` on every
+change that touches `infra/`. It does not run `plan`: without a remote state
+there is nothing shared to read, and publishing four API tokens as repository
+secrets to get a human-reviewed plan anyway would defeat the purpose.
 
 # Cross-cutting Concepts {#section-concepts}
 
@@ -543,6 +574,18 @@ request.
 | [0003](../adr/0003-frontend-vercel.md) | Web client deployed on Vercel (free Hobby tier) | Implemented (2026-09-27) |
 | [0004](../adr/0004-api-contenedor-render.md) | API deployed as an always-on Docker container on Render, not a serverless function | Implemented (2026-09-27) |
 | [0005](../adr/0005-postgres-neon.md) | Database on Neon serverless PostgreSQL (free tier) | Implemented (2026-09-27) |
+| [0006](../adr/0006-infra-como-codigo-terraform.md) | Production infrastructure declared in the repository with Terraform (Neon, Render, Vercel and GitHub providers), replacing `render.yaml` + `neon.ts` + manual dashboard configuration; local git-ignored state | Accepted, **not yet applied** (2026-09-28) |
+
+[0006](../adr/0006-infra-como-codigo-terraform.md) does not change any
+platform chosen in 0003–0005; it changes how they are declared. Its
+configuration is versioned in [`infra/`](../../infra) and validated in CI
+(`fmt`, `validate`, `tflint`), but no `terraform apply` has run yet because the
+four API tokens do not exist. Production is still the deployment described in
+`docs/despliegue-s8.md`. Two consequences of 0006 are worth flagging here: the
+Terraform state contains the database password in clear text (hence the
+explicit `.gitignore` entry), and the web client still cannot auto-deploy from
+GitHub because Vercel's Hobby tier refuses to connect projects to repositories
+of a GitHub *organization*.
 
 Decisions still open (candidates for future ADRs): the authentication mechanism,
 adopting database migrations, and whether any module adopts a hexagonal shape
@@ -576,10 +619,13 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | --- | --- | --- |
 | Module boundaries are a convention, not enforced by the network | Unwanted coupling between modules | ADR dependency rules and `test_architecture.py`; a stricter dependency test is planned once there is more code |
 | `create_all` instead of migrations | Schema changes over populated databases will be manual | Acceptable while the schema is small; Alembic ADR pending |
-| Deployment target not chosen | Cannot be demonstrated outside a local machine | The system runs fully with a single Compose command; target to be confirmed (`docs/disponibilidad.md`) |
+| Deployment target not chosen | Cannot be demonstrated outside a local machine | **Resolved 2026-09-27:** deployed and verified on Vercel + Render + Neon; see ADRs 0003–0005 and `docs/despliegue-s8.md` |
 | Mocked data only | Behavior is not validated against real cafeteria data | Explicit scope constraint; the seed data models realistic products |
 | Next.js `15.5.2` carried published critical advisories (RSC: CVE-2025-66478 RCE, CVE-2025-55183/55184) | Vercel refused to deploy the vulnerable version; unpatched RSC exposure | **Resolved 2026-09-27:** upgraded to `next@15.5.9`, the fully patched release of the 15.5.x line (build verified locally and deployed on Vercel) |
-| Free-tier suspensions (Render sleeps the API after ~15 min idle; Neon autosuspends compute) | First request after idle pays a cold start (~50 s worst case) | UptimeRobot pings `/health` every 5 min; the same monitor doubles as external availability evidence |
+| Free-tier suspensions (Render sleeps the API after ~15 min idle; Neon autosuspends compute) | First request after idle pays a cold start (~50 s worst case) | The `keepalive.yml` workflow pings `/health` every 10 min; its URL is the `API_HEALTH_URL` repository variable, so a changed API host needs no workflow edit |
+| Production infrastructure is still configured by hand in five places (panels of Render, Vercel and Neon, plus `render.yaml` and `neon.ts`) | Cross-links can drift: `DATABASE_URL` may point at the wrong database, `API_URL` at the wrong API | ADR 0006 declares it in [`infra/`](../../infra) with Terraform, where those links are references between resources. **Not yet applied** — the tokens are still missing, so the drift risk stands until the cutover in `docs/despliegue-terraform.md` |
+| Terraform state holds the database role password in clear text, and there is no remote backend | The state file is the most sensitive file in the repository; two people applying at once can clobber each other | `terraform.tfstate*` is git-ignored explicitly. Accepted for four resources and rare changes; a remote backend is the fix if it ever grows. See ADR 0006 |
+| The API's database role is not least-privilege | `tienda_app` is still a member of `neon_superuser`, so it can create roles and databases inside its branch | Harmless while the API only reads a seeded catalog. If row-level security is ever enabled, or a second consumer connects, the role needs explicit SQL grants and must lose `neon_superuser`, which the Terraform provider cannot express. Tracked in ADR 0006 |
 | Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | No secrets in tracked files: `compose.yaml` interpolates `${VAR:?}`, `.env` is git-ignored, `DATABASE_URL`/`SONAR_TOKEN` live only in platform secret stores (see `docs/despliegue-s8.md`) |
 
 # Glossary {#section-glossary}
@@ -597,5 +643,7 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | Seed / mocked data | Example data inserted automatically so the system is usable without a real integration. |
 | `precio_centavos` | The product price stored as an integer number of cents (COP) to avoid floating-point rounding errors. |
 | ADR | Architecture Decision Record: a short document that records a decision, its context and its consequences. |
+| IaC (infrastructure as code) | Declaring the servers, databases and platform settings that run the system in versioned files, instead of configuring them by hand in each provider's dashboard. Terraform is the tool used here (ADR 0006). |
+| State | The file in which Terraform records the identifiers of everything it has created, so the next plan knows what already exists. It contains the database password and is therefore never committed. |
 | C4 | A model for visualizing software architecture at four zoom levels: Context, Containers, Components and Code. |
 | Health check | The `GET /health` endpoint that Docker Compose uses to decide when a container is ready. |

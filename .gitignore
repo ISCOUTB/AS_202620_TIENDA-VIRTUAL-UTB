@@ -17,3 +17,29 @@ coverage/
 
 # Skills de agente instaladas por `neon skills` (se regeneran)
 .agents/
+
+# Recibos de herramientas de documentación (archify, Redoc).
+#
+# `*.visual-check.json` es el recibo de una ejecución de `visual-check`: lleva
+# rutas absolutas de la máquina que lo generó, y el del repositorio registra
+# además una ejecución fallida (`"ok": false`, sin Chrome), así que no es
+# evidencia sino un subproducto local. El HTML que acompaña sí se versiona,
+# porque es el visor del contrato.
+*.visual-check.json
+*.visual-check.html
+
+# Terraform: binarios de providers, estado y planes.
+#
+# `terraform.tfstate` contiene la contraseña del rol de PostgreSQL en claro
+# (ver infra/README.md). Es el fichero más sensible del repositorio y por eso
+# está ignorado de forma explícita y no por un patrón genérico.
+infra/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+
+# Valores concretos de este despliegue, que tampoco se versionan.
+terraform.tfvars
+*.auto.tfvars

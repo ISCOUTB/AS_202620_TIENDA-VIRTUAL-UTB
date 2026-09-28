@@ -4,6 +4,15 @@ name: Keep-alive
 # (los health checks internos de Render no cuentan). Este cron hace un GET a
 # /health cada 10 min para mantener la API despierta durante la evaluación.
 # Alternativa externa documentada: monitor UptimeRobot (docs/despliegue-s8.md).
+#
+# El cron no se puede declarar en Terraform: el provider integrations/github no
+# tiene recurso para la programación de workflows. Lo que sí gestiona Terraform
+# es la variable `API_HEALTH_URL` del repositorio, de modo que esta URL sigue a
+# la API si Render le cambia el dominio.
+#
+# Si `API_HEALTH_URL` no estuviera definida, el paso fallaría con una variable
+# vacía en lugar de omitirse en silencio: es deliberado, para que un apply que
+# borrase la variable no se manifestara como "el keep-alive funciona".
 
 on:
   schedule:
@@ -14,5 +23,13 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
+      - name: Comprobar que la variable de infraestructura está definida
+        run: |
+          if [ -z "${{ vars.API_HEALTH_URL }}" ]; then
+            echo "::error::API_HEALTH_URL no está definida. Se gestiona con" \
+                 "'terraform apply -target=github_actions_variable.api_health_url'."
+            exit 1
+          fi
+
       - name: Ping al health check de la API desplegada
-        run: curl -fsS --max-time 30 https://tienda-utb-api.onrender.com/health
+        run: curl -fsS --max-time 30 "${{ vars.API_HEALTH_URL }}"

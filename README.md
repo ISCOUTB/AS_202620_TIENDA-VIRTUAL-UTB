@@ -123,17 +123,28 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 - [Guía de despliegue reproducible](docs/despliegue-s8.md): pieza a pieza
   (Vercel → Render → Neon → UptimeRobot), protección de secretos y protección
   de rama.
+- [Despliegue con Terraform](docs/despliegue-terraform.md): guía del segundo
+  intento, esta vez declarando la infraestructura en el repositorio. **Estado:
+  pendiente de aplicar** (falta crear los tokens de API); hasta entonces la
+  URL publicada arriba es la que sigue en servicio.
 - [Estimación de costo mensual con supuestos](docs/costos-despliegue.md)
   ($0/mes en capas gratuitas sin tarjeta).
 - ADR por decisión de plataforma:
   [0003 cliente web en Vercel](docs/adr/0003-frontend-vercel.md),
   [0004 API como contenedor en Render](docs/adr/0004-api-contenedor-render.md),
-  [0005 PostgreSQL en Neon](docs/adr/0005-postgres-neon.md).
-- Infraestructura como código: [`render.yaml`](render.yaml) (blueprint de la
-  API), [`frontend/vercel.json`](frontend/vercel.json) y
-  [`compose.yaml`](compose.yaml) para el entorno local.
+  [0005 PostgreSQL en Neon](docs/adr/0005-postgres-neon.md), e
+  [0006 infraestructura como código con Terraform](docs/adr/0006-infra-como-codigo-terraform.md).
+- Infraestructura como código: [`infra/`](infra) — proyecto de Terraform con
+  los cuatro proveedores (Neon, Render, Vercel, GitHub), validado en CI con
+  `fmt`, `validate` y `tflint`. El estado es local y está git-ignorado; los
+  tokens se leen del entorno y ninguno está versionado.
+  [`compose.yaml`](compose.yaml) sigue siendo el entorno local.
+  [`render.yaml`](render.yaml) y [`neon.ts`](neon.ts) quedan marcados como
+  sustituidos a la espera del corte.
 - Pipeline: [`.github/workflows/tests.yml`](.github/workflows/tests.yml) corre
-  pruebas funcionales, de contrato y análisis estático (Ruff + SonarCloud).
+  pruebas funcionales, de contrato y análisis estático (Ruff + SonarCloud), y
+  [`.github/workflows/terraform.yml`](.github/workflows/terraform.yml) valida
+  la configuración de `infra/` en cada cambio que la toque.
 - Observabilidad: `GET /health` (liveness), `GET /health/ready` (readiness con
   verificación de base de datos), `GET /metrics` (conteo, errores 5xx y
   latencia p50/p95 por ruta, ligada al escenario 4 de disponibilidad) y logs
@@ -204,9 +215,11 @@ backend/
   tests/                        # health, límites de módulos (ADR), catálogo, contrato, observabilidad
 frontend/
   app/page.tsx                  # vista del catálogo (componente de servidor)
-  vercel.json                   # IaC del despliegue del cliente web (S8)
+  vercel.json                   # ajustes de build de Vercel; el proyecto y sus variables ya los declara infra/
 compose.yaml                    # frontend + backend + postgres (local; secretos vía .env)
-render.yaml                     # IaC: blueprint de Render para la API (S8)
+infra/                          # IaC de producción: Terraform (Neon, Render, Vercel, GitHub)
+render.yaml                     # SUSTITUIDO por infra/; se retira en el corte
+neon.ts                         # SUSTITUIDO por infra/; solo queda el bucket de almacenamiento
 .env.example                    # variables locales requeridas; .env no se versiona
 sonar-project.properties        # análisis estático SonarCloud (org ISCO-UTB)
 docs/openapi/tienda-virtual.yaml               # contrato de diseño anticipado (4 módulos)
@@ -221,3 +234,10 @@ docs/api/openapi.json                          # contrato generado y versionado 
 
 Las evidencias S1–S7 corresponden al primer corte; la sección S8 (despliegue,
 CI y observabilidad) abre el segundo.
+
+La infraestructura declarada en `infra/` (ADR 0006) es una **continuación de
+S8**: responde a la misma pregunta —poder reconstruir el sistema desde el
+repositorio— pero sustituyendo el assemblage a mano en cinco paneles por una
+configuración versionada. Su estado real es
+[pendiente de aplicar](docs/despliegue-terraform.md); el ADR describe la decisión
+y su coste, no un despliegue consumado.
