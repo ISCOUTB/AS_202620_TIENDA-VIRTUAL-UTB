@@ -1,8 +1,7 @@
 # ADR 0004: API como contenedor siempre activo en Render (no función serverless)
 
-- **Estado:** Implementada — API en producción el 2026-09-27 en
-  <https://tienda-utb-api.onrender.com> (contenedor Docker, plan free;
-  `/health`, `/health/ready` y `/metrics` respondiendo 200 desde red externa).
+- **Estado:** Sustituida el 2026-10-04 por el [ADR 0007](0007-despliegue-dokploy.md).
+  Se conserva como registro histórico del despliegue anterior.
 - **Fecha:** 2026-09-26
 - **Relacionada:** [ADR 0001](0001-monolito-modular.md) (un solo proceso
   desplegable), [escenario 3](../escenarios-calidad.md#3-rendimiento--reflejo-de-inventario)

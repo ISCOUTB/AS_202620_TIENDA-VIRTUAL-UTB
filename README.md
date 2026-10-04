@@ -107,44 +107,27 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 - [Pruebas de contrato](backend/tests/contract/test_openapi.py) ejecutadas en el
   [pipeline](.github/workflows/tests.yml), con reporte descargable.
 
-## Evidencia S8 — despliegue reproducible, CI y observabilidad
+## Despliegue reproducible, CI y observabilidad
 
-**Sistema desplegado:** <https://tienda-virtual-utb-acme-8eed.vercel.app>
-(API: <https://tienda-utb-api.onrender.com> — probar
-[`/health`](https://tienda-utb-api.onrender.com/health),
-[`/health/ready`](https://tienda-utb-api.onrender.com/health/ready),
-[`/metrics`](https://tienda-utb-api.onrender.com/metrics) y
-[`/catalog/products`](https://tienda-utb-api.onrender.com/catalog/products))
+El despliegue vigente se ejecuta en Dokploy desde
+[`deploy/compose.lab.yaml`](deploy/compose.lab.yaml): Next.js, FastAPI y
+PostgreSQL 17 en un único stack. Solo el frontend recibe un dominio público;
+la URL definitiva se registrará cuando se configure en Dokploy.
 
 **Análisis estático público (SonarCloud):**
 <https://sonarcloud.io/dashboard?id=ISCOUTB_AS_202620_TIENDA-VIRTUAL-UTB>
 (organización `isco-utb`, Quality Gate verificable sin autenticación)
 
-- [Guía de despliegue reproducible](docs/despliegue-s8.md): pieza a pieza
-  (Vercel → Render → Neon → UptimeRobot), protección de secretos y protección
-  de rama.
-- [Despliegue con Terraform](docs/despliegue-terraform.md): guía del segundo
-  intento, esta vez declarando la infraestructura en el repositorio. **Estado:
-  pendiente de aplicar** (falta crear los tokens de API); hasta entonces la
-  URL publicada arriba es la que sigue en servicio.
-- [Estimación de costo mensual con supuestos](docs/costos-despliegue.md)
-  ($0/mes en capas gratuitas sin tarjeta).
-- ADR por decisión de plataforma:
-  [0003 cliente web en Vercel](docs/adr/0003-frontend-vercel.md),
-  [0004 API como contenedor en Render](docs/adr/0004-api-contenedor-render.md),
-  [0005 PostgreSQL en Neon](docs/adr/0005-postgres-neon.md), e
-  [0006 infraestructura como código con Terraform](docs/adr/0006-infra-como-codigo-terraform.md).
-- Infraestructura como código: [`infra/`](infra) — proyecto de Terraform con
-  los cuatro proveedores (Neon, Render, Vercel, GitHub), validado en CI con
-  `fmt`, `validate` y `tflint`. El estado es local y está git-ignorado; los
-  tokens se leen del entorno y ninguno está versionado.
-  [`compose.yaml`](compose.yaml) sigue siendo el entorno local.
-  [`render.yaml`](render.yaml) y [`neon.ts`](neon.ts) quedan marcados como
-  sustituidos a la espera del corte.
+- [Guía de despliegue en Dokploy](docs/despliegue-dokploy.md): configuración,
+  dominio, secretos, verificaciones y copias de seguridad.
+- [Estimación de costo con supuestos](docs/costos-despliegue.md); el software
+  autohospedado no añade licencia, pero servidor y backups están por confirmar.
+- [ADR 0007: despliegue unificado en Dokploy](docs/adr/0007-despliegue-dokploy.md).
+  Los ADR 0003–0006 se conservan únicamente como historial sustituido.
+- [`compose.yaml`](compose.yaml) sigue siendo el entorno local; el Compose de
+  Dokploy no publica puertos del host y persiste PostgreSQL en un volumen.
 - Pipeline: [`.github/workflows/tests.yml`](.github/workflows/tests.yml) corre
-  pruebas funcionales, de contrato y análisis estático (Ruff + SonarCloud), y
-  [`.github/workflows/terraform.yml`](.github/workflows/terraform.yml) valida
-  la configuración de `infra/` en cada cambio que la toque.
+  pruebas funcionales, de contrato y análisis estático (Ruff + SonarCloud).
 - Observabilidad: `GET /health` (liveness), `GET /health/ready` (readiness con
   verificación de base de datos), `GET /metrics` (conteo, errores 5xx y
   latencia p50/p95 por ruta, ligada al escenario 4 de disponibilidad) y logs
@@ -215,11 +198,8 @@ backend/
   tests/                        # health, límites de módulos (ADR), catálogo, contrato, observabilidad
 frontend/
   app/page.tsx                  # vista del catálogo (componente de servidor)
-  vercel.json                   # ajustes de build de Vercel; el proyecto y sus variables ya los declara infra/
 compose.yaml                    # frontend + backend + postgres (local; secretos vía .env)
-infra/                          # IaC de producción: Terraform (Neon, Render, Vercel, GitHub)
-render.yaml                     # SUSTITUIDO por infra/; se retira en el corte
-neon.ts                         # SUSTITUIDO por infra/; solo queda el bucket de almacenamiento
+deploy/compose.lab.yaml         # stack de producción consumido por Dokploy
 .env.example                    # variables locales requeridas; .env no se versiona
 sonar-project.properties        # análisis estático SonarCloud (org ISCO-UTB)
 docs/openapi/tienda-virtual.yaml               # contrato de diseño anticipado (4 módulos)
@@ -228,14 +208,12 @@ docs/api/openapi.json                          # contrato generado y versionado 
 
 ## Pendientes
 
-Todo lo que queda abierto —rotación de credenciales expuestas, aplicación de
-Terraform, deudas del equipo— está consolidado en
+Todo lo que queda abierto —dominio definitivo, backups y deudas del equipo— está consolidado en
 **[`docs/pendientes.md`](docs/pendientes.md)**, con lo que bloquea cada paso y
 quién lo desbloquea.
 
-Lo más urgente: la contraseña de producción de la base de datos quedó expuesta y
-**hay que rotarla**. Verificado que no está en el repositorio ni en el historial
-de git.
+Antes del corte definitivo deben revocarse las credenciales de los proveedores
+anteriores y verificarse una restauración del backup de PostgreSQL.
 
 ## Estructura de arquitectura
 
@@ -246,9 +224,6 @@ de git.
 Las evidencias S1–S7 corresponden al primer corte; la sección S8 (despliegue,
 CI y observabilidad) abre el segundo.
 
-La infraestructura declarada en `infra/` (ADR 0006) es una **continuación de
-S8**: responde a la misma pregunta —poder reconstruir el sistema desde el
-repositorio— pero sustituyendo el assemblage a mano en cinco paneles por una
-configuración versionada. Su estado real es
-[pendiente de aplicar](docs/despliegue-terraform.md); el ADR describe la decisión
-y su coste, no un despliegue consumado.
+El ADR 0007 documenta el despliegue unificado en Dokploy. Los ADR 0003–0006 y
+las guías S8/Terraform describen iteraciones anteriores y se conservan como
+evidencia histórica, no como instrucciones operativas vigentes.

@@ -7,7 +7,7 @@ from pathlib import Path
 BACKEND = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(BACKEND))
 
-from app.main import app
+from app.main import app  # noqa: E402  (el path del backend se prepara arriba)
 
 if __name__ == "__main__":
     target = BACKEND.parent / "docs" / "api" / "openapi.json"

@@ -1,9 +1,7 @@
 # ADR 0006: Infraestructura como código con Terraform
 
-- **Estado:** Aceptada. La configuración está versionada en
-  [`infra/`](../../infra) y validada en CI (`fmt`, `validate`, `tflint`), pero
-  **aún no aplicada**: falta crear los tokens de API. Procedimiento y estado real
-  de la migración en [`docs/despliegue-terraform.md`](../despliegue-terraform.md).
+- **Estado:** Sustituida sin haberse aplicado. El [ADR 0007](0007-despliegue-dokploy.md)
+  reemplazó esta propuesta el 2026-10-04; se conserva como registro histórico.
 - **Fecha:** 2026-09-28
 - **Relacionada:** [ADR 0003](0003-frontend-vercel.md) (Vercel),
   [ADR 0004](0004-api-contenedor-render.md) (Render) y

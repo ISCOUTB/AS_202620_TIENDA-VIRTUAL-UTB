@@ -1,8 +1,7 @@
 # ADR 0003: Cliente web desplegado en Vercel
 
-- **Estado:** Implementada — desplegada el 2026-09-27 en
-  <https://tienda-virtual-utb-acme-8eed.vercel.app> (verificada desde red
-  externa).
+- **Estado:** Sustituida el 2026-10-04 por el [ADR 0007](0007-despliegue-dokploy.md).
+  Se conserva como registro histórico del despliegue anterior.
 - **Fecha:** 2026-09-26
 - **Relacionada:** [ADR 0002](0002-contrato-integracion-http.md) (la integración HTTP se conserva; cambia dónde corre el cliente).
 

@@ -1,4 +1,8 @@
-# Despliegue S8 — guía reproducible
+# Despliegue S8 — guía histórica
+
+> **Sustituido el 2026-10-04.** Este documento conserva evidencia del despliegue
+> anterior. Para operar el sistema vigente use
+> [`despliegue-dokploy.md`](despliegue-dokploy.md).
 
 > **Estado: DESPLEGADO el 2026-09-27.** URLs verificadas:
 >

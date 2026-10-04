@@ -52,10 +52,7 @@ C4Container
   `postgres_data` que conserva los datos entre reinicios.
 - El nivel 3 (componentes de la API) se documenta como *Building Block View,
   Level 2* en `docs/arc42/arc42-template-EN.md`.
-- **Despliegue público (S8):** las mismas tres unidades corren en Vercel
-  (cliente web), Render (API como contenedor Docker, `render.yaml`) y Neon
-  (PostgreSQL gestionado), con UptimeRobot como monitor externo. El diagrama
-  de despliegue público está en arc42 §7, figura 7.2, y las decisiones por
-  pieza en los ADR [0003](../adr/0003-frontend-vercel.md),
-  [0004](../adr/0004-api-contenedor-render.md) y
-  [0005](../adr/0005-postgres-neon.md).
+- **Despliegue público:** Dokploy ejecuta las mismas tres unidades desde
+  `deploy/compose.lab.yaml`. Solo el cliente web recibe un dominio; API y base
+  permanecen en la red interna. La decisión está en el
+  [ADR 0007](../adr/0007-despliegue-dokploy.md).

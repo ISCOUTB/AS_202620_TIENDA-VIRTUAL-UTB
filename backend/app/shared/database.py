@@ -7,22 +7,42 @@ base declarativa. La propiedad de cada tabla pertenece al módulo que la define.
 import os
 from collections.abc import Iterator
 
-from sqlalchemy import create_engine
+from sqlalchemy import URL, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 from sqlalchemy.pool import StaticPool
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+pysqlite:///:memory:")
+
+def resolve_database_url() -> str | URL:
+    """Resolve the database connection without interpolating secrets in a URL."""
+    configured_url = os.getenv("DATABASE_URL")
+    if configured_url:
+        return configured_url
+
+    db_host = os.getenv("DB_HOST")
+    if not db_host:
+        return "sqlite+pysqlite:///:memory:"
+
+    return URL.create(
+        drivername="postgresql+psycopg2",
+        username=os.getenv("DB_USER", "tienda_utb"),
+        password=os.getenv("DB_PASSWORD"),
+        host=db_host,
+        port=int(os.getenv("DB_PORT", "5432")),
+        database=os.getenv("DB_NAME", "tienda_utb"),
+    )
+
+
+DATABASE_URL = resolve_database_url()
 
 _kwargs: dict = {"future": True}
-if DATABASE_URL.startswith("sqlite"):
+if str(DATABASE_URL).startswith("sqlite"):
     _kwargs["connect_args"] = {"check_same_thread": False}
     if ":memory:" in DATABASE_URL:
         # Una sola conexión compartida para que las tablas sobrevivan entre sesiones.
         _kwargs["poolclass"] = StaticPool
 else:
-    # Neon suspende el compute tras inactividad y el pooler cierra conexiones:
-    # pre_ping descarta conexiones muertas antes de usarlas y pool_recycle las
-    # renueva antes del timeout del lado del servidor, evitando 500 transitorios.
+    # Descarta conexiones cerradas y renueva periódicamente el pool para tolerar
+    # reinicios o mantenimientos de PostgreSQL.
     _kwargs["pool_pre_ping"] = True
     _kwargs["pool_recycle"] = 280
 

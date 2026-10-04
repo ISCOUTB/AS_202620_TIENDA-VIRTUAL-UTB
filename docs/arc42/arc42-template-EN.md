@@ -124,8 +124,8 @@ These four goals are the same ones expanded into the
 | Mocked/seed data only, no real integration with the cafeteria or university systems in this phase | Scope | There is no confirmed access to a real inventory/sales system of the cafeteria yet; mocked data lets the team validate catalog, cart and inventory flows without depending on that integration. |
 | No online payment gateway in this phase | Scope | Gateway availability and institutional restrictions are not confirmed yet (see `docs/disponibilidad.md`); the catalog/order flow is prioritized first. |
 | Own authentication, no institutional SSO | Organizational | Access to the university's institutional authentication infrastructure has not been confirmed at this point. |
-| Production infrastructure is declared in the repository with Terraform, not in platform dashboards | Infrastructure | A dashboard is not reviewable and cannot be rebuilt from a clone. `infra/` is the declared form; see ADR 0006 |
-| Zero monthly cost and no credit card required for the deployment | Organizational | Course constraint: at least one deliverable alternative must be usable without a credit card. The chosen platforms (Vercel, Render, Neon, GitHub Actions) all offer verified free tiers without a card (see ADRs 0003–0005). |
+| Production deployment is reproducible from a Docker Compose file | Infrastructure | `deploy/compose.lab.yaml` declares the three runtime services; domains, secrets and backups remain Dokploy operator settings. See ADR 0007. |
+| Deployment cost must be explicit | Organizational | Dokploy is self-hosted; software has no incremental license cost, while server and backup costs must be recorded once the provider is known. |
 | The deployed system must be reachable from outside the university network | Infrastructure | The evaluator opens the public URL from home; the deployment cannot rely on the campus network or a private lab-only address. |
 | No native mobile app, third-party sales, national shipping, AI recommendations, or multiple simultaneous payment gateways | Scope | Explicit exclusions from `docs/problema.md` to keep the initial scope manageable for a 4-person team within the course schedule. |
 
@@ -453,87 +453,36 @@ Quality features: the health checks on `database` (`pg_isready`) and `backend`
 (`/health`), together with `depends_on: condition: service_healthy`, enforce
 startup order; the named volume keeps local data across restarts.
 
-## Infrastructure Level 2 — public deployment {#_infrastructure_level_2}
+## Infrastructure Level 2 — Dokploy deployment {#_infrastructure_level_2}
 
-**Motivation.** The S8 deliverable requires the system to be reachable from
-outside the university network at zero monthly cost and without a credit card.
-Each piece runs on a different platform, chosen per piece (ADRs
-[0003](../adr/0003-frontend-vercel.md), [0004](../adr/0004-api-contenedor-render.md),
-[0005](../adr/0005-postgres-neon.md)); the cost estimate is in
-[`docs/costos-despliegue.md`](../costos-despliegue.md).
+The production-like environment is one Docker Compose application managed by
+Dokploy. It uses the same three containers as local development, but only the
+frontend is routed through Dokploy's Traefik integration.
 
 ```mermaid
 flowchart LR
-    Eval(["Evaluator / buyer<br/>browser, any network"]):::actor
-    subgraph Cloud["Public cloud — free tiers, no credit card"]
-        FE["Web client<br/>Vercel · SSR + CDN<br/>tienda-virtual-utb-acme-8eed.vercel.app"]:::node
-        BE["API<br/>Render · Docker container (render.yaml)<br/>tienda-utb-api.onrender.com"]:::node
-        PG[("PostgreSQL<br/>Neon serverless · 0.5 GB free")]:::data
-        MON["Keep-alive<br/>GitHub Actions cron · GET /health /10 min"]:::ext
+    User(["Evaluator / buyer<br/>browser"]):::actor
+    subgraph Host["Dokploy server"]
+        FE["Next.js frontend<br/>public domain · port 3000"]:::node
+        BE["FastAPI backend<br/>internal · port 8000"]:::node
+        PG[("PostgreSQL 17<br/>internal · named volume")]:::data
     end
-    Eval -->|"HTTPS · opens the shop page"| FE
-    FE -->|"REST/JSON server-side · API_URL"| BE
-    BE -->|"SQL · DATABASE_URL (secret)"| PG
-    MON -->|"keeps the free API awake<br/>+ availability evidence"| BE
+    User -->|"HTTPS · HTML (SSR)"| FE
+    FE -->|"REST/JSON · internal network"| BE
+    BE -->|"SQL"| PG
 
     classDef actor fill:#ffffff,stroke:#333333,color:#000000
     classDef node fill:#d5e8d4,stroke:#2d6a2d,color:#000000
     classDef data fill:#dae8fc,stroke:#1f5fa8,color:#000000
-    classDef ext fill:#eeeeee,stroke:#999999,color:#333333
-    style Cloud fill:#fbfbfb,stroke:#bbbbbb
+    style Host fill:#fbfbfb,stroke:#bbbbbb
 ```
 
-*Fig. 7.2 — Deployment, level 2: the public, zero-cost deployment (flowchart).
-One box per piece with where it runs — the decision per piece and its rejected
-alternative are in ADRs 0003–0005. Scope: the production-like environment only;
-the local Compose environment is Fig. 7.1.*
-
-Mapping of pieces to platforms:
-
-|| Piece | Platform | Form | Free tier used |
-|| --- | --- | --- | --- |
-|| Web client | Vercel Hobby | Next.js SSR functions + CDN | Hosting + HTTPS + CDN |
-|| API | Render free | Docker container from `backend/Dockerfile` | 750 instance-hours/month web service |
-|| Database | Neon free | Managed serverless PostgreSQL | 0.5 GB storage, autosuspend to zero |
-|| External monitor | GitHub Actions (`keepalive.yml`) | Cron ping to `/health` every 10 min | Public repo: unlimited minutes |
-|| CI + static analysis | GitHub Actions + SonarCloud | Tests, contract tests, Ruff, SonarCloud scan | Public repo: unlimited |
-|| Production infrastructure | Terraform (`infra/`) | Neon, Render, Vercel and GitHub resources | $0; local git-ignored state |
-
-Observability in this environment: every HTTP request produces one JSON log
-line (method, route, status, latency) visible in the Render log stream;
-`GET /health` is liveness, `GET /health/ready` checks the database, and
-`GET /metrics` exposes per-route counts, 5xx errors and p50/p95 latency —
-the metric tied to availability scenario 4.
-
-## Infrastructure as code {#_concept_5}
-
-The production environment above is declared in [`infra/`](../../infra) with
-Terraform: the Neon project, the Render web service, the Vercel project and the
-GitHub repository variable and branch protection. Three things follow from
-declaring it that way rather than configuring the dashboards.
-
-The links between pieces are **references, not copies**. `DATABASE_URL` is read
-from the Neon project, and the Vercel variable `API_URL` from the Render
-service's own URL, so a changed host propagates in a single `apply` instead of
-being copied between consoles.
-
-The API connects with a **dedicated role** (`tienda_app`) whose password the
-provider generates, instead of the project owner's credentials. The state file
-that records it is therefore the most sensitive file in the repository and is
-git-ignored explicitly.
-
-Three things are deliberately *outside* Terraform, because no provider covers
-them: the keep-alive cron's schedule (the GitHub provider has no resource for
-workflow scheduling, so it stays in the YAML), the Vercel-to-GitHub connection
-(Hobby tier refuses organization repositories), and SonarCloud (no provider;
-the project is in automatic-analysis mode). The Neon object-storage bucket that
-`neon.ts` declared was empty and unused, and was removed — expressing it would
-have forced `neon.ts` and a root `package.json` to stay outside Terraform.
-
-CI validates this configuration with `fmt`, `validate` and `tflint` on every
-change that touches `infra/`. It does not run `plan`: without a remote state
-there is nothing shared to read, and publishing four API tokens as repository
-secrets to get a human-reviewed plan anyway would defeat the purpose.
+The source of truth is `deploy/compose.lab.yaml`. PostgreSQL data lives in the
+named `postgres_data` volume, and its password comes from Dokploy Environment.
+Domains and TLS are managed in Dokploy rather than committed as Traefik labels.
+The API has no public domain at this stage. See
+[ADR 0007](../adr/0007-despliegue-dokploy.md) and the
+[deployment guide](../despliegue-dokploy.md).
 
 # Cross-cutting Concepts {#section-concepts}
 
@@ -547,10 +496,10 @@ the schema stabilizes.
 
 ## Configuration {#_concept_2}
 
-Configuration is read from environment variables defined in `compose.yaml`
-(`DATABASE_URL` for the API and `API_URL` for the web client). The code ships
-safe defaults for the local environment, so the test suite runs without any
-configuration.
+Configuration is read from environment variables. `DATABASE_URL` remains the
+explicit override; the Dokploy stack instead supplies `DB_HOST`, `DB_PORT`,
+`DB_NAME`, `DB_USER` and `DB_PASSWORD` so passwords are encoded safely. Next.js
+uses the internal `API_URL`. Tests fall back to in-memory SQLite.
 
 ## Mocked data {#_concept_3}
 
@@ -571,21 +520,14 @@ request.
 | --- | --- | --- |
 | [0001](../adr/0001-monolito-modular.md) | Modular monolith for the FastAPI backend, split into `identity`, `catalog`, `inventory` and `orders`, plus a restricted `shared` package, with explicit inter-module dependency rules | Accepted (2026-08-21) |
 | [0002](../adr/0002-contrato-integracion-http.md) | Synchronous HTTP integration with a versioned, committed OpenAPI contract | Implemented (2026-09-15) |
-| [0003](../adr/0003-frontend-vercel.md) | Web client deployed on Vercel (free Hobby tier) | Implemented (2026-09-27) |
-| [0004](../adr/0004-api-contenedor-render.md) | API deployed as an always-on Docker container on Render, not a serverless function | Implemented (2026-09-27) |
-| [0005](../adr/0005-postgres-neon.md) | Database on Neon serverless PostgreSQL (free tier) | Implemented (2026-09-27) |
-| [0006](../adr/0006-infra-como-codigo-terraform.md) | Production infrastructure declared in the repository with Terraform (Neon, Render, Vercel and GitHub providers), replacing `render.yaml` + `neon.ts` + manual dashboard configuration; local git-ignored state | Accepted, **not yet applied** (2026-09-28) |
+| [0003](../adr/0003-frontend-vercel.md) | Web client deployed on Vercel | Superseded by 0007 |
+| [0004](../adr/0004-api-contenedor-render.md) | API deployed on Render | Superseded by 0007 |
+| [0005](../adr/0005-postgres-neon.md) | Database deployed on Neon | Superseded by 0007 |
+| [0006](../adr/0006-infra-como-codigo-terraform.md) | Terraform proposal for the former providers | Superseded without being applied |
+| [0007](../adr/0007-despliegue-dokploy.md) | Next.js, FastAPI and PostgreSQL deployed as one Dokploy Compose application | Implemented (2026-10-04) |
 
-[0006](../adr/0006-infra-como-codigo-terraform.md) does not change any
-platform chosen in 0003–0005; it changes how they are declared. Its
-configuration is versioned in [`infra/`](../../infra) and validated in CI
-(`fmt`, `validate`, `tflint`), but no `terraform apply` has run yet because the
-four API tokens do not exist. Production is still the deployment described in
-`docs/despliegue-s8.md`. Two consequences of 0006 are worth flagging here: the
-Terraform state contains the database password in clear text (hence the
-explicit `.gitignore` entry), and the web client still cannot auto-deploy from
-GitHub because Vercel's Hobby tier refuses to connect projects to repositories
-of a GitHub *organization*.
+[0007](../adr/0007-despliegue-dokploy.md) is the current deployment decision.
+ADRs 0003–0006 remain available only as a record of earlier iterations.
 
 Decisions still open (candidates for future ADRs): the authentication mechanism,
 adopting database migrations, and whether any module adopts a hexagonal shape
@@ -619,14 +561,11 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | --- | --- | --- |
 | Module boundaries are a convention, not enforced by the network | Unwanted coupling between modules | ADR dependency rules and `test_architecture.py`; a stricter dependency test is planned once there is more code |
 | `create_all` instead of migrations | Schema changes over populated databases will be manual | Acceptable while the schema is small; Alembic ADR pending |
-| Deployment target not chosen | Cannot be demonstrated outside a local machine | **Resolved 2026-09-27:** deployed and verified on Vercel + Render + Neon; see ADRs 0003–0005 and `docs/despliegue-s8.md` |
+| Deployment target not chosen | Cannot be demonstrated outside a local machine | **Resolved:** Dokploy consumes `deploy/compose.lab.yaml`; see ADR 0007 |
 | Mocked data only | Behavior is not validated against real cafeteria data | Explicit scope constraint; the seed data models realistic products |
-| Next.js `15.5.2` carried published critical advisories (RSC: CVE-2025-66478 RCE, CVE-2025-55183/55184) | Vercel refused to deploy the vulnerable version; unpatched RSC exposure | **Resolved 2026-09-27:** upgraded to `next@15.5.9`, the fully patched release of the 15.5.x line (build verified locally and deployed on Vercel) |
-| Free-tier suspensions (Render sleeps the API after ~15 min idle; Neon autosuspends compute) | First request after idle pays a cold start (~50 s worst case) | The `keepalive.yml` workflow pings `/health` every 10 min; its URL is the `API_HEALTH_URL` repository variable, so a changed API host needs no workflow edit |
-| Production infrastructure is still configured by hand in five places (panels of Render, Vercel and Neon, plus `render.yaml` and `neon.ts`) | Cross-links can drift: `DATABASE_URL` may point at the wrong database, `API_URL` at the wrong API | ADR 0006 declares it in [`infra/`](../../infra) with Terraform, where those links are references between resources. **Not yet applied** — the tokens are still missing, so the drift risk stands until the cutover in `docs/despliegue-terraform.md` |
-| Terraform state holds the database role password in clear text, and there is no remote backend | The state file is the most sensitive file in the repository; two people applying at once can clobber each other | `terraform.tfstate*` is git-ignored explicitly. Accepted for four resources and rare changes; a remote backend is the fix if it ever grows. See ADR 0006 |
-| The API's database role is not least-privilege | `tienda_app` is still a member of `neon_superuser`, so it can create roles and databases inside its branch | Harmless while the API only reads a seeded catalog. If row-level security is ever enabled, or a second consumer connects, the role needs explicit SQL grants and must lose `neon_superuser`, which the Terraform provider cannot express. Tracked in ADR 0006 |
-| Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | No secrets in tracked files: `compose.yaml` interpolates `${VAR:?}`, `.env` is git-ignored, `DATABASE_URL`/`SONAR_TOKEN` live only in platform secret stores (see `docs/despliegue-s8.md`) |
+| Next.js dependency vulnerabilities | Public SSR increases exposure | Keep the lockfile patched and verify `npm audit` during upgrades |
+| Single Dokploy server hosts every runtime component | A host or disk failure affects the whole system | Named database volume, external scheduled backups and a tested restore procedure |
+| Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | The Compose requires `POSTGRES_PASSWORD` from Dokploy Environment; `.env` files remain ignored |
 
 # Glossary {#section-glossary}
 
@@ -643,7 +582,6 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | Seed / mocked data | Example data inserted automatically so the system is usable without a real integration. |
 | `precio_centavos` | The product price stored as an integer number of cents (COP) to avoid floating-point rounding errors. |
 | ADR | Architecture Decision Record: a short document that records a decision, its context and its consequences. |
-| IaC (infrastructure as code) | Declaring the servers, databases and platform settings that run the system in versioned files, instead of configuring them by hand in each provider's dashboard. Terraform is the tool used here (ADR 0006). |
-| State | The file in which Terraform records the identifiers of everything it has created, so the next plan knows what already exists. It contains the database password and is therefore never committed. |
+| Deployment definition | The versioned Docker Compose file that declares the runtime services consumed by Dokploy (ADR 0007). |
 | C4 | A model for visualizing software architecture at four zoom levels: Context, Containers, Components and Code. |
 | Health check | The `GET /health` endpoint that Docker Compose uses to decide when a container is ready. |

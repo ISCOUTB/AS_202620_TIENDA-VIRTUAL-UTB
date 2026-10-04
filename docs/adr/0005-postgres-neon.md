@@ -1,8 +1,7 @@
 # ADR 0005: PostgreSQL gestionado en Neon (serverless)
 
-- **Estado:** Implementada — la API en Render consume la instancia Neon
-  (`wandering-star-51602409`, rama `production`) en producción; verificado el
-  2026-09-27 con `/health/ready` → 200 desde la URL pública.
+- **Estado:** Sustituida el 2026-10-04 por el [ADR 0007](0007-despliegue-dokploy.md).
+  Se conserva como registro histórico del despliegue anterior.
 - **Fecha:** 2026-09-26
 - **Relacionada:** [ADR 0001](0001-monolito-modular.md) (una sola instancia
   PostgreSQL, propiedad de tablas por módulo) y [ADR 0004](0004-api-contenedor-render.md).

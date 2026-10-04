@@ -1,4 +1,8 @@
-# Despliegue con Terraform — guía reproducible
+# Despliegue con Terraform — propuesta histórica
+
+> **Sustituido sin aplicarse el 2026-10-04.** La configuración asociada fue
+> retirada. Para el despliegue vigente use
+> [`despliegue-dokploy.md`](despliegue-dokploy.md).
 
 > **Estado: pendiente de aplicar.** La configuración está versionada en
 > [`infra/`](../infra) y validada (`fmt`, `validate`, `tflint` en verde), pero

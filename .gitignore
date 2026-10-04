@@ -13,9 +13,8 @@ coverage/
 
 # Guía interna de trabajo, no es un entregable
 /guia-documentacion-arquitectonica-agentes.md
-.neon
 
-# Skills de agente instaladas por `neon skills` (se regeneran)
+# Skills de agente instaladas localmente (se regeneran)
 .agents/
 
 # Recibos de herramientas de documentación (archify, Redoc).
@@ -28,22 +27,3 @@ coverage/
 *.visual-check.json
 *.visual-check.html
 
-# Terraform: binarios de providers, estado y planes.
-#
-# `terraform.tfstate` contiene la contraseña del rol de PostgreSQL en claro
-# (ver infra/README.md). Es el fichero más sensible del repositorio y por eso
-# está ignorado de forma explícita y no por un patrón genérico.
-infra/.terraform/
-*.tfstate
-*.tfstate.*
-*.tfplan
-crash.log
-crash.*.log
-
-# Valores concretos de este despliegue, que tampoco se versionan.
-terraform.tfvars
-*.auto.tfvars
-
-# Vercel CLI: guarda a qué proyecto está enlazada esta copia del repo. Sin esto,
-# un `vercel deploy` desde frontend/ podría ir al proyecto equivocado.
-frontend/.vercel/
