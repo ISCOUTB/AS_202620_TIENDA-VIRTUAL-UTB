@@ -40,7 +40,7 @@ jobs:
       - name: Ejecutar pruebas funcionales y de arquitectura
         run: python -m pytest tests --ignore=tests/contract
       - name: Análisis estático (Ruff)
-        run: pipx run ruff check app tests scripts
+        run: pipx run --spec ruff==0.13.2 ruff check app tests scripts
 
   frontend:
     runs-on: ubuntu-latest
