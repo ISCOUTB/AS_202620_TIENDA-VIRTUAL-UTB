@@ -21,14 +21,14 @@ C4Container
 
     System_Boundary(sistema, "Tienda Virtual UTB") {
         Container(web, "Cliente web", "Next.js", "Renderiza en el servidor las vistas; hoy muestra el catálogo de la cafetería")
-        Container(api, "API", "FastAPI (monolito modular)", "Módulos identity, catalog, inventory, orders. Expone /health y /catalog/products")
-        ContainerDb(db, "Base de datos", "PostgreSQL 17", "Tabla catalog_products (propiedad del módulo catalog); datos mockeados")
+        Container(api, "API", "FastAPI (monolito modular)", "Catálogo e Inventario implementados para lectura; identity y orders pendientes")
+        ContainerDb(db, "Base de datos", "PostgreSQL 17", "catalog_products e inventory_stock, cada tabla con dueño de módulo")
     }
 
     Rel(comprador, web, "Consulta el catálogo", "HTTPS · HTML (SSR)")
     Rel(admin, web, "Administra la tienda (futuro)", "HTTPS · HTML (SSR)")
     Rel(inventario, web, "Gestiona existencias (futuro)", "HTTPS · HTML (SSR)")
-    Rel(web, api, "Llama a /catalog/products", "REST/JSON sobre HTTP")
+    Rel(web, api, "Consulta catálogo e inventario", "REST/JSON sobre HTTP")
     Rel(api, db, "Lee y escribe", "SQL (SQLAlchemy)")
 ```
 
@@ -46,8 +46,8 @@ C4Container
   catálogo se hace desde el servidor de Next.js hacia la API (`API_URL`), no
   desde el navegador.
 - **API (FastAPI, :8000).** Un único proceso. En el arranque crea el esquema y
-  siembra el catálogo mockeado de forma idempotente (ver *Runtime View*
-  en arc42). Solo el módulo `catalog` tiene comportamiento en este incremento.
+  cada módulo siembra sus datos mockeados de forma idempotente. `catalog` e
+  `inventory` implementan lectura mediante contratos separados.
 - **Base de datos (PostgreSQL, :5432 interno).** Instancia única con un volumen
   `postgres_data` que conserva los datos entre reinicios.
 - El nivel 3 (componentes de la API) se documenta como *Building Block View,

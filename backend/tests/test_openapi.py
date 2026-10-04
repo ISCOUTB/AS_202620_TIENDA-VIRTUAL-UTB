@@ -29,7 +29,9 @@ def test_contrato_autogenerado_incluye_endpoints_implementados() -> None:
 
     assert "/health" in openapi["paths"]
     assert "/catalog/products" in openapi["paths"]
+    assert "/inventory" in openapi["paths"]
     assert "ProductOut" in openapi["components"]["schemas"]
+    assert "StockOut" in openapi["components"]["schemas"]
 
 
 def test_contrato_diseno_anticipa_los_cuatro_modulos() -> None:

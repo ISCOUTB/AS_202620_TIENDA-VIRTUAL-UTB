@@ -19,7 +19,7 @@ info:
     - Autenticación via **Bearer JWT** (endpoints protegidos)
     - IDs incrementales enteros
     - Fechas en formato ISO 8601 UTC
-  version: 0.2.1
+  version: 0.3.0
   contact:
     name: Equipo Tienda Virtual UTB
   license:
@@ -37,7 +37,7 @@ tags:
   - name: catalogo
     description: Consulta del catálogo de productos
   - name: inventory
-    description: Control de existencias (solo administradores)
+    description: Lectura de disponibilidad y futuros ajustes protegidos
   - name: orders
     description: Gestión de pedidos de compra
 
@@ -220,10 +220,8 @@ paths:
       tags: [inventory]
       summary: Listar inventario
       description: |
-        Retorna el stock de todos los productos.
-        **Requiere rol administrador.**
-      security:
-        - bearerAuth: []
+        Retorna la disponibilidad necesaria para presentar el catálogo.
+        La lectura es pública; las futuras operaciones de ajuste requieren rol.
       responses:
         "200":
           description: Inventario completo
@@ -232,11 +230,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/InventoryItemOut"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
+                  $ref: "#/components/schemas/StockAvailabilityOut"
 
   /inventory/{productId}:
     get:
@@ -623,8 +617,8 @@ components:
     # --- Catalog ---
     ProductOut:
       type: object
-      required: [id, nombre, descripcion, precio_centavos, existencias]
-      description: Contrato actual del módulo catálogo (implementado)
+      required: [id, nombre, descripcion, precio_centavos]
+      description: Contrato del módulo Catálogo; no contiene datos de Inventario
       properties:
         id:
           type: integer
@@ -641,13 +635,20 @@ components:
           type: integer
           description: Precio en centavos COP (350000 = $3.500)
           example: 350000
+    # --- Inventory ---
+    StockAvailabilityOut:
+      type: object
+      required: [product_id, existencias]
+      properties:
+        product_id:
+          type: integer
+          example: 1
         existencias:
           type: integer
-          description: Cantidad disponible (temporal, mover a inventory)
           minimum: 0
+          description: Unidades disponibles en stock
           example: 40
 
-    # --- Inventory ---
     InventoryItemOut:
       type: object
       required: [product_id, product_nombre, cantidad, actualizado_en]

@@ -13,4 +13,3 @@ class Product(Base):
     nombre: Mapped[str] = mapped_column(String(120), nullable=False)
     descripcion: Mapped[str] = mapped_column(String(400), nullable=False, default="")
     precio_centavos: Mapped[int] = mapped_column(Integer, nullable=False)
-    existencias: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

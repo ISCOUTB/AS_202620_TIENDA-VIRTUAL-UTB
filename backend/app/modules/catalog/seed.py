@@ -6,16 +6,21 @@ from sqlalchemy.orm import Session
 from app.modules.catalog.models import Product
 
 _SEED = [
-    {"nombre": "Café americano", "descripcion": "Vaso de 8 oz", "precio_centavos": 350000, "existencias": 40},
-    {"nombre": "Empanada de queso", "descripcion": "Unidad recién hecha", "precio_centavos": 280000, "existencias": 25},
-    {"nombre": "Jugo de naranja", "descripcion": "Botella de 300 ml", "precio_centavos": 450000, "existencias": 18},
-    {"nombre": "Sándwich mixto", "descripcion": "Jamón y queso", "precio_centavos": 900000, "existencias": 12},
+    {"nombre": "Café americano", "descripcion": "Vaso de 8 oz", "precio_centavos": 350000},
+    {"nombre": "Empanada de queso", "descripcion": "Unidad recién hecha", "precio_centavos": 280000},
+    {"nombre": "Jugo de naranja", "descripcion": "Botella de 300 ml", "precio_centavos": 450000},
+    {"nombre": "Sándwich mixto", "descripcion": "Jamón y queso", "precio_centavos": 900000},
 ]
 
 
-def seed_products(session: Session) -> None:
-    """Inserta el catálogo de ejemplo solo si la tabla está vacía (idempotente)."""
+def seed_products(session: Session) -> list[int]:
+    """Siembra si hace falta y devuelve los IDs reales, ordenados y estables."""
     if session.scalar(select(func.count()).select_from(Product)):
-        return
-    session.add_all(Product(**fila) for fila in _SEED)
+        return list(session.scalars(select(Product.id).order_by(Product.id)).all())
+
+    products = [Product(**row) for row in _SEED]
+    session.add_all(products)
+    session.flush()
+    product_ids = [product.id for product in products]
     session.commit()
+    return product_ids

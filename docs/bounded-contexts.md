@@ -55,8 +55,9 @@ flowchart LR
 
 > _Fig. 1 — Mapa de contextos delimitados de la Tienda Virtual UTB (flowchart)._
 > Flecha sólida `A --> B` = A consume el contrato público de B. Flecha punteada
-> `.->` = colaboración prevista para un incremento futuro (hoy solo `catalog`
-> tiene comportamiento). La única persistencia es la base PostgreSQL compartida;
+> `.->` = colaboración prevista para un incremento futuro. `catalog` e
+> `inventory` implementan lectura; identidad y pedidos siguen pendientes. La
+> única persistencia es la base PostgreSQL compartida;
 > el dueño de cada tabla se lista en la tabla de módulos.
 
 ### Lectura del mapa
@@ -90,13 +91,13 @@ incremento actual; `VACÍO` = paquete reservado, sin lógica todavía.
 | Contexto delimitado | Módulo | Dueño (rol) | Tablas que posee (objetivo) | Tabla hoy (real) | Contrato público | Estado |
 |---|---|---|---|---|---|---|
 | Identidad y Acceso | `backend/app/modules/identity/` | Sistema (auth propia) / rol de admin | `users`, `roles`, `sessions` (prevista) | — (no existe) | Autenticación y autorización por rol; aún sin exponer | VACÍO |
-| Catálogo | `backend/app/modules/catalog/` | Administrador de la tienda | `catalog_products` (nombre, descripción, precio) | `catalog_products` tiene además `existencias` (INVADIDO) | `GET /catalog/products` → `ProductOut` | IMPLEMENTADO |
-| Inventario | `backend/app/modules/inventory/` | Responsable de inventario | `inventory_stock` (existencias) | `existencias` vive en `catalog_products` | Por definir (futuro) | VACÍO |
+| Catálogo | `backend/app/modules/catalog/` | Administrador de la tienda | `catalog_products` (nombre, descripción, precio) | `catalog_products` sin existencias | `GET /catalog/products` → `ProductOut` | IMPLEMENTADO |
+| Inventario | `backend/app/modules/inventory/` | Responsable de inventario | `inventory_stock` (`product_id`, `existencias`) | `inventory_stock` | `GET /inventory` → `StockOut` | IMPLEMENTADO (lectura) |
 | Pedidos | `backend/app/modules/orders/` | Administrador de la tienda / comprador | `orders`, `order_items` (prevista) | — (no existe) | Por definir (futuro) | VACÍO |
 
-- **Base de datos:** única instancia PostgreSQL compartida (`catalog_products`,
-  hoy propiedad del catálogo). El dueño de cada tabla se asigna por contexto;
-  los demás contextos acceden vía contrato público, nunca por ORM (ADR 0001).
+- **Base de datos:** única instancia PostgreSQL compartida (`catalog_products`
+  e `inventory_stock`), cada una propiedad de su contexto. Los demás contextos
+  acceden vía contrato público, nunca por ORM (ADR 0001).
 - **`shared/database.py`:** elemento transversal, no un contexto: expone
   `engine`, `get_session` y `Base`, sin lógica de negocio.
 

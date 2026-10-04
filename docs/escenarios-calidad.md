@@ -55,10 +55,10 @@ tiene la infraestructura ni el tráfico real para sustentarlas.
 | Fuente | Varios compradores |
 | Estímulo | Consultan el catálogo mockeado al mismo tiempo (simulación de hora pico, ej. almuerzo) |
 | Ambiente | Demo o sesión de pruebas, entorno local |
-| Artefacto | Cliente web (Next.js) + API (FastAPI) |
+| Artefacto | Cliente web (Next.js) + API (FastAPI): contratos separados de Catálogo e Inventario |
 | Respuesta | El sistema sigue respondiendo a todas las consultas sin caerse |
-| Medida de respuesta | En una prueba manual con ~5 usuarios/pestañas simultáneas consultando el catálogo, todas reciben respuesta correcta y el servidor local no se cae ni arroja errores |
-| Decisión arquitectónica asociada | [`ADR 0001`](adr/0001-monolito-modular.md): endpoint de solo lectura `GET /catalog/products` servido por el monolito sobre una única instancia de PostgreSQL, sin saltos de red intermedios. Alternativas evaluadas en la [matriz comparativa](matriz-comparativa-arquitectura.md). |
+| Medida de respuesta | Con 5 usuarios simulados simultáneos, las 5 cargas de `GET /catalog/products` + `GET /inventory` reciben datos coherentes, no hay errores y `/health` continúa respondiendo 200 |
+| Decisión arquitectónica asociada | [`ADR 0001`](adr/0001-monolito-modular.md): monolito sobre una única instancia PostgreSQL. La separación de datos del incremento está propuesta en [`ADR 0008`](adr/0008-separar-catalogo-inventario.md), pendiente del equipo. Alternativas evaluadas en la [matriz comparativa](matriz-comparativa-arquitectura.md). |
 
 *(Se documentan 4 escenarios, dentro del rango de 3-5 pedido. Un
 quinto escenario, por ejemplo de modificabilidad al agregar una

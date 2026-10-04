@@ -9,7 +9,7 @@ actualización están en la [guía de evidencia](README.md).
 
 | Aspecto | Valor actual |
 |---|---|
-| Versión de la API (`info.version`) | `0.2.1` |
+| Versión de la API (`info.version`) | `0.3.0` |
 | Versión del formato de especificación (`openapi`) | `3.1.0` |
 | Comunicación | HTTP síncrono, respuestas JSON |
 | Dirección local con Docker Compose | `http://localhost:8000` |
@@ -18,12 +18,12 @@ actualización están en la [guía de evidencia](README.md).
 | Documentación interactiva con la API encendida | `http://localhost:8000/docs` |
 | Especificación generada por la aplicación encendida | `http://localhost:8000/openapi.json` |
 
-`0.2.1` identifica la versión de nuestra API; `3.1.0` identifica el formato
+`0.3.0` identifica la versión de nuestra API; `3.1.0` identifica el formato
 OpenAPI utilizado para describirla. Las direcciones anteriores corresponden
 al entorno local; el contrato no declara una sección `servers`.
 
 Un **endpoint** es una operación accesible mediante un método HTTP y una ruta.
-`GET` indica una consulta. Ninguna de las cuatro operaciones actuales recibe
+`GET` indica una consulta. Ninguna de las cinco operaciones actuales recibe
 parámetros de ruta, parámetros de consulta ni cuerpo de petición.
 
 ## 2. Diagrama de la consulta del catálogo
@@ -32,7 +32,9 @@ Este flujo corresponde al comprador que consulta productos. El administrador
 de la tienda tiene un [flujo de gestión propio, documentado como diseño previsto](administracion-catalogo.md),
 para registrar productos nuevos, editar sus datos y habilitar su venta.
 
-[Descargar imagen para presentación](images/consulta-catalogo-presentacion.png).
+> **Ilustración histórica:** [imagen previa a la separación 0.3.0](images/consulta-catalogo-presentacion.png)
+> todavía muestra `existencias` dentro de `ProductOut`; el contrato actual está
+> descrito por este flujo y por OpenAPI, donde `GET /inventory` expone ese dato.
 
 ```mermaid
 sequenceDiagram
@@ -43,13 +45,13 @@ sequenceDiagram
     participant BD as PostgreSQL
 
     Usuario->>Web: Abrir la página de la tienda
-    Web->>API: GET /catalog/products
+    Web->>API: GET /catalog/products y GET /inventory
     API->>Catalogo: list_products(session)
     Catalogo->>BD: Consultar productos ordenados por nombre
     BD-->>Catalogo: Filas de catalog_products
     Catalogo-->>API: Productos
     Note over API: Serializa la respuesta como lista de ProductOut
-    API-->>Web: 200 application/json, lista de productos
+    API-->>Web: 200 application/json, productos y existencias separadas
     Web-->>Usuario: Página con nombres, precios y existencias
 ```
 
@@ -79,8 +81,7 @@ producto; los datos y la cantidad de productos pueden variar:
     "id": 1,
     "nombre": "Café americano",
     "descripcion": "Vaso de 8 oz",
-    "precio_centavos": 350000,
-    "existencias": 40
+    "precio_centavos": 350000
   }
 ]
 ```
@@ -93,9 +94,10 @@ producto; los datos y la cantidad de productos pueden variar:
 | `nombre` | `string` | Sí | Nombre mostrado en el catálogo. |
 | `descripcion` | `string` | Sí | Descripción del producto. |
 | `precio_centavos` | `integer` | Sí | Precio en centavos de COP, según la interpretación del frontend. `350000` equivale a 3500 pesos. |
-| `existencias` | `integer` | Sí | Cantidad registrada en el catálogo actual. |
 
-El contrato exige estos campos y tipos, y no admite `null` en ellos. Actualmente
+El contrato exige estos campos y tipos, y no admite `null` en ellos. Las
+existencias se consultan por separado en `GET /inventory`, cuyo contrato es
+`{product_id, existencias}`. Actualmente
 no fija valores mínimos, longitudes de texto ni una cantidad mínima de productos;
 por tanto, `[]` es una respuesta válida. Tampoco prohíbe propiedades adicionales.
 El orden por nombre y la interpretación monetaria son comportamientos del código

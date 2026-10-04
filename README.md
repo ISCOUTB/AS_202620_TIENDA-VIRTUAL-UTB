@@ -97,12 +97,18 @@ El mapa reinterpreta los módulos del ADR 0001 como contextos delimitados con
 dueño único (rol de negocio), y `violaciones-s6.md` lista las desviaciones
 reales del código frente a esa propiedad de datos y la propuesta de corrección.
 
+## Evidencia de incremento con apoyo de IA
+
+- [Cadena completa: aspectos, ADR, código, pruebas, medición y auditoría](docs/entrega-cadena-ia.md)
+- [ADR 0008: separación Catálogo–Inventario, pendiente de ratificación](docs/adr/0008-separar-catalogo-inventario.md)
+- [ADR 0009: no incorporar generación en ejecución, pendiente de ratificación](docs/adr/0009-sin-componente-generativo.md)
+
 ## Evidencia de contrato e integración
 
 - [Administrador de la tienda y flujo de gestión de productos (diseño previsto)](docs/api/administracion-catalogo.md)
 - [Documentación de la API, diagramas y explicación de `/health`](docs/api/contrato-api.md)
 - [Guía de la evidencia y comandos de verificación](docs/api/README.md)
-- [Contrato OpenAPI 3.1.0, versión de API 0.2.1](docs/api/openapi.json)
+- [Contrato OpenAPI 3.1.0, versión de API 0.3.0](docs/api/openapi.json)
 - [ADR 0002: integración HTTP y contrato versionado](docs/adr/0002-contrato-integracion-http.md)
 - [Pruebas de contrato](backend/tests/contract/test_openapi.py) ejecutadas en el
   [pipeline](.github/workflows/tests.yml), con reporte descargable.

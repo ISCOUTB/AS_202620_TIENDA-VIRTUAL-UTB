@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Tienda Virtual UTB",
-    "version": "0.2.1"
+    "version": "0.3.0"
   },
   "paths": {
     "/catalog/products": {
@@ -24,6 +24,32 @@
                   },
                   "type": "array",
                   "title": "Response Get Products Catalog Products Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inventory": {
+      "get": {
+        "tags": [
+          "inventario"
+        ],
+        "summary": "Get Inventory",
+        "description": "Lista la disponibilidad necesaria para presentar el catálogo.",
+        "operationId": "get_inventory_inventory_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StockOut"
+                  },
+                  "type": "array",
+                  "title": "Response Get Inventory Inventory Get"
                 }
               }
             }
@@ -143,10 +169,6 @@
           "precio_centavos": {
             "type": "integer",
             "title": "Precio Centavos"
-          },
-          "existencias": {
-            "type": "integer",
-            "title": "Existencias"
           }
         },
         "type": "object",
@@ -154,8 +176,7 @@
           "id",
           "nombre",
           "descripcion",
-          "precio_centavos",
-          "existencias"
+          "precio_centavos"
         ],
         "title": "ProductOut"
       },
@@ -186,6 +207,24 @@
           "status"
         ],
         "title": "ReadinessOut"
+      },
+      "StockOut": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "existencias": {
+            "type": "integer",
+            "title": "Existencias"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "existencias"
+        ],
+        "title": "StockOut"
       }
     }
   }

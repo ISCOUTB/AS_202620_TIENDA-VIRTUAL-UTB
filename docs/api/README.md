@@ -10,16 +10,17 @@ como diseño previsto: actores, diagramas, operaciones propuestas y alcance pend
 
 | Requisito | Evidencia |
 |---|---|
-| Contrato OpenAPI versionado | [openapi.json](openapi.json): formato OpenAPI `3.1.0`, versión de API `0.2.1`. |
+| Contrato OpenAPI versionado | [openapi.json](openapi.json): formato OpenAPI `3.1.0`, versión de API `0.3.0`. |
 | Pruebas de contrato | [test_openapi.py](../../backend/tests/contract/test_openapi.py): documento, sincronización, respuestas HTTP y rupturas simuladas. |
 | Pruebas en el pipeline | [tests.yml](../../.github/workflows/tests.yml): paso específico y reporte JUnit descargable. |
 | Justificación de integración | [ADR 0002](../adr/0002-contrato-integracion-http.md). |
 
-El contrato describe las cuatro operaciones implementadas —`GET
-/catalog/products`, `GET /health`, `GET /health/ready` y `GET /metrics`— todas
+El contrato describe las cinco operaciones implementadas —`GET /catalog/products`,
+`GET /inventory`, `GET /health`, `GET /health/ready` y `GET /metrics`— todas
 con respuesta `200 application/json` (la de readiness también documenta `503`),
 sin autenticación ni parámetros en el alcance actual. `/health/ready` y
-`/metrics` se añadieron en la versión `0.2.1` para la evidencia S8.
+`/metrics` se añadieron en `0.2.1`; la lectura de inventario y la separación de
+contratos forman parte de `0.3.0`.
 No se documentan operaciones futuras como si ya estuvieran implementadas.
 JSON y YAML son formatos válidos para OpenAPI; este proyecto exporta JSON.
 

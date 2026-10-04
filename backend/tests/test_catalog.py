@@ -12,7 +12,7 @@ def test_products_endpoint_returns_seeded_catalog() -> None:
     assert len(productos) >= 1
 
     primero = productos[0]
-    assert set(primero) == {"id", "nombre", "descripcion", "precio_centavos", "existencias"}
+    assert set(primero) == {"id", "nombre", "descripcion", "precio_centavos"}
     assert primero["nombre"] == "Café americano"  # orden alfabético
     assert isinstance(primero["precio_centavos"], int)
 

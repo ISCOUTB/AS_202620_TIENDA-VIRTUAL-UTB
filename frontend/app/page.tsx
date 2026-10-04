@@ -5,8 +5,14 @@ type Product = {
   nombre: string;
   descripcion: string;
   precio_centavos: number;
+};
+
+type Stock = {
+  product_id: number;
   existencias: number;
 };
+
+type ProductWithStock = Product & { existencias: number | null };
 
 function formatoPrecio(centavos: number): string {
   return (centavos / 100).toLocaleString("es-CO", {
@@ -24,11 +30,29 @@ async function cargarCatalogo(): Promise<Product[]> {
   return res.json();
 }
 
+async function cargarInventario(): Promise<Stock[]> {
+  const res = await fetch(`${API_URL}/inventory`, { cache: "no-store" });
+  if (!res.ok) {
+    throw new Error(`La API de inventario respondió ${res.status}`);
+  }
+  return res.json();
+}
+
 export default async function Home() {
-  let productos: Product[] = [];
+  let productos: ProductWithStock[] = [];
   let error: string | null = null;
   try {
-    productos = await cargarCatalogo();
+    const [catalogo, inventario] = await Promise.all([
+      cargarCatalogo(),
+      cargarInventario(),
+    ]);
+    const stockPorProducto = new Map(
+      inventario.map((item) => [item.product_id, item.existencias]),
+    );
+    productos = catalogo.map((producto) => ({
+      ...producto,
+      existencias: stockPorProducto.get(producto.id) ?? null,
+    }));
   } catch (e) {
     error = e instanceof Error ? e.message : "Error desconocido";
   }
@@ -48,7 +72,11 @@ export default async function Home() {
               <span className="nombre">{p.nombre}</span>
               <span className="descripcion">{p.descripcion}</span>
               <span className="precio">{formatoPrecio(p.precio_centavos)}</span>
-              <span className="existencias">{p.existencias} disponibles</span>
+              <span className="existencias">
+                {p.existencias === null
+                  ? "Disponibilidad no informada"
+                  : `${p.existencias} disponibles`}
+              </span>
             </li>
           ))}
         </ul>

@@ -2,8 +2,8 @@
 
 **Estado:** diseño documentado, pendiente de implementación. Esta ampliación
 incorpora al administrador en la explicación de la integración. El
-[contrato ejecutable actual](openapi.json), versión `0.2.1`, cubre las
-operaciones implementadas: `GET /catalog/products`, `GET /health`,
+[contrato ejecutable actual](openapi.json), versión `0.3.0`, cubre las
+operaciones implementadas: `GET /catalog/products`, `GET /inventory`, `GET /health`,
 `GET /health/ready` y `GET /metrics`.
 
 ## Actores y responsabilidades
@@ -63,7 +63,7 @@ sequenceDiagram
     participant Catalogo as Módulo Catálogo
     participant BD as PostgreSQL
 
-    Note over Admin,BD: Diseño previsto: no implementado en la versión 0.2.1
+    Note over Admin,BD: Diseño previsto: no implementado en la versión 0.3.0
     Admin->>Web: Completar formulario de producto y guardar
     Web->>API: Solicitar creación con datos y credencial
     API->>Identity: Verificar identidad y permiso de gestión
@@ -114,8 +114,8 @@ campos, como nombre no vacío y precio no negativo, y el rechazo de campos no ed
 
 - **`activo` (propuesto):** indica si el administrador habilitó el producto para
   su venta. Este campo aún no existe en el modelo ni en el contrato actual.
-- **`existencias` (actual):** indica cuántas unidades hay. Su propiedad corresponde
-  al módulo Inventario, aunque hoy se almacena en Catálogo; esa deuda está
+- **`existencias`:** indica cuántas unidades hay. Su propiedad corresponde
+  al módulo Inventario y desde 2026-10-04 se almacena en `inventory_stock`; la deuda quedó
   registrada en [las violaciones de S6](../violaciones-s6.md).
 - Un producto nuevo no implica que haya unidades recibidas. Se propone que
   Inventario registre las cantidades por separado, y que el alta no permita

@@ -10,4 +10,3 @@ class ProductOut(BaseModel):
     nombre: str
     descripcion: str
     precio_centavos: int
-    existencias: int

@@ -10,11 +10,10 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.modules.catalog import (
-    models as catalog_models,  # noqa: F401  (registra tablas)
-)
-from app.modules.catalog.router import router as catalog_router
-from app.modules.catalog.seed import seed_products
+from app.modules.catalog import initialize as initialize_catalog
+from app.modules.catalog import router as catalog_router
+from app.modules.inventory import initialize as initialize_inventory
+from app.modules.inventory import router as inventory_router
 from app.shared.database import Base, SessionLocal, engine, get_session
 from app.shared.logging import configure_logging
 from app.shared.metrics import ObservabilityMiddleware, snapshot
@@ -46,13 +45,15 @@ async def lifespan(_: FastAPI):
     configure_logging()
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as session:
-        seed_products(session)
+        product_ids = initialize_catalog(session)
+        initialize_inventory(session, product_ids)
     yield
 
 
-app = FastAPI(title="Tienda Virtual UTB", version="0.2.1", lifespan=lifespan)
+app = FastAPI(title="Tienda Virtual UTB", version="0.3.0", lifespan=lifespan)
 app.add_middleware(ObservabilityMiddleware)
 app.include_router(catalog_router)
+app.include_router(inventory_router)
 
 
 class HealthOut(BaseModel):

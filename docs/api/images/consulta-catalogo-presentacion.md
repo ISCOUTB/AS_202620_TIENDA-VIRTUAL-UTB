@@ -7,6 +7,10 @@
 
 ## Prompt utilizado
 
+> **Estado:** el PNG que acompaña este prompt representa el contrato anterior a
+> 0.3.0 y no debe usarse como referencia contractual. La disponibilidad ahora
+> se expone por `GET /inventory`; `ProductOut` ya no contiene `existencias`.
+
 ```text
 Use case: infographic-diagram.
 Create a polished Spanish presentation slide image, landscape 16:9, high resolution, for an academic software architecture presentation. Title: "Consulta del catálogo". Subtitle: "Tienda Virtual UTB · Flujo HTTP síncrono".

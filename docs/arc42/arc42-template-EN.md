@@ -221,8 +221,8 @@ and volume are in Fig. 7.1.*
 On top of that skeleton this increment adds one **vertical slice** —
 *browse the product catalog* — implemented end to end (Next.js page → FastAPI
 `GET /catalog/products` → SQLAlchemy → PostgreSQL, seeded with mocked data).
-The remaining modules (identity, inventory, orders) are still empty packages
-and are deferred to later increments.
+Inventory availability is now a second vertical read slice; identity and orders
+remain empty packages and are deferred to later increments.
 
 # Building Block View {#section-building-block-view}
 
@@ -240,19 +240,21 @@ flowchart TB
     subgraph system["System: Tienda Virtual UTB"]
         web["Web client (Next.js)<br/>shows the server-rendered catalog"]:::impl
         subgraph api["API — modular monolith (FastAPI, backend/app/)"]
-            catalog["catalog module<br/>products, prices, stock<br/>IMPLEMENTED"]:::impl
+            catalog["catalog module<br/>products and prices<br/>IMPLEMENTED"]:::impl
             identity["identity module<br/>empty — planned"]:::todo
-            inventory["inventory module<br/>empty — planned"]:::todo
+            inventory["inventory module<br/>available stock<br/>IMPLEMENTED"]:::impl
             orders["orders module<br/>empty — planned"]:::todo
             shared["shared/database<br/>DB access only, no business logic"]:::impl
         end
-        db[("PostgreSQL<br/>catalog_products table")]:::data
+        db[("PostgreSQL<br/>catalog_products + inventory_stock")]:::data
     end
 
     buyer -->|"browses the catalog · HTTPS"| web
     staff -.->|"manage store / stock — planned"| web
     web -->|"GET /catalog/products · REST/JSON"| catalog
+    web -->|"GET /inventory · REST/JSON"| inventory
     catalog -->|"uses for DB access"| shared
+    inventory -->|"uses for DB access"| shared
     shared -->|"SQL · SQLAlchemy"| db
 
     classDef actor fill:#ffffff,stroke:#333333,color:#000000
@@ -266,8 +268,8 @@ flowchart TB
 *Fig. 5.1 — Building Block View, level 1: the whole system as a white box
 (flowchart; see the colour legend under "Diagram conventions"). Top-level
 building blocks: the web client, the API (with its four modules and the `shared`
-package), and the database. Scope: only the `catalog` module has behaviour in
-this increment; `identity`, `inventory` and `orders` are empty packages and
+package), and the database. Scope: `catalog` and `inventory` have read behaviour;
+`identity` and `orders` are empty packages and
 their internals are out of scope. The same web client, API and database appear,
 in C4 container notation, in [`docs/c4/container.md`](../c4/container.md).*
 
@@ -278,14 +280,17 @@ Contained building blocks:
 | Web client | Server-rendered catalog view; formats prices and stock | `frontend/app/` |
 | API entry point | Creates the FastAPI application, exposes `/health`, creates the schema and seeds the mocked data at startup | `backend/app/main.py` |
 | `catalog` module | Owns the `Product` table and the `/catalog/products` endpoint | `backend/app/modules/catalog/` |
-| `identity`, `inventory`, `orders` modules | Packages reserved for later increments; empty today | `backend/app/modules/` |
+| `inventory` module | Owns `inventory_stock` and the public `GET /inventory` read contract | `backend/app/modules/inventory/` |
+| `identity`, `orders` modules | Packages reserved for later increments; empty today | `backend/app/modules/` |
 | `shared` | Cross-cutting database access only (engine, session, declarative base); no business logic, per ADR 0001 | `backend/app/shared/database.py` |
-| Database | Single PostgreSQL instance; the `catalog_products` table is owned by the `catalog` module | `database` container in `compose.yaml` |
+| Database | Single PostgreSQL instance; `catalog_products` and `inventory_stock` have separate module owners | `database` container in `compose.yaml` |
 
 Important interfaces:
 
 - **`GET /catalog/products`** — returns a JSON array of
-  `{id, nombre, descripcion, precio_centavos, existencias}` ordered by name.
+  `{id, nombre, descripcion, precio_centavos}` ordered by name.
+- **`GET /inventory`** — returns `{product_id, existencias}`; Next.js composes
+  both contracts by product identifier.
   Documented at runtime under `/docs` (OpenAPI).
 - **`GET /health`** — liveness probe used by the Docker Compose health check.
 
@@ -293,7 +298,7 @@ Important interfaces:
 
 ### White Box *catalog module* {#_white_box_building_block_1}
 
-This is the only module with behavior in this increment. It keeps a thin
+This module keeps a thin
 layered structure inside the module boundary:
 
 ```mermaid
@@ -553,13 +558,13 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | 1 | Security | An inventory manager tries to change a product's price | 100% of the defined out-of-role operations are rejected (403) | No; requires the `identity` module |
 | 2 | Usability | A buyer completes a purchase | Flow completed in at most 4 screens or steps | Partially; the catalog view exists, cart and confirmation are missing |
 | 3 | Performance | An order reduces a product's stock | Change visible to another session in under 2 s on reload | Enabler in place: dynamic catalog read (`no-store`); order flow pending |
-| 4 | Availability | About 5 buyers browse the catalog at the same time | All get a correct response and the local server does not crash | Verifiable now: `GET /catalog/products` is in operation |
+| 4 | Availability | About 5 buyers browse the catalog at the same time | All get correct catalog and stock responses and the local server remains healthy | Measured locally with 5 concurrent simulated buyers; evidence in `docs/entrega-cadena-ia.md` |
 
 # Risks and Technical Debts {#section-technical-risks}
 
 | Risk or debt | Impact | Current mitigation |
 | --- | --- | --- |
-| Module boundaries are a convention, not enforced by the network | Unwanted coupling between modules | ADR dependency rules and `test_architecture.py`; a stricter dependency test is planned once there is more code |
+| Module boundaries are a convention, not enforced by the network | Unwanted coupling between modules | ADR rules plus an AST import test; mapped-column ownership is tested separately because static imports cannot prove data ownership |
 | `create_all` instead of migrations | Schema changes over populated databases will be manual | Acceptable while the schema is small; Alembic ADR pending |
 | Deployment target not chosen | Cannot be demonstrated outside a local machine | **Resolved:** Dokploy consumes `deploy/compose.lab.yaml`; see ADR 0007 |
 | Mocked data only | Behavior is not validated against real cafeteria data | Explicit scope constraint; the seed data models realistic products |
