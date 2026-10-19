@@ -519,6 +519,19 @@ route, the ADR module boundaries and the catalog endpoint (contract, ordering
 and seeded content). GitHub Actions runs the same suite on every push and pull
 request.
 
+## Idempotency, sagas and failure handling {#_concept_5}
+
+Order creation is designed to survive client retries and long-running manual
+payments: the client sends a unique `Idempotency-Key` header so a replayed
+`POST /api/orders` returns the stored response instead of duplicating the order
+or the stock reservation, and a choreographed saga between `orders` and
+`inventory` reserves stock on `PedidoCreado` and compensates it when a 24-hour
+TTL expires (`ExpiracionPagoAlcanzada`). Both patterns are design only; the
+order endpoint does not exist yet. The full failure-mode catalogue (F-01 … F-07)
+with its selected mitigation per failure is in
+[modos-fallo-s11.md](../modos-fallo-s11.md), and the step-by-step design with
+diagrams is in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md).
+
 # Architecture Decisions {#section-design-decisions}
 
 | ADR | Decision | Status |
@@ -530,6 +543,7 @@ request.
 | [0005](../adr/0005-postgres-neon.md) | Database deployed on Neon | Superseded by 0007 |
 | [0006](../adr/0006-infra-como-codigo-terraform.md) | Terraform proposal for the former providers | Superseded without being applied |
 | [0007](../adr/0007-despliegue-dokploy.md) | Next.js, FastAPI and PostgreSQL deployed as one Dokploy Compose application | Implemented (2026-10-04) |
+| [0010](../adr/0010-no-extraer-modulos.md) | Keep the modular monolith; do not extract any module into an independent network service in the current phase | Proposed (2026-10-18) |
 
 [0007](../adr/0007-despliegue-dokploy.md) is the current deployment decision.
 ADRs 0003–0006 remain available only as a record of earlier iterations.
@@ -571,6 +585,7 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | Next.js dependency vulnerabilities | Public SSR increases exposure | Keep the lockfile patched and verify `npm audit` during upgrades |
 | Single Dokploy server hosts every runtime component | A host or disk failure affects the whole system | Named database volume, external scheduled backups and a tested restore procedure |
 | Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | The Compose requires `POSTGRES_PASSWORD` from Dokploy Environment; `.env` files remain ignored |
+| Failure modes F-01 … F-07 are catalogued but their mitigations are not implemented yet | Identified risks (inventory lock, duplicate orders, DB outage) stay open until the patterns land in code | Mitigation selected per failure in [modos-fallo-s11.md](../modos-fallo-s11.md); idempotency and saga design in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md), with ADR 0010 keeping the design on a single process |
 
 # Glossary {#section-glossary}
 

@@ -141,6 +141,22 @@ la URL definitiva se registrará cuando se configure en Dokploy.
 - Secretos: `compose.yaml` exige `POSTGRES_PASSWORD` vía `.env` (ver
   [`.env.example`](.env.example)); ninguna credencial está versionada.
 
+## Evidencia S11 — resiliencia, idempotencia y decisión de extracción
+
+- [Tabla de modos de fallo y su mitigación (F-01 … F-07)](docs/modos-fallo-s11.md):
+  siete modos de fallo de negocio, datos, red, seguridad e infraestructura, con
+  el patrón de resiliencia seleccionado para cada uno.
+- [Diseño de idempotencia y saga](docs/idempotencia-saga-s11.md):
+  `Idempotency-Key` en `POST /api/orders` y saga coreográfica Pedidos–
+  Inventario con compensación por TTL de 24 horas, con diagramas de secuencia y
+  de flujo.
+- [ADR 0010: no extraer módulos a microservicios en la fase actual](docs/adr/0010-no-extraer-modulos.md)
+  (propuesta, pendiente de ratificación): confirma el monolito modular del
+  ADR 0001 y fija las condiciones que reabrirían la extracción.
+
+Son documentos de diseño: el endpoint de pedidos y los patrones descritos aún
+no están implementados en el código.
+
 ## Arranque local
 
 ### Requisito
