@@ -140,6 +140,23 @@ Pasos (dashboard) o CLI:
 > desactivar Automatic Analysis (Administration → Analysis Method); con ambos
 > activos el scan de CI falla por conflicto.
 
+> **Actualización 2026-10-21 (rediseño v3 del frontend).** El análisis
+> automático **solo cubre la rama por defecto**: el historial del proyecto
+> `ISCOUTB_AS_202620_TIENDA-VIRTUAL-UTB` no contiene ni un análisis de una
+> rama distinta de `main`, y una rama nueva responde *Component not found on
+> branch*. La app sigue instalada y sigue publicando el check
+> `SonarCloud Code Analysis` en `main`, pero **no evalúa el Quality Gate de un
+> PR de este mismo repositorio**: el gate solo se puede ver después de
+> fusionar. Para poder exigir el gate en verde **antes** de fusionar hay que
+> pasar al análisis desde CI (crear `SONAR_TOKEN` con permiso de análisis,
+> guardarlo como secreto del repositorio y desactivar *Automatic Analysis* en
+> *Administration → General settings → Analysis Method*). El job `sonarcloud`
+> del workflow ya está preparado para eso: clave y organización correctas,
+> `sonar.sources`/`sonar.tests` de ambas apps, cobertura lcov del frontend
+> recuperada del artefacto y `fetch-depth: 0` para el cálculo de código nuevo.
+> El detalle de los hallazgos abiertos y su solución está en
+> [`pendientes.md`](pendientes.md).
+
 ## Protección de rama (bloqueo del merge)
 
 En GitHub → Settings → Branches → regla sobre `main`: activar *Require status
