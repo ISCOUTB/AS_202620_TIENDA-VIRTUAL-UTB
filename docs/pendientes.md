@@ -24,21 +24,32 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   sí está instalada y sí publica el check `SonarCloud Code Analysis` (aparece
   en los commits de `main`), pero **Automatic Analysis solo analiza la rama por
   defecto**: el historial de análisis del proyecto no tiene ni una sola rama
-  distinta de `main`, y `feat/tienda-virtual-frontend` da
+  distinta de `main`, y `feat/tienda-virtual-frontend` daba
   *Component not found on branch*. La causa es la opción de SonarCloud
   «Disable Automatic Analysis for pull requests from the same repository».
   Consecuencia: el gate **no se puede evaluar sobre un PR de este mismo
   repositorio**; solo se evalúa tras fusionar a `main`.
-  Para poder verlo antes de fusionar hay que pasar al análisis desde CI:
+  **Estado tras el PR #1 (fusionado el 2026-10-21):** el token del repositorio
+  pertenece a la cuenta automática `pxtroniwnl-wokg8@github`, que **no es
+  miembro de la organización `isco-utb` ni tiene el permiso «Execute
+  analysis»**; por eso el job `sonarcloud` de CI falla y el Análisis Automático
+  tampoco volvió a reportar (el último análisis sigue siendo el del 2026-10-19,
+  previo a este trabajo). En `main` el único check rojo es `sonarcloud`;
+  `backend` y `frontend` están en verde.
+  Para que el gate vuelva a evaluarse hay que pasar al análisis desde CI:
   1. Crear en SonarCloud un token con permiso de análisis
-     (*My Account → Security → Generate tokens*, marca *Execute analysis*).
+     (*My Account → Security → Generate tokens*, marca *Execute analysis*),
+     desde una cuenta que **sea miembro de `isco-utb`**. Si es la misma cuenta
+     que administra la organización, la vía directa es *Scoped Organization
+     Tokens* → *Execute analysis for all projects in the organization* (solo
+     en planes Team o Enterprise).
   2. Guardarlo como secreto del repositorio: `gh secret set SONAR_TOKEN`.
   3. En SonarCloud → *Administration → General settings → Analysis Method*,
      desactivar *Automatic Analysis* para que no analice dos veces el mismo
      commit (el job de CI ya está listo: clave, fuentes, pruebas, cobertura
      lcov y `fetch-depth: 0` para el cálculo de código nuevo).
   Con eso el job `sonarcloud` publica el check y el estado del Quality Gate en
-  cada PR, y se puede exigir que esté verde antes de fusionar.
+  cada push, y se puede exigir que esté verde.
 - **Hallazgos de SonarCloud abiertos, con su solución.** El Quality Gate del
   2026-10-19 está en `ERROR` por `new_security_rating = 3`; el resto de
   condiciones (`new_reliability_rating`, `new_maintainability_rating`,
