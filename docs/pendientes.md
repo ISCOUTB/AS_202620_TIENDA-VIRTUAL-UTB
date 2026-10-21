@@ -20,6 +20,32 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
 ## Equipo y calidad
 
 - Crear `SONAR_TOKEN` si se mantendrá el análisis de SonarCloud en CI.
+- **SonarCloud no está analizando este repositorio.** El último análisis del
+  proyecto `ISCOUTB_AS_202620_TIENDA-VIRTUAL-UTB` (organización `isco-utb`) es
+  del 2026-10-19 y los pushes posteriores no producen ni el check
+  `SonarCloud Code Analysis` ni un análisis nuevo. Mientras siga así, el
+  Quality Gate no se puede evaluar sobre el código que se Mergea.
+- **Hallazgos de SonarCloud abiertos, con su solución.** El Quality Gate del
+  2026-10-19 está en `ERROR` por `new_security_rating = 3`; el resto de
+  condiciones (`new_reliability_rating`, `new_maintainability_rating`,
+  `new_duplicated_lines_density`, `new_security_hotspots_reviewed`) están en
+  `OK`.
+
+  | Regla | Dónde | Solución |
+  |---|---|---|
+  | `githubactions:S6505` (vulnerabilidad MAJOR) | `.github/workflows/tests.yml` | `npm ci --ignore-scripts` — **aplicado en este PR**; era el único hallazgo dentro del periodo de fuga y el que bloqueaba el gate. |
+  | `docker:S6505` (vulnerabilidad MAJOR) | `frontend/Dockerfile` | `RUN npm ci --ignore-scripts` — **aplicado en este PR**. |
+  | `python:S8409` (code smell MINOR) | `backend/app/modules/inventory/router.py` y `backend/app/modules/catalog/router.py` | Quitar el `response_model=...` de la ruta: FastAPI ya lo infiere de la anotación de retorno. |
+  | `python:S8410` (code smell MINOR) | `backend/app/modules/inventory/router.py`, `backend/app/modules/catalog/router.py` y `backend/app/main.py` | `def f(db: Annotated[Session, Depends(get_session)])` en lugar de `= Depends(...)` como valor por defecto. |
+  | `python:S9073` (code smell MAJOR) | `backend/tests/contract/test_openapi.py` | Partir `assert method == "get" and "{" not in path` en dos `assert`. |
+  | `python:S5778` (code smell MAJOR) | `backend/tests/contract/test_openapi.py` | Sacar la construcción del validador fuera del `with pytest.raises(...)`: dentro debe quedar una sola invocación. |
+  | `docker:S6505` / `docker:S8541` / `docker:S8544` (vulnerabilidades MAJOR) | `backend/Dockerfile` | `pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.txt` con un archivo de requisitos con hashes. |
+  | `githubactions:S8544` (vulnerabilidad MAJOR) | `.github/workflows/tests.yml` (job `backend`) | Igual que lo anterior, pero en el runner: `--require-hashes` sobre un archivo de requisitos con hashes. |
+
+  Los cuatro últimos necesitan tocar el backend (archivos de requisitos con
+  hashes y los routers/tests del backend), así que quedan fuera del alcance del
+  rediseño del frontend.
+
 - Registrar la prueba de carga concurrente de aproximadamente cinco sesiones.
 - Definir migraciones con Alembic antes de introducir cambios destructivos de
   esquema; actualmente el arranque usa `Base.metadata.create_all`.
