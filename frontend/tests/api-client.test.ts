@@ -53,6 +53,17 @@ describe("ApiError", () => {
     expect(new ApiError(0, "x").esNoImplementado).toBe(false);
     expect(new ApiError(401, "x").name).toBe("ApiError");
   });
+
+  it("distingue la caída de la API de un error de negocio", () => {
+    // 0 = no hubo conexión; 502/503/504 = el proxy interno no alcanzó la API.
+    for (const estado of [0, 502, 503, 504]) {
+      expect(new ApiError(estado, "x").esCaida).toBe(true);
+    }
+    // Un 404, un 401 o un 422 son respuestas de la API, no su caída.
+    for (const estado of [400, 401, 404, 409, 422, 500]) {
+      expect(new ApiError(estado, "x").esCaida).toBe(false);
+    }
+  });
 });
 
 describe("pedir", () => {
@@ -61,6 +72,16 @@ describe("pedir", () => {
     await expect(apiGet("/saludo")).resolves.toEqual({ hola: "mundo" });
     const [url] = fetchSimulado.mock.calls[0];
     expect(url).toContain("/saludo");
+  });
+
+  it("pasa siempre por el proxy interno same-origin", async () => {
+    // El navegador no puede leer `API_URL`: sin proxy, las peticiones
+    // apuntarían al `localhost:8000` del visitante.
+    fetchSimulado.mockResolvedValue(respuesta({}));
+    await apiGet("/identity/me");
+    const [url] = fetchSimulado.mock.calls[0];
+    expect(url).toBe("/api/proxy/identity/me");
+    expect(url.startsWith("http")).toBe(false);
   });
 
   it("adjunta cuerpo, idempotencia y autorización cuando corresponde", async () => {

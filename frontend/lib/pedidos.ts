@@ -47,7 +47,7 @@ export async function crearPedido(
     if (error instanceof ApiError) {
       // Mismo criterio que lib/sesion.ts: endpoint ausente o API caída
       // degradan a demostración visible. Un 401 nunca.
-      if (error.esNoImplementado || error.estado === 0) return { estado: "demo" };
+      if (error.esNoImplementado || error.esCaida) return { estado: "demo" };
       if (error.estado === 401) {
         return {
           estado: "error",

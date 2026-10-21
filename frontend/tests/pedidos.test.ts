@@ -72,6 +72,11 @@ describe("crearPedido", () => {
     await expect(crearPedido(CARRITO, null)).resolves.toEqual({ estado: "demo" });
   });
 
+  it("degrada a demostración si el proxy no alcanza la API (502)", async () => {
+    fetchSimulado.mockResolvedValue(respuesta({ detail: "no disponible" }, 502));
+    await expect(crearPedido(CARRITO, null)).resolves.toEqual({ estado: "demo" });
+  });
+
   it("nunca degrada un 401", async () => {
     fetchSimulado.mockResolvedValue(respuesta({ detail: "no" }, 401));
     const resultado = await crearPedido(CARRITO, null);

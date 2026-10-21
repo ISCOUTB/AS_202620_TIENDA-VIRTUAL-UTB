@@ -1,15 +1,18 @@
 /**
  * Cliente HTTP mínimo y tipado para la API de Tienda Virtual UTB.
  *
- * - `API_URL` se lee en tiempo de EJECUCIÓN (así lo inyectan `compose.yaml` y
- *   `deploy/compose.lab.yaml` como `environment`): nunca `NEXT_PUBLIC_*`, que
- *   se hornea durante `next build` y rompería el job de CI (sin backend).
+ * - El navegador **no puede leer `API_URL`**: las variables `NEXT_PUBLIC_*` son
+ *   las únicas que viajan al bundle, y `API_URL` es un secreto de runtime.
+ *   Por eso todas las peticiones pasan por el proxy interno same-origin
+ *   (`app/api/proxy/[...path]/route.ts`), que sí resuelve `API_URL` en el
+ *   servidor. Así la API sigue privada y no hace falta CORS.
  * - Toda respuesta de error se convierte en `ApiError` con el estado HTTP,
  *   para que la vista decida si muestra un error de negocio, un 401/403 o la
  *   degradación "próximamente" de un endpoint `preview`.
  */
 
-const BASE = (process.env.API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
+/** Prefijo del proxy interno; en el navegador es una ruta same-origin. */
+const BASE = "/api/proxy";
 
 /** Clave de almacenamiento del JWT; la comparte lib/sesion.ts. */
 const CLAVE_TOKEN = "tvutb.token";
@@ -44,6 +47,21 @@ export class ApiError extends Error {
   get esNoImplementado(): boolean {
     return this.estado === 404 || this.estado === 405 || this.estado === 501;
   }
+
+  /**
+   * La API no respondió: o no hubo conexión (estado 0) o el proxy interno
+   * devolvió un error de puerta de enlace (502/503/504). En los dos casos la
+   * tienda está inalcanzable y corresponde degradar a modo demostración, nunca
+   * tratar el fallo como un error de negocio ni disfrazarlo de 401.
+   */
+  get esCaida(): boolean {
+    return (
+      this.estado === 0 ||
+      this.estado === 502 ||
+      this.estado === 503 ||
+      this.estado === 504
+    );
+  }
 }
 
 type OpcionesPeticion = {
@@ -52,6 +70,12 @@ type OpcionesPeticion = {
   /** Llave de idempotencia para mutaciones (checkout, ajustes). */
   idempotencyKey?: string;
   señal?: AbortSignal;
+  /**
+   * Token explícito, con prioridad sobre el de la sesión guardada. Lo usa la
+   * llamada que sigue al login: en ese momento el token todavía no está en
+   * `localStorage`, así que sin esto la API respondería 401.
+   */
+  token?: string;
 };
 
 function tokenActual(): string | null {
@@ -67,12 +91,12 @@ export async function pedir<T>(
   ruta: string,
   opciones: OpcionesPeticion = {},
 ): Promise<T> {
-  const { metodo = "GET", cuerpo, idempotencyKey, señal } = opciones;
+  const { metodo = "GET", cuerpo, idempotencyKey, señal, token: tokenPropio } = opciones;
 
   const encabezados: Record<string, string> = { Accept: "application/json" };
   if (cuerpo !== undefined) encabezados["Content-Type"] = "application/json";
   if (idempotencyKey) encabezados["Idempotency-Key"] = idempotencyKey;
-  const token = tokenActual();
+  const token = tokenPropio ?? tokenActual();
   if (token) encabezados.Authorization = `Bearer ${token}`;
 
   let respuesta: Response;
@@ -108,9 +132,11 @@ export async function pedir<T>(
   return (await respuesta.json()) as T;
 }
 
-/** GET tipado. */
-export const apiGet = <T>(ruta: string, señal?: AbortSignal) =>
-  pedir<T>(ruta, { señal });
+/** GET tipado. `opciones.token` fuerza un token (el del login recién hecho). */
+export const apiGet = <T>(
+  ruta: string,
+  opciones: { señal?: AbortSignal; token?: string } = {},
+) => pedir<T>(ruta, { metodo: "GET", ...opciones });
 
 /** POST tipado con soporte de `Idempotency-Key`. */
 export const apiPost = <T>(

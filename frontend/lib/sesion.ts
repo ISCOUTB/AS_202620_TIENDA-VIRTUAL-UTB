@@ -145,7 +145,11 @@ export async function iniciarSesion(
       rutaDe("loginUser"),
       credenciales,
     );
-    const usuario = await apiGet<UserOut>(rutaDe("getCurrentUser"));
+    // El token se envía explícitamente: en este punto la sesión todavía no
+    // está guardada, y sin `Authorization` la API respondería 401.
+    const usuario = await apiGet<UserOut>(rutaDe("getCurrentUser"), {
+      token: token.access_token,
+    });
     const sesion: Sesion = {
       token: token.access_token,
       usuario,
@@ -163,7 +167,7 @@ export async function iniciarSesion(
         );
       }
       // Endpoint ausente o API caída: modo demostración honesto.
-      if (error.esNoImplementado || error.estado === 0) {
+      if (error.esNoImplementado || error.esCaida) {
         return entrarDemo(email, password);
       }
       throw new Error(error.message);
@@ -226,7 +230,7 @@ export async function crearCuenta(
           "El correo y la contraseña no son válidos para crear la cuenta.",
         );
       }
-      if (error.esNoImplementado || error.estado === 0) {
+      if (error.esNoImplementado || error.esCaida) {
         const usuario: UserOut = {
           id: 9000 + enteroAleatorio(999),
           nombre: cuerpo.nombre,

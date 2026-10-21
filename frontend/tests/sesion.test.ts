@@ -63,6 +63,21 @@ describe("iniciarSesion — contrato real", () => {
     expect(sesion.expiraEn).toBeGreaterThan(Date.now());
     expect(leerSesion()?.modo).toBe("real");
   });
+
+  it("envía el token recién obtenido al pedir el usuario actual", async () => {
+    // Regresión: la llamada a `/identity/me` ocurre antes de guardar la
+    // sesión, así que el token debe enviarse explícitamente; si no, la API
+    // responde 401 y el login falla.
+    contratoReal();
+    await iniciarSesion("ana@utb.edu.co", "secreta");
+
+    const llamadaMe = fetchSimulado.mock.calls.find(([url]) =>
+      String(url).includes("/identity/me"),
+    );
+    expect(llamadaMe).toBeDefined();
+    const [, opciones] = llamadaMe as [string, { headers: Record<string, string> }];
+    expect(opciones.headers.Authorization).toBe("Bearer tok-123");
+  });
 });
 
 describe("iniciarSesion — modo demostración", () => {
@@ -104,10 +119,25 @@ describe("iniciarSesion — modo demostración", () => {
   });
 
   it("propaga otros errores del backend", async () => {
-    fetchSimulado.mockResolvedValue(respuesta({ detail: "Servicio caído" }, 503));
+    // 500 = fallo de la API, no su ausencia: es un error y se muestra.
+    fetchSimulado.mockResolvedValue(respuesta({ detail: "Servicio caído" }, 500));
     await expect(iniciarSesion("demo@utb.edu.co", CLAVE_DEMO)).rejects.toThrow(
       "Servicio caído",
     );
+  });
+
+  it("degrada a demostración cuando la API no está disponible (503)", async () => {
+    // 503 = la tienda no responde: mismo criterio que la caída de red.
+    fetchSimulado.mockResolvedValue(respuesta({ detail: "no disponible" }, 503));
+    const sesion = await iniciarSesion("demo@utb.edu.co", CLAVE_DEMO);
+    expect(sesion.modo).toBe("demo");
+  });
+
+  it("degrada a demostración cuando el proxy devuelve 502", async () => {
+    // El proxy interno no alcanzó la API: el cliente lo traduce a caída.
+    fetchSimulado.mockResolvedValue(respuesta({ detail: "API no disponible" }, 502));
+    const sesion = await iniciarSesion("demo@utb.edu.co", CLAVE_DEMO);
+    expect(sesion.modo).toBe("demo");
   });
 });
 
