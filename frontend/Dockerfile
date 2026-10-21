@@ -26,6 +26,9 @@ RUN addgroup --system --gid 1001 nodejs \
 
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+# `output: standalone` no copia public/: sin esta línea las 13 fotos, el logo
+# y el favicon dan 404 en el contenedor.
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 USER nextjs
 
