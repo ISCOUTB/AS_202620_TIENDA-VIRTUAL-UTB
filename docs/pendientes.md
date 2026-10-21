@@ -20,11 +20,25 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
 ## Equipo y calidad
 
 - Crear `SONAR_TOKEN` si se mantendrá el análisis de SonarCloud en CI.
-- **SonarCloud no está analizando este repositorio.** El último análisis del
-  proyecto `ISCOUTB_AS_202620_TIENDA-VIRTUAL-UTB` (organización `isco-utb`) es
-  del 2026-10-19 y los pushes posteriores no producen ni el check
-  `SonarCloud Code Analysis` ni un análisis nuevo. Mientras siga así, el
-  Quality Gate no se puede evaluar sobre el código que se Mergea.
+- **SonarCloud no analiza las ramas de este repositorio.** La app de SonarCloud
+  sí está instalada y sí publica el check `SonarCloud Code Analysis` (aparece
+  en los commits de `main`), pero **Automatic Analysis solo analiza la rama por
+  defecto**: el historial de análisis del proyecto no tiene ni una sola rama
+  distinta de `main`, y `feat/tienda-virtual-frontend` da
+  *Component not found on branch*. La causa es la opción de SonarCloud
+  «Disable Automatic Analysis for pull requests from the same repository».
+  Consecuencia: el gate **no se puede evaluar sobre un PR de este mismo
+  repositorio**; solo se evalúa tras fusionar a `main`.
+  Para poder verlo antes de fusionar hay que pasar al análisis desde CI:
+  1. Crear en SonarCloud un token con permiso de análisis
+     (*My Account → Security → Generate tokens*, marca *Execute analysis*).
+  2. Guardarlo como secreto del repositorio: `gh secret set SONAR_TOKEN`.
+  3. En SonarCloud → *Administration → General settings → Analysis Method*,
+     desactivar *Automatic Analysis* para que no analice dos veces el mismo
+     commit (el job de CI ya está listo: clave, fuentes, pruebas, cobertura
+     lcov y `fetch-depth: 0` para el cálculo de código nuevo).
+  Con eso el job `sonarcloud` publica el check y el estado del Quality Gate en
+  cada PR, y se puede exigir que esté verde antes de fusionar.
 - **Hallazgos de SonarCloud abiertos, con su solución.** El Quality Gate del
   2026-10-19 está en `ERROR` por `new_security_rating = 3`; el resto de
   condiciones (`new_reliability_rating`, `new_maintainability_rating`,
