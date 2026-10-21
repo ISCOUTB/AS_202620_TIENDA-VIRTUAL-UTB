@@ -17,6 +17,9 @@ coverage/
 # Skills de agente instaladas localmente (se regeneran)
 .agents/
 
+# Salidas de las scripts de inspección visual del skill de diseño
+.taste-skill/
+
 # Recibos de herramientas de documentación (archify, Redoc).
 #
 # `*.visual-check.json` es el recibo de una ejecución de `visual-check`: lleva
@@ -26,4 +29,11 @@ coverage/
 # porque es el visor del contrato.
 *.visual-check.json
 *.visual-check.html
+
+# Originales de las capturas de la app UTB y de las fotos de la cafetería.
+#
+# Son la referencia de arte, no un entregable: pesan ~4 MB y las fotos ya
+# viven optimizadas en `frontend/public/img/`. La carpeta se conserva en el
+# disco del equipo para consultarla mientras dure el rediseño.
+/frontend/src/
 
