@@ -7,8 +7,16 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
 
 - Crear el servicio Docker Compose en Dokploy con path
   `./deploy/compose.lab.yaml` y definir `POSTGRES_PASSWORD`.
-- Asignar el dominio definitivo al servicio `frontend`, puerto 3000, y registrar
-  aquí y en el README la URL resultante.
+- **Asignar el dominio definitivo al servicio `frontend`, puerto 3000, y
+  registrarlo aquí y en el README.** El vigente es
+  `https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io/`, que genera
+  la plataforma (`sslip.io` resuelve el nombre hacia la IP del servidor) y es
+  temporal: para la entrega conviene registrar un dominio propio y apuntarlo
+  por DNS.
+- **Emitir el certificado del dominio.** Traefik está sirviendo su certificado
+  autofirmado (*TRAEFIK DEFAULT CERT*), así que el navegador avisa de que la
+  conexión no es privada. Hay que habilitar Let's Encrypt para ese dominio en
+  *Domains*.
 - Configurar una copia periódica del volumen `postgres_data` hacia almacenamiento
   externo y documentar una restauración de prueba.
 - Dar de baja manualmente los recursos anteriores en Render, Vercel y Neon
@@ -96,9 +104,11 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   ciudad y país; falta la dirección del campus para completarlo.
 - **Carta de Almuerzo 02.** Sin productos: la página existe, no se indexa y
   muestra «Carta en preparación».
-- **Dominio público.** `NEXT_PUBLIC_SITIO_URL` debe definirse en el build de
-  producción; mientras no exista, `sitemap.xml`, `robots.txt` y las URLs
-  canónicas apuntan a `http://localhost:3000`.
+- **Dominio público.** `NEXT_PUBLIC_SITIO_URL` ya se pasa al build como
+  `build.args` desde `deploy/compose.lab.yaml` (con el dominio actual por
+  defecto). Cuando se registre el definitivo hay que cambiarlo allí y
+  **redesplegar** — la variable queda horneada en el bundle, así que un
+  reinicio no basta.
 
 ## Contrato que el frontend espera
 

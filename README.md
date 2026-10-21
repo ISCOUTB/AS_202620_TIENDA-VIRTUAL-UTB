@@ -2,6 +2,20 @@
 
 Proyecto académico para diseñar una tienda virtual dirigida a la comunidad de la Universidad Tecnológica de Bolívar (UTB).
 
+## Ver la tienda en línea
+
+**<https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io/>**
+
+Cinco puntos, un solo pase: Antojos, Punto Fit, Alegría y los dos almuerzos del
+campus. Catálogo con existencias, horario en vivo y reserva de hora de
+recogida, con pago en el mostrador.
+
+El sitio se despliega en Dokploy desde
+[`deploy/compose.lab.yaml`](deploy/compose.lab.yaml) — Next.js, FastAPI y
+PostgreSQL 17 en un único stack. El dominio actual es el que genera la
+plataforma de despliegue; el definitivo se configurará allí
+([guía de despliegue](docs/despliegue-dokploy.md)).
+
 ## Equipo
 
 | Integrante | Correo institucional | Codigo Institucional |
@@ -110,6 +124,8 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 - [Guía de la evidencia y comandos de verificación](docs/api/README.md)
 - [Contrato OpenAPI 3.1.0, versión de API 0.3.0](docs/api/openapi.json)
 - [ADR 0002: integración HTTP y contrato versionado](docs/adr/0002-contrato-integracion-http.md)
+- [ADR 0011: sesión del frontend en almacenamiento local, con migración a cookie httpOnly](docs/adr/0011-sesion-localstorage.md)
+- [ADR 0012: proxy interno same-origin hacia la API, sin publicar el backend](docs/adr/0012-proxy-interno-api.md)
 - [Pruebas de contrato](backend/tests/contract/test_openapi.py) ejecutadas en el
   [pipeline](.github/workflows/tests.yml), con reporte descargable.
 
@@ -117,8 +133,15 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 
 El despliegue vigente se ejecuta en Dokploy desde
 [`deploy/compose.lab.yaml`](deploy/compose.lab.yaml): Next.js, FastAPI y
-PostgreSQL 17 en un único stack. Solo el frontend recibe un dominio público;
-la URL definitiva se registrará cuando se configure en Dokploy.
+PostgreSQL 17 en un único stack. Solo el frontend recibe un dominio público:
+**<https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io/>**. Ese
+dominio lo genera la plataforma de despliegue; el definitivo se configurará en
+Dokploy y, cuando exista, se registrará aquí.
+
+> Tras fusionar en `main`, el servicio de Dokploy hay que **redesplegarlo**
+> (Redeploy en el panel): el repositorio queda conectado, pero la imagen del
+> frontend solo se reconstruye en ese paso. Es el origen del despliegue
+> reproducible.
 
 **Análisis estático público (SonarCloud):**
 <https://sonarcloud.io/dashboard?id=ISCOUTB_AS_202620_TIENDA-VIRTUAL-UTB>

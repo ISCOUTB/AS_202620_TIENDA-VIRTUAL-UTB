@@ -42,6 +42,10 @@ services:
     build:
       context: ../frontend
       dockerfile: Dockerfile
+      args:
+        # `NEXT_PUBLIC_*` se hornea en el bundle: es la URL pública del sitio
+        # y alimenta `sitemap.xml`, `robots.txt` y las URLs canónicas.
+        NEXT_PUBLIC_SITIO_URL: ${NEXT_PUBLIC_SITIO_URL:-https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io}
     restart: unless-stopped
     environment:
       API_URL: http://backend:8000
