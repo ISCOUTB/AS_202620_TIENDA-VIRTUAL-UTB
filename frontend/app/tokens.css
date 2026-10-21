@@ -1,0 +1,116 @@
+/*
+ * tokens.css — ÚNICA fuente de valores de color, tipografía, espacio y motion.
+ *
+ * La regla es la misma que en la v2: ningún valor literal (hex, rgb, hsl,
+ * oklch) fuera de este archivo. `npm run check:tokens` lo verifica y corre
+ * dentro de `npm run verify`. Tailwind v4 los expone como utilidades
+ * (`bg-tarjeta`, `text-tenue`…) vía `@theme inline` en globals.css.
+ *
+ * Dirección de arte: design/SPEC.md v3 — «Campus oscuro».
+ *
+ * ─────────────────────────────────────────────────────────────────────────
+ * REGLAS DE USO DEL COLOR (medidas sobre el fondo indicado, WCAG 2.1)
+ *
+ * El sitio es oscuro de punta a punta, como la app oficial de la UTB.
+ *
+ * Texto principal sobre oscuro → --tk-superficie   (blanco: 17.6 sobre tarjeta)
+ * Texto secundario sobre oscuro → --tk-tenue       (6.9 sobre tarjeta)
+ * Acento de dato sobre oscuro   → --tk-cyan-claro  (11.3 sobre tarjeta)
+ *
+ * La sábana de cabecera lleva un degradado azul (--tk-sabana-1 → -2). Sobre
+ * ella, blanco (≥ 4.6 en todo el recorrido) y --tk-cyan-claro.
+ *
+ * El logo UTB tiene versión monocroma blanca y ESTE proyecto la usa sobre la
+ * sábana azul y sobre el carnet, igual que la app oficial.
+ *
+ * Superficies claras (solo el carnet y su banda): texto --tk-tinta.
+ *
+ * --tk-ambar / --tk-amarillo → relleno; el texto encima va en --tk-tinta
+ *                              (12.5 / 14.2). Como texto sobre oscuro el ámbar
+ *                              da 11.4: también vale para acentos de dato.
+ * --tk-error / --tk-ok        → texto sobre oscuro (6.2 / 6.9); nunca solo
+ *                              color, siempre acompañados de palabra.
+ * ─────────────────────────────────────────────────────────────────────────
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* — Ground y superficies oscuras — */
+  --tk-tinta: #04060e; /* ground del sitio */
+  --tk-navy: #0b1120; /* panel profundo, sábana de sección */
+  --tk-tarjeta: #12161f; /* superficie de tarjeta */
+  --tk-tarjeta-alta: #1c222e; /* tarjeta elevada y controles */
+
+  /* — Marca y acentos —
+     Solo TRES acentos de tienda: ámbar (Antojos), cian (Punto Fit) y el
+     sistema azul (Alegría + Almuerzos). El ámbar y el amarillo son
+     indistinguibles como chip: el segundo queda para foco y badge. */
+  --tk-deep: #03045e; /* azul profundo de marca (carnet, superficies claras) */
+  --tk-sabana-1: #0b2bd6; /* sábana azul: base del degradado */
+  --tk-sabana-2: #2b4dff; /* sábana azul: alto del degradado */
+  --tk-azure: #0077b6; /* enlaces, íconos */
+  --tk-cyan: #00b4d8; /* acento Punto Fit + dato vivo */
+  --tk-cyan-claro: #90e0ef; /* texto secundario sobre oscuro (claro) */
+  --tk-cyan-palido: #caf0f8; /* superficie clara alterna (carnet) */
+  --tk-ambar: #ffc300; /* acento Antojos + CTA */
+  --tk-amarillo: #ffd60a; /* SOLO foco de teclado y badge "nuevo" */
+
+  /* — Texto y líneas — */
+  --tk-superficie: #ffffff; /* texto principal sobre oscuro y superficie clara */
+  --tk-tenue: #9aa6b6; /* texto secundario sobre oscuro */
+  --tk-linea: #232a36; /* hairline de tarjeta y regla decorativa */
+  --tk-borde: #5c6b80; /* borde de control (3.4:1 sobre tarjeta) */
+
+  /* — Estado — */
+  --tk-ok: #22c55e;
+  --tk-aviso: #f0b429;
+  --tk-error: #ff7b72;
+
+  /* — Material de la sábana (arcos y halos) — */
+  --tk-arco: #ffffff14; /* arco concéntrico sobre el azul */
+  --tk-halo: #6f95ff40; /* halo radial sobre el azul */
+  --tk-sombra: #000000a6; /* sombra suave de superficies elevadas */
+
+  /* — Tipografía: una familia para todo, la serif solo en prosa legal — */
+  --tk-font-display: var(--font-archivo), "Archivo", "Arial Narrow", sans-serif;
+  --tk-font-texto: var(--font-archivo), "Archivo", system-ui, sans-serif;
+  --tk-font-cuerpo: var(--font-literata), "Literata", Georgia, serif;
+
+  /* — Escala de tipo — */
+  --tk-texto-legal: 0.75rem; /* 12px, solo letra pequeña legal */
+  --tk-texto-chico: 0.8125rem; /* 13px, rótulos y notas */
+  --tk-texto-sm: 0.9375rem; /* 15px */
+  --tk-texto-base: clamp(1rem, 0.97rem + 0.2vw, 1.125rem);
+  --tk-texto-lead: clamp(1.125rem, 1rem + 0.9vw, 1.5rem);
+  --tk-titulo-seccion: clamp(1.75rem, 1.3rem + 2.2vw, 3rem);
+  --tk-titulo: clamp(2.5rem, 1.6rem + 4.6vw, 5.5rem);
+  --tk-display: clamp(3rem, 1.4rem + 7vw, 6rem);
+
+  /* — Espacio (base 4) — */
+  --tk-esp-1: 0.25rem;
+  --tk-esp-2: 0.5rem;
+  --tk-esp-3: 0.75rem;
+  --tk-esp-4: 1rem;
+  --tk-esp-5: 1.25rem;
+  --tk-esp-6: 1.5rem;
+  --tk-esp-8: 2rem;
+  --tk-esp-10: 2.5rem;
+  --tk-esp-12: 3rem;
+  --tk-esp-16: 4rem;
+  --tk-esp-20: 5rem;
+  --tk-esp-24: 6rem;
+  --tk-margen: clamp(1rem, 4vw, 2.5rem); /* un solo par de márgenes exteriores */
+
+  /* — Radio: geometría redondeada de la app — */
+  --tk-radio: 20px; /* tarjetas y controles */
+  --tk-radio-sm: 14px; /* chips y campos */
+  --tk-radio-sabana: 28px; /* esquinas inferiores de la cabecera */
+  --tk-radio-pill: 999px; /* pills */
+
+  /* — Motion — */
+  --tk-dur: 160ms;
+  --tk-dur-media: 320ms;
+  --tk-dur-lenta: 480ms;
+  --tk-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
