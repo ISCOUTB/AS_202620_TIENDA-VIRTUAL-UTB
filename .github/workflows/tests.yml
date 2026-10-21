@@ -86,6 +86,10 @@ jobs:
   # bloquea el merge vía protección de rama.
   sonarcloud:
     runs-on: ubuntu-latest
+    # La cobertura del frontend la produce el job `frontend`: sin `needs` este
+    # job arrancaba en paralelo y el artefacto todavía no existía
+    # ("Artifact not found for name: frontend-coverage").
+    needs: [frontend]
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
@@ -104,3 +108,25 @@ jobs:
       - name: Análisis SonarCloud
         if: env.SONAR_TOKEN != ''
         uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+      # Diagnóstico: solo corre si el análisis falló. El error del escáner
+      # ("Not authorized or project not found") no distingue entre un token sin
+      # permiso de análisis, un usuario que no pertenece a la organización y
+      # una clave de proyecto equivocada; estas consultas lo separan. El token
+      # viaja en la cabecera y nunca se imprime.
+      - name: Diagnosticar el fallo del análisis
+        if: failure() && env.SONAR_TOKEN != ''
+        env:
+          SONAR_HOST_URL: https://sonarcloud.io
+        run: |
+          set +x
+          echo "::group::Validez del token"
+          curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/authentication/validate" || true
+          echo
+          echo "::group::Identidad y permisos del token"
+          curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/users/current" \
+            | python3 -c "import json,sys; d=json.load(sys.stdin); print('login:', d.get('login')); print('organizaciones:', [o.get('key') for o in d.get('organizations',[])]); print('ejecutar análisis:', d.get('permissions',{}).get('executeAnalysis')); print('permisos:', sorted(d.get('permissions',{}).keys()))" || true
+          echo "::endgroup::"
+          echo "::group::Visibilidad del proyecto"
+          curl -s -u "${SONAR_TOKEN}:" "${SONAR_HOST_URL}/api/projects/search?organization=isco-utb&projects=ISCOUTB_AS_202620_TIENDA-VIRTUAL-UTB" || true
+          echo
+          echo "::endgroup::"
