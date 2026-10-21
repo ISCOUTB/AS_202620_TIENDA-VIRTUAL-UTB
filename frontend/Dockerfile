@@ -3,7 +3,11 @@ FROM node:22-alpine AS dependencies
 WORKDIR /app
 
 COPY package.json package-lock.json ./
-RUN npm ci
+# `--ignore-scripts` (SonarQube S6505): ningún paquete de este proyecto usa
+# scripts de instalación —los binarios nativos llegan por dependencias
+# opcionales por plataforma— y así la imagen no ejecuta `postinstall` de
+# terceros durante el build.
+RUN npm ci --ignore-scripts
 
 FROM node:22-alpine AS builder
 
