@@ -246,7 +246,7 @@ flowchart TB
             orders["orders module<br/>empty — planned"]:::todo
             shared["shared/database<br/>DB access only, no business logic"]:::impl
         end
-        db[("PostgreSQL<br/>catalog_products + inventory_stock")]:::data
+        db[("PostgreSQL<br/>one schema, tables owned per module")]:::data
     end
 
     buyer -->|"browses the catalog · HTTPS"| web
@@ -278,12 +278,13 @@ Contained building blocks:
 | Building block | Responsibility | Location |
 | --- | --- | --- |
 | Web client | Server-rendered catalog view; formats prices and stock | `frontend/app/` |
-| API entry point | Creates the FastAPI application, exposes `/health`, creates the schema and seeds the mocked data at startup | `backend/app/main.py` |
-| `catalog` module | Owns the `Product` table and the `/catalog/products` endpoint | `backend/app/modules/catalog/` |
-| `inventory` module | Owns `inventory_stock` and the public `GET /inventory` read contract | `backend/app/modules/inventory/` |
-| `identity`, `orders` modules | Packages reserved for later increments; empty today | `backend/app/modules/` |
-| `shared` | Cross-cutting database access only (engine, session, declarative base); no business logic, per ADR 0001 | `backend/app/shared/database.py` |
-| Database | Single PostgreSQL instance; `catalog_products` and `inventory_stock` have separate module owners | `database` container in `compose.yaml` |
+| API entry point | Creates the FastAPI application and exposes `/health`; it no longer touches the schema (ADR 0013) | `backend/app/main.py` |
+| Migrations and seed | `alembic upgrade head` (one-shot `migrate` service) creates the schema and RLS policies; `python -m app.seed` loads demo data on demand, or automatically through the one-shot `seed` service when `SEED_ON_DEPLOY=true` | `backend/alembic/`, `backend/app/seed.py` |
+| `catalog` module | Owns `tiendas`, `categorias`, `productos`, `imagenes_producto` and the `/catalog/products` endpoint | `backend/app/modules/catalog/` |
+| `inventory` module | Owns `existencias`, `movimientos_existencias` and the public `GET /inventory` read contract | `backend/app/modules/inventory/` |
+| `identity`, `orders` modules | Own their tables (`usuarios`, `roles`, `usuario_roles`; `pedidos`, `pedido_lineas`, `pedido_historial`); no endpoints yet | `backend/app/modules/` |
+| `shared` | Cross-cutting database access and per-transaction security context; no business logic, per ADR 0001 | `backend/app/shared/` |
+| Database | Single PostgreSQL instance; each table has one module owner; row-level security per ADR 0014 | `database` container in `compose.yaml` |
 
 Important interfaces:
 
@@ -304,14 +305,14 @@ layered structure inside the module boundary:
 ```mermaid
 flowchart TB
     web["Web client (Next.js)"]:::ext
-    db[("PostgreSQL<br/>catalog_products")]:::data
+    db[("PostgreSQL<br/>tiendas · categorias · productos · imagenes_producto")]:::data
 
     subgraph catalog["catalog module — backend/app/modules/catalog/"]
         router["router.py<br/>HTTP endpoint: GET /catalog/products"]
         schemas["schemas.py<br/>ProductOut — public data contract"]
         repo["repository.py<br/>list_products() — builds the catalog query"]
-        model["models.py<br/>Product — owns the catalog_products table"]
-        seed["seed.py<br/>inserts the mocked catalog (idempotent)"]
+        model["models.py<br/>Tienda · Categoria · Producto · ImagenProducto"]
+        seed["public.py<br/>idempotent upserts used by app/seed.py"]
     end
     shared["shared/database.py<br/>engine · session · Base (cross-cutting)"]:::ext
 
@@ -331,7 +332,7 @@ flowchart TB
 *Fig. 5.2 — Building Block View, level 2: inside the `catalog` module
 (flowchart). Grey boxes (`web`, `shared/database`, the database) are drawn only
 for context — they live outside this module. Scope: the read path
-`GET /catalog/products` and the startup seed; nothing from `identity`,
+`GET /catalog/products` and the explicit demo seed; nothing from `identity`,
 `inventory` or `orders`.*
 
 | Element | Responsibility |
@@ -339,8 +340,8 @@ for context — they live outside this module. Scope: the read path
 | `router.py` | HTTP surface: declares `GET /catalog/products`, injects a database session with `Depends(get_session)` and maps rows to `ProductOut`. |
 | `schemas.py` | `ProductOut`, the module's public data contract (Pydantic). |
 | `repository.py` | `list_products(session)`, the only place where catalog queries are built. |
-| `models.py` | `Product`, the ORM mapping to `catalog_products`; the module owns this table. |
-| `seed.py` | `seed_products(session)`, idempotent insertion of the mocked catalog (only when the table is empty). |
+| `models.py` | `Tienda`, `Categoria`, `Producto` and `ImagenProducto`; the module owns these tables. |
+| `public.py` | `asegurar_tienda`, `asegurar_categoria`, `asegurar_producto`: idempotent upserts by natural key, used by the composition-root seed (`app/seed.py`). |
 
 The dependency rules from ADR 0001 hold here: the module imports from
 `app.shared.database` (allowed, because it is cross-cutting) and from nothing
@@ -348,11 +349,13 @@ inside `identity`, `inventory` or `orders`.
 
 ### White Box *shared/database* {#_white_box_building_block_2}
 
-`shared/database.py` exposes exactly three things: `engine`, `SessionLocal`
-(through the `get_session` dependency) and `Base`. The database URL comes from
-the `DATABASE_URL` environment variable (PostgreSQL under Docker Compose), with
-a fallback to an in-memory SQLite database for the test suite. No module-specific
-model or query lives here.
+`shared/database.py` exposes `engine`, `SessionLocal` (through the
+`get_session` dependency) and `Base` (with a constraint naming convention). The
+database URL comes from `DATABASE_URL` or `DB_HOST`/`DB_*`; if neither is set
+the import fails with a clear error (the former SQLite fallback was removed by
+ADR 0013). Migrations and the seed resolve the owner credentials instead.
+`shared/seguridad.py` applies the per-transaction security context that the
+RLS policies read (ADR 0014). No module-specific model or query lives here.
 
 # Runtime View {#section-runtime-view}
 
@@ -364,10 +367,15 @@ sequenceDiagram
     participant Compose as Docker Compose
     participant API as API (FastAPI)
     participant DB as PostgreSQL
+    participant Migrate as migrate (one-shot)
+    participant Seed as seed (one-shot, opt-in)
     Compose->>DB: start the database, wait until it is ready
-    Compose->>API: start the API (only after the database is healthy)
-    API->>DB: create the catalog_products table if it does not exist
-    API->>DB: insert the mocked catalog — only if the table is empty
+    Compose->>Migrate: run alembic upgrade head (owner role)
+    Migrate->>DB: apply pending migrations (schema, RLS policies)
+    Migrate-->>Compose: exit 0
+    Compose->>Seed: run python -m app.seed only if SEED_ON_DEPLOY=true
+    Seed-->>Compose: exit 0
+    Compose->>API: start the API (only after migrate and seed completed successfully)
     API-->>Compose: report healthy (GET /health answers 200)
     Compose->>Compose: start the web client (only after the API is healthy)
     Note over Compose,DB: startup order is enforced by Compose health checks,<br/>not by retry code in the application
@@ -378,9 +386,11 @@ sequenceDiagram
 container orchestration and first-run data only; handling a normal request is
 Fig. 6.2.*
 
-Notable aspects: seeding is **idempotent**; on a restart with an existing volume
-the table is already populated and `seed_products` returns without writing.
-Ordering between containers is enforced by Compose with `depends_on` and health
+Notable aspects: migrations are **idempotent** at the deployment level (Alembic
+skips revisions already applied). Demo data is no longer inserted at startup:
+it is loaded on demand with `python -m app.seed` (or by the `seed` service when
+`SEED_ON_DEPLOY=true`), which upserts by natural key, resets demo product
+price/description/category, and never overwrites existing stock. Ordering between containers is enforced by Compose with `depends_on` and health
 checks, not by retry logic in the code.
 
 ## Browsing the catalog {#_runtime_scenario_2}
@@ -494,29 +504,38 @@ The API has no public domain at this stage. See
 ## Persistence and data ownership {#_concept_1}
 
 One PostgreSQL instance and one SQLAlchemy `Base`. Each module declares and owns
-its tables (`catalog` owns `catalog_products`); other modules must go through
-the owning module's public interface, never through its ORM models. The schema
-is created at startup with `create_all`; migrations (Alembic) are deferred until
-the schema stabilizes.
+its tables (`catalog` owns `tiendas`, `categorias`, `productos` and
+`imagenes_producto`); other modules must go through the owning module's public
+interface, never through its ORM models, and cross-module references are plain
+integer columns without foreign keys. The schema is managed by Alembic
+migrations (ADR 0013); the API connects with a non-owner role subject to
+row-level security (ADR 0014).
 
 ## Configuration {#_concept_2}
 
 Configuration is read from environment variables. `DATABASE_URL` remains the
 explicit override; the Dokploy stack instead supplies `DB_HOST`, `DB_PORT`,
-`DB_NAME`, `DB_USER` and `DB_PASSWORD` so passwords are encoded safely. Next.js
-uses the internal `API_URL`. Tests fall back to in-memory SQLite.
+`DB_NAME`, `DB_USER` and `DB_PASSWORD` so passwords are encoded safely. Those
+are the API's (non-owner) credentials; migrations and the seed use
+`MIGRATIONS_DATABASE_URL` or `DB_MIGRATIONS_USER`/`DB_MIGRATIONS_PASSWORD`.
+Next.js uses the internal `API_URL`. There is no implicit database: missing
+configuration is a startup error.
 
 ## Mocked data {#_concept_3}
 
-Per the constraints, there is no real data source. The seed data lives in the
-owning module (`catalog/seed.py`) and is inserted idempotently at startup, so
-the running system always has a catalog to show without any manual step.
+Per the constraints, there is no real data source. Demo data (the five stores
+and their products) lives in the composition root `app/seed.py`, which only
+calls each module's `public.py`. It is loaded explicitly with
+`python -m app.seed` and is idempotent.
 
 ## Testing {#_concept_4}
 
-Tests run against in-memory SQLite (no containers needed) and cover the health
-route, the ADR module boundaries and the catalog endpoint (contract, ordering
-and seeded content). GitHub Actions runs the same suite on every push and pull
+Tests run against a real PostgreSQL (a local container or the CI service): the
+session applies `alembic upgrade head` and data is truncated between tests.
+They cover the health route, the ADR module boundaries, the catalog and
+inventory endpoints, schema constraints, optimistic locking, RLS policies and
+migration reversibility, plus a model-vs-database comparison equivalent to
+`alembic check`. GitHub Actions runs the same suite on every push and pull
 request.
 
 ## Idempotency, sagas and failure handling {#_concept_5}
@@ -544,13 +563,15 @@ diagrams is in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md).
 | [0006](../adr/0006-infra-como-codigo-terraform.md) | Terraform proposal for the former providers | Superseded without being applied |
 | [0007](../adr/0007-despliegue-dokploy.md) | Next.js, FastAPI and PostgreSQL deployed as one Dokploy Compose application | Implemented (2026-10-04) |
 | [0010](../adr/0010-no-extraer-modulos.md) | Keep the modular monolith; do not extract any module into an independent network service in the current phase | Proposed (2026-10-18) |
+| [0013](../adr/0013-migraciones-alembic-y-esquema.md) | Alembic migrations and the relational schema of the four modules; tests on PostgreSQL | Proposed (2026-10-22) |
+| [0014](../adr/0014-seguridad-rls.md) | PostgreSQL row-level security and a least-privilege application role | Proposed (2026-10-22) |
+| [0015](../adr/0015-gestor-paquetes-pnpm.md) | pnpm (pinned via `packageManager`, Corepack) as the frontend package manager instead of npm | Proposed (2026-10-22) |
 
 [0007](../adr/0007-despliegue-dokploy.md) is the current deployment decision.
 ADRs 0003–0006 remain available only as a record of earlier iterations.
 
-Decisions still open (candidates for future ADRs): the authentication mechanism,
-adopting database migrations, and whether any module adopts a hexagonal shape
-internally.
+Decisions still open (candidates for future ADRs): the authentication mechanism
+and whether any module adopts a hexagonal shape internally.
 
 # Quality Requirements {#section-quality-scenarios}
 
@@ -579,10 +600,10 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | Risk or debt | Impact | Current mitigation |
 | --- | --- | --- |
 | Module boundaries are a convention, not enforced by the network | Unwanted coupling between modules | ADR rules plus an AST import test; mapped-column ownership is tested separately because static imports cannot prove data ownership |
-| `create_all` instead of migrations | Schema changes over populated databases will be manual | Acceptable while the schema is small; Alembic ADR pending |
+| `create_all` instead of migrations | Schema changes over populated databases will be manual | **Resolved:** Alembic migrations (ADR 0013), verified in CI |
 | Deployment target not chosen | Cannot be demonstrated outside a local machine | **Resolved:** Dokploy consumes `deploy/compose.lab.yaml`; see ADR 0007 |
 | Mocked data only | Behavior is not validated against real cafeteria data | Explicit scope constraint; the seed data models realistic products |
-| Next.js dependency vulnerabilities | Public SSR increases exposure | Keep the lockfile patched and verify `npm audit` during upgrades |
+| Next.js dependency vulnerabilities | Public SSR increases exposure | Keep the lockfile patched and verify `pnpm audit` during upgrades |
 | Single Dokploy server hosts every runtime component | A host or disk failure affects the whole system | Named database volume, external scheduled backups and a tested restore procedure |
 | Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | The Compose requires `POSTGRES_PASSWORD` from Dokploy Environment; `.env` files remain ignored |
 | Failure modes F-01 … F-07 are catalogued but their mitigations are not implemented yet | Identified risks (inventory lock, duplicate orders, DB outage) stay open until the patterns land in code | Mitigation selected per failure in [modos-fallo-s11.md](../modos-fallo-s11.md); idempotency and saga design in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md), with ADR 0010 keeping the design on a single process |

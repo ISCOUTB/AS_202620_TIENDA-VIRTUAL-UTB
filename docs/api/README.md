@@ -10,7 +10,7 @@ como diseño previsto: actores, diagramas, operaciones propuestas y alcance pend
 
 | Requisito | Evidencia |
 |---|---|
-| Contrato OpenAPI versionado | [openapi.json](openapi.json): formato OpenAPI `3.1.0`, versión de API `0.3.0`. |
+| Contrato OpenAPI versionado | [openapi.json](openapi.json): formato OpenAPI `3.1.0`, versión de API `0.3.1`. |
 | Pruebas de contrato | [test_openapi.py](../../backend/tests/contract/test_openapi.py): documento, sincronización, respuestas HTTP y rupturas simuladas. |
 | Pruebas en el pipeline | [tests.yml](../../.github/workflows/tests.yml): paso específico y reporte JUnit descargable. |
 | Justificación de integración | [ADR 0002](../adr/0002-contrato-integracion-http.md). |
@@ -20,7 +20,8 @@ El contrato describe las cinco operaciones implementadas —`GET /catalog/produc
 con respuesta `200 application/json` (la de readiness también documenta `503`),
 sin autenticación ni parámetros en el alcance actual. `/health/ready` y
 `/metrics` se añadieron en `0.2.1`; la lectura de inventario y la separación de
-contratos forman parte de `0.3.0`.
+contratos forman parte de `0.3.0`; `0.3.1` añade a `ProductOut` los campos
+opcionales `tienda` e `imagen_url` (cambio compatible).
 No se documentan operaciones futuras como si ya estuvieran implementadas.
 JSON y YAML son formatos válidos para OpenAPI; este proyecto exporta JSON.
 
@@ -34,8 +35,10 @@ python -m pytest -c backend/pytest.ini backend/tests/contract -v -p no:cacheprov
 python -m pytest -c backend/pytest.ini backend/tests -p no:cacheprovider
 ```
 
-Usar `DATABASE_URL=sqlite+pysqlite:///:memory:` o dejar esa variable sin definir
-para las pruebas locales; la aplicación usa SQLite en memoria por defecto.
+Las pruebas requieren PostgreSQL: `DATABASE_URL` debe apuntar a una base de
+pruebas (su nombre debe contener `test`) y debe existir el rol de aplicación.
+Ya no hay respaldo a SQLite (ADR 0013); los pasos están en el README, sección
+*Pruebas automatizadas*.
 
 ## Actualizar el contrato deliberadamente
 

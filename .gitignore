@@ -6,6 +6,7 @@ __pycache__/
 .security-tools/
 .env
 node_modules/
+.pnpm-store/
 .next/
 *.tsbuildinfo
 coverage/
@@ -36,4 +37,8 @@ coverage/
 # viven optimizadas en `frontend/public/img/`. La carpeta se conserva en el
 # disco del equipo para consultarla mientras dure el rediseño.
 /frontend/src/
+
+# Exportaciones del esquema anterior (backend/scripts/exportar_datos_legado.py):
+# son datos de la base, no código.
+/backend/datos_legado/
 

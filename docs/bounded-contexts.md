@@ -86,18 +86,22 @@ el estado real del código (las discrepancias son violaciones listadas en
 `docs/violaciones-s6.md`).
 
 **Leyenda de la columna Estado:** `IMPLEMENTADO` = tiene comportamiento en el
-incremento actual; `VACÍO` = paquete reservado, sin lógica todavía.
+incremento actual; `SOLO ESQUEMA` = tablas y modelos creados, sin endpoints.
 
 | Contexto delimitado | Módulo | Dueño (rol) | Tablas que posee (objetivo) | Tabla hoy (real) | Contrato público | Estado |
 |---|---|---|---|---|---|---|
-| Identidad y Acceso | `backend/app/modules/identity/` | Sistema (auth propia) / rol de admin | `users`, `roles`, `sessions` (prevista) | — (no existe) | Autenticación y autorización por rol; aún sin exponer | VACÍO |
-| Catálogo | `backend/app/modules/catalog/` | Administrador de la tienda | `catalog_products` (nombre, descripción, precio) | `catalog_products` sin existencias | `GET /catalog/products` → `ProductOut` | IMPLEMENTADO |
-| Inventario | `backend/app/modules/inventory/` | Responsable de inventario | `inventory_stock` (`product_id`, `existencias`) | `inventory_stock` | `GET /inventory` → `StockOut` | IMPLEMENTADO (lectura) |
-| Pedidos | `backend/app/modules/orders/` | Administrador de la tienda / comprador | `orders`, `order_items` (prevista) | — (no existe) | Por definir (futuro) | VACÍO |
+| Identidad y Acceso | `backend/app/modules/identity/` | Sistema (auth propia) / rol de admin | `usuarios`, `roles`, `usuario_roles` | Las tres (migración `0001_esquema_inicial`) | Autenticación y autorización por rol; aún sin exponer | SOLO ESQUEMA |
+| Catálogo | `backend/app/modules/catalog/` | Administrador de la tienda | `tiendas`, `categorias`, `productos`, `imagenes_producto` | Las cuatro | `GET /catalog/products` → `ProductOut` | IMPLEMENTADO |
+| Inventario | `backend/app/modules/inventory/` | Responsable de inventario | `existencias` (`producto_id`, `cantidad`, `version`), `movimientos_existencias` | Las dos | `GET /inventory` → `StockOut` | IMPLEMENTADO (lectura) |
+| Pedidos | `backend/app/modules/orders/` | Administrador de la tienda / comprador | `pedidos`, `pedido_lineas`, `pedido_historial` | Las tres | Por definir (futuro) | SOLO ESQUEMA |
 
-- **Base de datos:** única instancia PostgreSQL compartida (`catalog_products`
-  e `inventory_stock`), cada una propiedad de su contexto. Los demás contextos
-  acceden vía contrato público, nunca por ORM (ADR 0001).
+- **Base de datos:** única instancia PostgreSQL compartida; el esquema lo
+  crean las migraciones de Alembic ([ADR 0013](adr/0013-migraciones-alembic-y-esquema.md))
+  y cada tabla es propiedad de su contexto. Las referencias entre contextos
+  (`producto_id`, `usuario_id`, `tienda_id`, `pedido_id`) son enteros sin clave
+  foránea ni `relationship()`; los demás contextos acceden vía contrato
+  público, nunca por ORM (ADR 0001). El acceso por filas lo limitan políticas
+  RLS ([ADR 0014](adr/0014-seguridad-rls.md)).
 - **`shared/database.py`:** elemento transversal, no un contexto: expone
   `engine`, `get_session` y `Base`, sin lógica de negocio.
 

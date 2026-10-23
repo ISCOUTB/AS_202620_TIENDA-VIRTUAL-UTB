@@ -22,7 +22,7 @@ C4Container
     System_Boundary(sistema, "Tienda Virtual UTB") {
         Container(web, "Cliente web", "Next.js", "Renderiza en el servidor las vistas; hoy muestra el catálogo de la cafetería")
         Container(api, "API", "FastAPI (monolito modular)", "Catálogo e Inventario implementados para lectura; identity y orders pendientes")
-        ContainerDb(db, "Base de datos", "PostgreSQL 17", "catalog_products e inventory_stock, cada tabla con dueño de módulo")
+        ContainerDb(db, "Base de datos", "PostgreSQL 17", "Esquema migrado con Alembic; cada tabla con dueño de módulo y RLS (ADR 0013/0014)")
     }
 
     Rel(comprador, web, "Consulta el catálogo", "HTTPS · HTML (SSR)")
@@ -45,9 +45,10 @@ C4Container
 - **Cliente web (Next.js, :3000).** Componentes de servidor; la petición al
   catálogo se hace desde el servidor de Next.js hacia la API (`API_URL`), no
   desde el navegador.
-- **API (FastAPI, :8000).** Un único proceso. En el arranque crea el esquema y
-  cada módulo siembra sus datos mockeados de forma idempotente. `catalog` e
-  `inventory` implementan lectura mediante contratos separados.
+- **API (FastAPI, :8000).** Un único proceso. No crea el esquema ni siembra al
+  arrancar: lo hacen los servicios de una sola ejecución `migrate` (Alembic) y
+  `seed` (opcional, `SEED_ON_DEPLOY=true`) ([ADR 0013](../adr/0013-migraciones-alembic-y-esquema.md)).
+  `catalog` e `inventory` implementan lectura mediante contratos separados.
 - **Base de datos (PostgreSQL, :5432 interno).** Instancia única con un volumen
   `postgres_data` que conserva los datos entre reinicios.
 - El nivel 3 (componentes de la API) se documenta como *Building Block View,

@@ -102,6 +102,12 @@ Tras el arranque: <http://localhost:3000> (catálogo) y
 Los módulos `identity`, `inventory` y `orders` siguen siendo paquetes vacíos,
 reservados para incrementos posteriores.
 
+> **Nota (2026-10-22):** esta sección describe el estado de S4. Desde el
+> [ADR 0013](docs/adr/0013-migraciones-alembic-y-esquema.md) el esquema lo crea
+> Alembic, la siembra es un comando explícito y las pruebas requieren
+> PostgreSQL; ver [Arranque local](#arranque-local) y
+> [Pruebas automatizadas](#pruebas-automatizadas).
+
 ## Evidencia S6 — contextos delimitados y deuda arquitectónica
 
 - [Mapa de contextos (bounded contexts) y tabla de módulos con dueño único](docs/bounded-contexts.md)
@@ -126,6 +132,7 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 - [ADR 0002: integración HTTP y contrato versionado](docs/adr/0002-contrato-integracion-http.md)
 - [ADR 0011: sesión del frontend en almacenamiento local, con migración a cookie httpOnly](docs/adr/0011-sesion-localstorage.md)
 - [ADR 0012: proxy interno same-origin hacia la API, sin publicar el backend](docs/adr/0012-proxy-interno-api.md)
+- [ADR 0015: pnpm como gestor de paquetes del frontend](docs/adr/0015-gestor-paquetes-pnpm.md)
 - [Pruebas de contrato](backend/tests/contract/test_openapi.py) ejecutadas en el
   [pipeline](.github/workflows/tests.yml), con reporte descargable.
 
@@ -192,9 +199,20 @@ Desde la raíz del repositorio —la creación de `.env` es una sola vez; despu�
 basta `docker compose up`—:
 
 ```bash
-cp .env.example .env   # completar POSTGRES_PASSWORD
+cp .env.example .env   # completar POSTGRES_PASSWORD y APP_DB_PASSWORD
 docker compose up --build
+docker compose run --rm migrate python -m app.seed   # datos de demostración (opcional)
 ```
+
+Alternativa: con `SEED_ON_DEPLOY=true` en `.env`, el servicio de una sola
+ejecución `seed` siembra tras `migrate` en cada `docker compose up` (por
+defecto `false`: se omite). En Dokploy se usa la misma variable
+([despliegue](docs/despliegue-dokploy.md)).
+
+`docker compose up` arranca primero `database`, luego el servicio de una sola
+ejecución `migrate` (`alembic upgrade head`) y solo si termina bien la API. La
+API se conecta con el rol `tienda_app`, sujeto a RLS; las migraciones y la
+siembra usan el rol dueño ([ADR 0014](docs/adr/0014-seguridad-rls.md)).
 
 Cuando los servicios estén saludables:
 
@@ -209,22 +227,65 @@ PostgreSQL se conservan en un volumen de Docker. Si se necesita eliminar
 también ese volumen, puede ejecutarse explícitamente `docker compose down -v`;
 esta operación borra los datos locales de la base de datos.
 
-## Pruebas automatizadas
+### Base de datos: migraciones, siembra y datos anteriores
 
-Con Python 3.12 disponible, las pruebas del backend pueden ejecutarse así:
+| Tarea | Comando (desde la raíz) |
+|---|---|
+| Aplicar migraciones | `docker compose run --rm migrate` (o, en `backend/`, `alembic upgrade head`) |
+| Comprobar que modelos y migraciones coinciden | en `backend/`: `alembic check` |
+| Sembrar datos de demostración | `docker compose run --rm migrate python -m app.seed` (o `SEED_ON_DEPLOY=true` y `docker compose up`) |
+| Sembrar además los datos exportados | `docker compose run --rm -v "${PWD}/backend/datos_legado:/datos" migrate python -m app.seed --desde-json /datos/<archivo>.json` |
+| Exportar el esquema anterior a JSON | ver abajo |
+| Crear el rol de la API en una base ya inicializada | `docker compose exec database sh /docker-entrypoint-initdb.d/10-rol-aplicacion.sh` |
+
+**Bases creadas antes del ADR 0013.** La migración `0001_esquema_inicial`
+elimina `catalog_products` e `inventory_stock`. Antes de levantar el stack
+nuevo hay que exportarlas (el script solo lee y escribe
+`backend/datos_legado/legado_<marca>.json`, fuera de Git):
 
 ```bash
+docker compose up -d database
+docker compose exec database sh /docker-entrypoint-initdb.d/10-rol-aplicacion.sh
+docker compose run --rm --no-deps -v "${PWD}/backend:/src" -w /src migrate python scripts/exportar_datos_legado.py
+```
+
+Con Python local y la base accesible basta, en `backend/`,
+`python scripts/exportar_datos_legado.py` con `DATABASE_URL` definida.
+
+## Pruebas automatizadas
+
+Las pruebas del backend usan **PostgreSQL real** (ADR 0013): aplican
+`alembic upgrade head`, vacían los datos entre pruebas y ejercen las políticas
+RLS con el rol de aplicación. `DATABASE_URL` es obligatoria y el nombre de la
+base debe contener `test`. Con Python 3.12, un contenedor desechable basta:
+
+```bash
+docker run -d --name tienda-pg-test -p 55432:5432 \
+  -e POSTGRES_USER=tienda -e POSTGRES_PASSWORD=tienda -e POSTGRES_DB=tienda_test \
+  -e APP_DB_USER=tienda_app -e APP_DB_PASSWORD=tienda_app \
+  -v "${PWD}/deploy/postgres/initdb:/docker-entrypoint-initdb.d:ro" postgres:17-alpine
+export DATABASE_URL=postgresql+psycopg2://tienda:tienda@localhost:55432/tienda_test
 python -m pip install -r backend/requirements-dev.txt
 python -m pytest -c backend/pytest.ini backend/tests
 ```
 
-Las pruebas comprueban que la ruta de salud funciona, que existen los paquetes
-establecidos por el ADR, que el endpoint del catálogo devuelve los productos
-sembrados con el contrato esperado, que el contrato OpenAPI guardado coincide
-con el generado y que la observabilidad (readiness, métricas, logs JSON)
-responde. Se ejecutan sobre SQLite en memoria (sin contenedores). El mismo
-conjunto corre automáticamente mediante GitHub Actions en cada envío y
-solicitud de cambios, junto con el análisis estático (Ruff + SonarCloud).
+Las pruebas comprueban la ruta de salud, los límites de módulos del ADR, los
+endpoints de catálogo e inventario, el contrato OpenAPI, la observabilidad, las
+restricciones del esquema, el bloqueo optimista, las políticas RLS y que las
+migraciones son reversibles y coinciden con los modelos. El mismo conjunto
+corre en GitHub Actions con un servicio `postgres:17-alpine`, junto con
+`alembic check` y el análisis estático (Ruff + SonarCloud).
+
+El frontend usa **pnpm** ([ADR 0015](docs/adr/0015-gestor-paquetes-pnpm.md)),
+con la versión fijada en `packageManager` y activada por Corepack (Node 22):
+
+```bash
+corepack enable                              # una vez por máquina
+cd frontend
+pnpm install --frozen-lockfile --ignore-scripts
+pnpm run check:tokens && pnpm run lint && pnpm run typecheck
+pnpm run test:coverage && pnpm run build     # o todo junto: pnpm run verify
+```
 
 ## Estructura ejecutable
 
@@ -232,15 +293,21 @@ solicitud de cambios, junto con el análisis estático (Ruff + SonarCloud).
 backend/
   app/
     main.py                     # app FastAPI, /health, /health/ready, /metrics, /openapi/diseno, arranque
+    seed.py                     # siembra explícita de demostración: python -m app.seed
     modules/
-      catalog/                  # corte vertical: router, repository, models, schemas, seed
-      {identity,inventory,orders}/   # paquetes reservados, aún vacíos
+      catalog/                  # tiendas, categorías, productos, imágenes: router, repository, models, schemas, public
+      inventory/                # existencias y movimientos: router, repository, models, schemas, public
+      {identity,orders}/        # solo modelos (tablas), sin endpoints todavía
     shared/
       database.py               # engine, sesión y Base (solo acceso a datos)
+      seguridad.py              # contexto de seguridad por transacción para RLS
       logging.py                # logs estructurados JSON (S8)
       metrics.py                # middleware de métricas HTTP por ruta (S8)
+  alembic.ini, alembic/         # migraciones (0001 esquema, 0002 RLS)
   scripts/export_openapi.py     # dev: exporta el contrato a docs/api/openapi.json
-  tests/                        # health, límites de módulos (ADR), catálogo, contrato, observabilidad
+  scripts/exportar_datos_legado.py  # exporta catalog_products/inventory_stock antes de migrar
+  tests/                        # health, módulos (ADR), catálogo, inventario, contrato, esquema, RLS, Alembic
+deploy/postgres/initdb/         # crea el rol de la API al inicializar PostgreSQL
 frontend/
   app/page.tsx                  # vista del catálogo (componente de servidor)
 compose.yaml                    # frontend + backend + postgres (local; secretos vía .env)

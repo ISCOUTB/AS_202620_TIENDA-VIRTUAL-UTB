@@ -91,8 +91,9 @@ fallido requiere una regla de protección de rama en GitHub, fuera de estos arch
   incluso cambios descriptivos requieren revisar y exportar el archivo.
 - La dependencia síncrona de FastAPI continúa; el frontend ya muestra un mensaje
   cuando falla la consulta. No se agregan garantías de disponibilidad o rendimiento.
-- Las pruebas usan SQLite en memoria y el cliente HTTP de prueba. No verifican
-  red, PostgreSQL, despliegue ni ejecución del frontend, ni constituyen un contrato
+- Las pruebas usan el cliente HTTP de prueba; desde el ADR 0013 (2026-10-22)
+  corren sobre PostgreSQL en lugar de SQLite en memoria. No verifican red,
+  despliegue ni ejecución del frontend, ni constituyen un contrato
   dirigido por consumidores. El tipo TypeScript todavía se mantiene manualmente.
 - Nuevas operaciones, parámetros y errores de negocio necesitarán casos propios.
   La igualdad del documento no es una comprobación automática de compatibilidad

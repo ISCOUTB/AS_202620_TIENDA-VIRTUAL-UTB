@@ -80,10 +80,18 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   rediseño del frontend.
 
 - Registrar la prueba de carga concurrente de aproximadamente cinco sesiones.
-- Definir migraciones con Alembic antes de introducir cambios destructivos de
-  esquema; actualmente el arranque usa `Base.metadata.create_all`.
+- ~~Definir migraciones con Alembic~~ — hecho el 2026-10-22
+  ([ADR 0013](adr/0013-migraciones-alembic-y-esquema.md)) junto con RLS
+  ([ADR 0014](adr/0014-seguridad-rls.md)). Queda por hacer en cada entorno
+  existente (local y Dokploy): definir `APP_DB_PASSWORD`, crear el rol de
+  aplicación en la base ya inicializada, **exportar los datos anteriores**
+  antes de que el servicio `migrate` aplique `0001_esquema_inicial` (borra
+  `catalog_products` e `inventory_stock`) y ejecutar la siembra (o
+  `SEED_ON_DEPLOY=true`). Pasos en el README.
 - Reforzar mediante pruebas las reglas de dependencia entre módulos.
-- Implementar los módulos `identity`, `inventory` y `orders`, todavía vacíos.
+- Implementar los endpoints de `identity` y `orders` (ya tienen tablas) y las
+  escrituras de `inventory`. Al implementar el login, completar
+  `contexto_actual` (`app/shared/seguridad.py`) para que RLS reciba el usuario.
 
 ## Datos de la cafetería (frontend)
 
@@ -115,7 +123,8 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
 Ver [`api/tiendas-catalogo.md`](api/tiendas-catalogo.md). Resumen:
 
 - `ProductOut` necesita `tienda`, `categoria`, `presentacion` y
-  `precio_confirmado`.
+  `precio_confirmado`. Desde la API `0.3.1` ya expone `tienda` (slug) e
+  `imagen_url`, ambos opcionales.
 - `OrderItemRequest` necesita `notas` para los sabores.
 - `OrderCreateRequest` necesita `hora_recogida`.
 - Faltan `identity/*` (login, registro, me), `orders` y el `PATCH` de

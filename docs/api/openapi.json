@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Tienda Virtual UTB",
-    "version": "0.3.0"
+    "version": "0.3.1"
   },
   "paths": {
     "/catalog/products": {
@@ -169,6 +169,30 @@
           "precio_centavos": {
             "type": "integer",
             "title": "Precio Centavos"
+          },
+          "tienda": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tienda",
+            "description": "Identificador (slug) de la tienda dueña del producto."
+          },
+          "imagen_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Imagen Url",
+            "description": "Ruta relativa de la imagen principal, si existe."
           }
         },
         "type": "object",

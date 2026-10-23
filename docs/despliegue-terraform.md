@@ -150,8 +150,8 @@ por error.
 
 ```bash
 cd frontend
-npx vercel link --yes --project tienda-virtual-utb-tf --token "$VERCEL_API_TOKEN" --scope acme-8eed
-npx vercel deploy --prod --token "$VERCEL_API_TOKEN" --scope acme-8eed
+pnpm dlx vercel link --yes --project tienda-virtual-utb-tf --token "$VERCEL_API_TOKEN" --scope acme-8eed
+pnpm dlx vercel deploy --prod --token "$VERCEL_API_TOKEN" --scope acme-8eed
 ```
 
 Sin el `vercel link` explícito, la CLI pediría el proyecto de forma

@@ -48,7 +48,7 @@ sequenceDiagram
     Web->>API: GET /catalog/products y GET /inventory
     API->>Catalogo: list_products(session)
     Catalogo->>BD: Consultar productos ordenados por nombre
-    BD-->>Catalogo: Filas de catalog_products
+    BD-->>Catalogo: Filas de productos (con su tienda)
     Catalogo-->>API: Productos
     Note over API: Serializa la respuesta como lista de ProductOut
     API-->>Web: 200 application/json, productos y existencias separadas
@@ -57,8 +57,8 @@ sequenceDiagram
 
 El diagrama representa el caso exitoso en Docker Compose. Next.js realiza la
 consulta desde el servidor y utiliza los datos para renderizar la página.
-Si la consulta falla, la vista muestra un mensaje de error. En las pruebas
-locales del backend se usa SQLite en memoria en lugar de PostgreSQL.
+Si la consulta falla, la vista muestra un mensaje de error. Las pruebas del
+backend usan PostgreSQL con el esquema aplicado por Alembic (ADR 0013).
 
 ## 3. Consultar productos: `GET /catalog/products`
 
