@@ -10,6 +10,25 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    # Las pruebas corren contra PostgreSQL real (ADR 0013): constraints, RLS y
+    # migraciones no se pueden comprobar en SQLite.
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: tienda
+          POSTGRES_PASSWORD: tienda
+          POSTGRES_DB: tienda_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U tienda -d tienda_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql+psycopg2://tienda:tienda@localhost:5432/tienda_test
+      APP_DB_USER: tienda_app
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
@@ -18,6 +37,18 @@ jobs:
         run: docker compose -f deploy/compose.lab.yaml config --quiet
         env:
           POSTGRES_PASSWORD: ci-validation-only
+          APP_DB_PASSWORD: ci-validation-only
+      # Mismo script que inicializa el volumen en Docker (ADR 0014); aquí psql
+      # llega al servicio por TCP gracias a PGHOST.
+      - name: Crear el rol de aplicación sujeto a RLS
+        working-directory: .
+        run: sh deploy/postgres/initdb/10-rol-aplicacion.sh
+        env:
+          PGHOST: localhost
+          PGPASSWORD: tienda
+          POSTGRES_USER: tienda
+          POSTGRES_DB: tienda_test
+          APP_DB_PASSWORD: ci-app-only
       - name: Configurar Python
         uses: actions/setup-python@v5
         with:
@@ -28,8 +59,6 @@ jobs:
         run: 'pip install --only-binary :all: -r requirements-dev.txt'
       - name: Verificar contrato OpenAPI y respuestas HTTP
         run: python -m pytest tests/contract -v -p no:cacheprovider --junitxml=reports/contract.xml
-        env:
-          DATABASE_URL: "sqlite+pysqlite:///:memory:"
       - name: Guardar resultado de pruebas de contrato
         if: always()
         uses: actions/upload-artifact@v4
@@ -37,10 +66,14 @@ jobs:
           name: pruebas-contrato
           path: backend/reports/contract.xml
           if-no-files-found: warn
-      - name: Ejecutar pruebas funcionales y de arquitectura
+      - name: Ejecutar pruebas funcionales, de esquema, RLS y arquitectura
         run: python -m pytest tests --ignore=tests/contract
+      - name: Verificar que modelos y migraciones coinciden (alembic check)
+        run: |
+          alembic upgrade head
+          alembic check
       - name: Análisis estático (Ruff)
-        run: pipx run --spec ruff==0.13.2 ruff check app tests scripts
+        run: pipx run --spec ruff==0.13.2 ruff check app tests scripts alembic
 
   frontend:
     runs-on: ubuntu-latest
@@ -50,27 +83,35 @@ jobs:
     steps:
       - name: Descargar repositorio
         uses: actions/checkout@v4
+      # Va antes de setup-node: `cache: pnpm` necesita pnpm en el PATH. Sin
+      # `version`, la acción toma la de `packageManager` (ADR 0015); como no
+      # hay package.json en la raíz, se le indica el del frontend.
+      - name: Configurar pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          package_json_file: frontend/package.json
       - name: Configurar Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-          cache: npm
-          cache-dependency-path: frontend/package-lock.json
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
       - name: Instalar dependencias
         # `--ignore-scripts` (SonarQube S6505): ninguna dependencia de este
         # proyecto necesita scripts de instalación — esbuild, sharp y
         # unrs-resolver resuelven sus binarios por paquete de plataforma — y
         # sin este flag un `postinstall` de un paquete transitivo se ejecutaría
-        # con permisos de escritura en el runner.
-        run: npm ci --ignore-scripts
+        # con permisos de escritura en el runner. `--frozen-lockfile` falla si
+        # pnpm-lock.yaml no corresponde a package.json (equivale a `npm ci`).
+        run: pnpm install --frozen-lockfile --ignore-scripts
       - name: Verificar paleta (sin colores fuera de tokens.css)
-        run: npm run check:tokens
+        run: pnpm run check:tokens
       - name: Verificar estilo (ESLint)
-        run: npm run lint
+        run: pnpm run lint
       - name: Verificar tipos (TypeScript)
-        run: npm run typecheck
+        run: pnpm run typecheck
       - name: Pruebas unitarias con cobertura
-        run: npm run test:coverage
+        run: pnpm run test:coverage
       - name: Guardar cobertura para Sonar
         uses: actions/upload-artifact@v4
         with:
@@ -78,7 +119,7 @@ jobs:
           path: frontend/coverage/lcov.info
           if-no-files-found: warn
       - name: Construir frontend standalone
-        run: npm run build
+        run: pnpm run build
 
   # Requiere el secreto SONAR_TOKEN y el proyecto registrado en la
   # organización ISCO-UTB (sonar-project.properties). Mientras el secreto no

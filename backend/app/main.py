@@ -10,11 +10,9 @@ from sqlalchemy import text
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.modules.catalog import initialize as initialize_catalog
 from app.modules.catalog import router as catalog_router
-from app.modules.inventory import initialize as initialize_inventory
 from app.modules.inventory import router as inventory_router
-from app.shared.database import Base, SessionLocal, engine, get_session
+from app.shared.database import get_session
 from app.shared.logging import configure_logging
 from app.shared.metrics import ObservabilityMiddleware, snapshot
 
@@ -41,16 +39,16 @@ def _abrir_contrato_diseno() -> PlainTextResponse:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    """Configura logs JSON, prepara el esquema y el catálogo mockeado."""
+    """Configura logs JSON.
+
+    El esquema lo crea `alembic upgrade head` y los datos de demostración
+    `python -m app.seed` (ADR 0013): la API ya no modifica la base al arrancar.
+    """
     configure_logging()
-    Base.metadata.create_all(bind=engine)
-    with SessionLocal() as session:
-        product_ids = initialize_catalog(session)
-        initialize_inventory(session, product_ids)
     yield
 
 
-app = FastAPI(title="Tienda Virtual UTB", version="0.3.0", lifespan=lifespan)
+app = FastAPI(title="Tienda Virtual UTB", version="0.3.1", lifespan=lifespan)
 app.add_middleware(ObservabilityMiddleware)
 app.include_router(catalog_router)
 app.include_router(inventory_router)

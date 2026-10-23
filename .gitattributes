@@ -1,0 +1,3 @@
+# Los scripts de shell se montan en contenedores Linux: siempre LF, aunque
+# Git en Windows use core.autocrlf=true (un CR rompe `sh`).
+*.sh text eol=lf

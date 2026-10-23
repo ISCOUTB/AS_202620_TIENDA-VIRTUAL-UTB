@@ -55,7 +55,7 @@ def test_http_response_matches_contract(path: str, method: str) -> None:
 
 
 @pytest.mark.parametrize("mutation", ["missing_name", "price_as_text"])
-def test_contract_rejects_breaking_product_payloads(mutation: str) -> None:
+def test_contract_rejects_breaking_product_payloads(mutation: str, datos_demo) -> None:
     with TestClient(app) as client:
         payload = client.get("/catalog/products").json()
     assert payload, "Se requiere al menos un producto para demostrar la ruptura."

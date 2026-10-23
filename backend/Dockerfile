@@ -9,6 +9,9 @@ COPY backend/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY backend/app ./app
+# Migraciones: las ejecuta el servicio `migrate` con `alembic upgrade head`.
+COPY backend/alembic.ini ./alembic.ini
+COPY backend/alembic ./alembic
 COPY docs/openapi/tienda-virtual.yaml ./docs/openapi/tienda-virtual.yaml
 
 RUN addgroup --system app && adduser --system --ingroup app app \

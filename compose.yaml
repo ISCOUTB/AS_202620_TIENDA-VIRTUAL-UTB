@@ -6,23 +6,68 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-tienda_utb}
       # Requerida vía .env (ver .env.example): los secretos no se versionan.
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD - copia .env.example a .env}"
+      # Rol de login de la API, creado por deploy/postgres/initdb (ADR 0014).
+      APP_DB_USER: ${APP_DB_USER:-tienda_app}
+      APP_DB_PASSWORD: "${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD - ver .env.example}"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U tienda_utb -d tienda_utb"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./deploy/postgres/initdb:/docker-entrypoint-initdb.d:ro
+
+  # Tarea única: aplica las migraciones con el rol dueño y termina (ADR 0013).
+  migrate:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["alembic", "upgrade", "head"]
+    environment:
+      MIGRATIONS_DATABASE_URL: "postgresql://${POSTGRES_USER:-tienda_utb}:${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
+      DATABASE_URL: "postgresql://${APP_DB_USER:-tienda_app}:${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
+      APP_DB_USER: ${APP_DB_USER:-tienda_app}
+    depends_on:
+      database:
+        condition: service_healthy
+    healthcheck:
+      disable: true
+    restart: "no"
+
+  # Tarea única opcional: siembra los datos de demostración tras migrar. Solo
+  # actúa con SEED_ON_DEPLOY=true; si no, termina con código 0 sin tocar la base.
+  seed:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    command: ["sh", "-c", "if [ \"$$SEED_ON_DEPLOY\" = \"true\" ]; then python -m app.seed; else echo 'SEED_ON_DEPLOY distinto de true: seed omitido'; fi"]
+    environment:
+      MIGRATIONS_DATABASE_URL: "postgresql://${POSTGRES_USER:-tienda_utb}:${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
+      DATABASE_URL: "postgresql://${APP_DB_USER:-tienda_app}:${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
+      APP_DB_USER: ${APP_DB_USER:-tienda_app}
+      SEED_ON_DEPLOY: ${SEED_ON_DEPLOY:-false}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      disable: true
+    restart: "no"
 
   backend:
     build:
       context: .
       dockerfile: backend/Dockerfile
     environment:
-      DATABASE_URL: "postgresql://${POSTGRES_USER:-tienda_utb}:${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
+      # La API usa el rol de aplicación, sujeto a RLS; nunca el dueño.
+      DATABASE_URL: "postgresql://${APP_DB_USER:-tienda_app}:${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
     depends_on:
       database:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      seed:
+        condition: service_completed_successfully
     ports:
       - "8000:8000"
     healthcheck:
