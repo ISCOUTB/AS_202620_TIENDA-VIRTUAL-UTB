@@ -2,18 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { PRODUCTOS, type Producto } from "@/lib/catalogo";
-import { TIENDAS, clasesAcento } from "@/lib/tiendas";
+import { TIENDAS, paletaTienda } from "@/lib/tiendas";
 import { formatoPrecio } from "@/lib/formato";
 import { Badge } from "@/components/ui/Badge";
+import { Icono } from "@/components/ui/Icono";
+import { EsqueletoTabla } from "@/components/ui/Esqueleto";
 
 /**
- * Inventario como lista de tarjetas + filtro segmentado (SPEC v3 §2.4).
+ * Inventario en tabla (SPEC v4 §3, `/admin`): filtro segmentado por tienda,
+ * búsqueda y filas con ajuste ±1. Desde `md` es una rejilla de cuatro
+ * columnas con cabecera; en móvil cada fila apila sus datos.
  *
  * Los endpoints de mutación (`PATCH /inventory/{id}`) todavía no existen, así
- * que los ajustes se guardan como BORRADOR LOCAL y la interfaz lo dice en
- * cada pantalla. No se finge que el cambio llegó al servidor: cuando la API
- * esté publicada, este componente cambia `escribirBorrador` por la llamada
- * real y el resto de la vista se queda igual.
+ * que los ajustes se guardan como BORRADOR LOCAL y la interfaz lo dice. No se
+ * finge que el cambio llegó al servidor: cuando la API esté publicada, este
+ * componente cambia `escribirBorrador` por la llamada real.
  */
 
 const CLAVE = "tvutb.inventario-borrador";
@@ -32,11 +35,13 @@ function leerBorrador(): Borrador {
 
 export function TablaInventario() {
   const [borrador, setBorrador] = useState<Borrador>({});
+  const [cargando, setCargando] = useState(true);
   const [busqueda, setBusqueda] = useState("");
   const [tienda, setTienda] = useState<string>("todas");
 
   useEffect(() => {
     setBorrador(leerBorrador());
+    setCargando(false);
   }, []);
 
   function escribirBorrador(siguiente: Borrador) {
@@ -59,10 +64,7 @@ export function TablaInventario() {
     return PRODUCTOS.filter((p) => {
       if (tienda !== "todas" && p.tienda !== tienda) return false;
       if (!q) return true;
-      return (
-        p.nombre.toLowerCase().includes(q) ||
-        p.descripcion.toLowerCase().includes(q)
-      );
+      return p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q);
     });
   }, [busqueda, tienda]);
 
@@ -76,11 +78,11 @@ export function TablaInventario() {
 
   return (
     <div>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div
           role="group"
           aria-label="Filtrar por tienda"
-          className="flex flex-wrap gap-1 rounded-[var(--tk-radio-pill)] bg-tarjeta-alta p-1"
+          className="fila-desliza flex gap-1 rounded-md bg-suave-2 p-1"
         >
           {filtros.map((f) => (
             <button
@@ -89,10 +91,8 @@ export function TablaInventario() {
               onClick={() => setTienda(f.clave)}
               aria-pressed={tienda === f.clave}
               className={[
-                "rounded-[var(--tk-radio-pill)] px-3.5 py-1.5 font-display text-[0.75rem] font-semibold uppercase tracking-[0.08em] transition-colors",
-                tienda === f.clave
-                  ? "gradiente-marca text-superficie"
-                  : "text-tenue hover:text-superficie",
+                "h-11 shrink-0 whitespace-nowrap rounded-sm px-4 text-sm font-bold transition-colors duration-[var(--tk-dur)]",
+                tienda === f.clave ? "bg-tarjeta text-tinta shadow-pestana" : "text-tenue hover:text-tinta",
               ].join(" ")}
             >
               {f.etiqueta}
@@ -100,128 +100,137 @@ export function TablaInventario() {
           ))}
         </div>
 
-        <label className="flex items-center gap-2 rounded-[var(--tk-radio-pill)] bg-tarjeta-alta px-4 py-2">
-          <span className="rotulo text-tenue">Buscar</span>
+        <label className="flex h-[52px] items-center gap-2.5 rounded-pill border border-borde bg-tarjeta px-4 focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-[color:var(--tk-foco)] lg:w-72">
+          <Icono nombre="buscar" tamano={18} className="shrink-0 text-tenue" />
+          <span className="sr-only">Buscar producto</span>
           <input
+            type="search"
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
-            className="w-40 bg-transparent font-cuerpo text-[0.875rem] text-superficie outline-none placeholder:text-tenue"
-            placeholder="producto…"
+            className="min-w-0 flex-1 bg-transparent text-[0.9375rem] text-tinta outline-none"
+            placeholder="Buscar producto…"
           />
         </label>
       </div>
 
       {cambios > 0 ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-[var(--tk-radio-sm)] border-l-4 border-ambar bg-ambar/10 px-4 py-3">
-          <p className="font-cuerpo text-[0.875rem] text-superficie">
-            Hay <strong className="cifra">{cambios}</strong>{" "}
-            {cambios === 1 ? "cambio" : "cambios"} en borrador local. No se
-            enviaron a la API porque el endpoint aún no está publicado.
+        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-sm bg-aviso-suave px-4 py-2 text-aviso">
+          <p className="text-sm">
+            Hay <strong className="cifra">{cambios}</strong> {cambios === 1 ? "cambio" : "cambios"} en
+            borrador local. No se enviaron a la API porque el endpoint aún no
+            está publicado.
           </p>
           <button
             type="button"
             onClick={() => escribirBorrador({})}
-            className="font-display text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-ambar underline underline-offset-4"
+            className="min-h-11 text-sm font-bold underline underline-offset-4"
           >
             Descartar
           </button>
         </div>
       ) : null}
 
-      <ul className="mt-6 flex flex-col gap-3" aria-label="Inventario por producto">
-        {filtrados.map((p) => {
-          const t = TIENDAS.find((x) => x.slug === p.tienda);
-          const acento = t ? clasesAcento(t.acento) : null;
-          const n = stock(p);
-          const tocado = borrador[p.id] !== undefined;
-          return (
-            <li
-              key={p.id}
-              className={[
-                "tarjeta grid gap-4 border-l-4 p-4 sm:grid-cols-[1fr_auto] sm:items-center",
-                acento ? acento.borde : "",
-              ].join(" ")}
+      <div className="mt-5">
+        {cargando ? (
+          <div aria-busy="true">
+            <span className="sr-only">Cargando el inventario…</span>
+            <EsqueletoTabla filas={6} />
+          </div>
+        ) : (
+          <div className="tarjeta overflow-hidden">
+            <div
+              aria-hidden="true"
+              className="hidden grid-cols-[1fr_8rem_7rem_8rem] gap-4 border-b border-linea px-5 py-3.5 md:grid"
             >
-              <div className="min-w-0">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-display text-[0.9375rem] font-bold text-superficie">
-                    {p.nombre}
-                  </span>
-                  {p.presentacion ? (
-                    <span className="rotulo text-tenue">{p.presentacion}</span>
-                  ) : null}
-                  {tocado ? <Badge tono="nuevo">Borrador</Badge> : null}
-                </div>
-                <p className="mt-1 flex flex-wrap items-center gap-x-2 font-cuerpo text-[0.8125rem] text-tenue">
-                  <span className="inline-flex items-center gap-2">
-                    {acento ? (
-                      <span aria-hidden="true" className={`h-3 w-[4px] ${acento.punto}`} />
-                    ) : null}
-                    {t?.nombre ?? p.tienda}
-                  </span>
-                  <span aria-hidden="true">·</span>
-                  <span className="cifra">#{p.id}</span>
-                </p>
-                <p className="mt-1 max-w-[60ch] font-cuerpo text-[0.8125rem] text-tenue">
-                  {p.descripcion}
-                </p>
-              </div>
-
-              <div className="flex items-center justify-between gap-4 sm:justify-end sm:gap-6">
-                <div className="text-right">
-                  <p className="rotulo text-tenue">Precio</p>
-                  <p className="cifra font-display text-[0.9375rem] font-bold text-superficie">
-                    {formatoPrecio(p.precioCentavos)}
-                  </p>
-                </div>
-
-                <div className="text-right">
-                  <p className="rotulo text-tenue">Existencias</p>
-                  <p
-                    className={[
-                      "cifra font-display text-[1.125rem] font-extrabold",
-                      n === 0 ? "text-error" : "text-superficie",
-                    ].join(" ")}
+              <span className="rotulo text-tenue">Producto</span>
+              <span className="rotulo text-tenue">Precio</span>
+              <span className="rotulo text-tenue">Existencias</span>
+              <span className="rotulo text-right text-tenue">Ajuste</span>
+            </div>
+            <ul aria-label="Inventario por producto">
+              {filtrados.map((p) => {
+                const t = TIENDAS.find((x) => x.slug === p.tienda);
+                const paleta = paletaTienda(p.tienda);
+                const n = stock(p);
+                const tocado = borrador[p.id] !== undefined;
+                return (
+                  <li
+                    key={p.id}
+                    className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 border-b border-linea px-5 py-4 last:border-b-0 md:grid-cols-[1fr_8rem_7rem_8rem]"
                   >
-                    {n}
-                  </p>
-                </div>
+                    <div className="min-w-0">
+                      <p className="flex flex-wrap items-center gap-2 font-semibold">
+                        {p.nombre}
+                        {p.presentacion ? (
+                          <span className="text-sm font-normal text-tenue">· {p.presentacion}</span>
+                        ) : null}
+                        {tocado ? <Badge tono="nuevo">Borrador</Badge> : null}
+                      </p>
+                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.8125rem] text-tenue">
+                        <span aria-hidden="true" className={`h-2 w-2 rounded-pill ${paleta.relleno}`} />
+                        {t?.nombre ?? p.tienda}
+                        <span aria-hidden="true">·</span>
+                        <span className="cifra font-mono">id {p.id}</span>
+                        <span className="md:hidden">
+                          · {formatoPrecio(p.precioCentavos)} ·{" "}
+                          <span className={n === 0 ? "font-bold text-error" : "font-bold text-tinta"}>
+                            {n === 0 ? "Agotado" : `${n} u.`}
+                          </span>
+                        </span>
+                      </p>
+                    </div>
 
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => ajustar(p.id, -1, p.existencias)}
-                    aria-label={`Restar una unidad de ${p.nombre}`}
-                    className="flex h-9 w-9 items-center justify-center rounded-[var(--tk-radio-pill)] border border-borde font-display font-bold text-superficie"
-                  >
-                    −
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => ajustar(p.id, 1, p.existencias)}
-                    aria-label={`Sumar una unidad de ${p.nombre}`}
-                    className="flex h-9 w-9 items-center justify-center rounded-[var(--tk-radio-pill)] border border-borde font-display font-bold text-superficie"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                    <p className="cifra hidden font-semibold md:block">
+                      <span className="sr-only">Precio: </span>
+                      {formatoPrecio(p.precioCentavos)}
+                    </p>
 
-      {filtrados.length === 0 ? (
-        <p className="cuerpo mt-6 text-tenue">
-          No hay productos que coincidan con «{busqueda}».
-        </p>
-      ) : (
-        <p className="mt-4 font-cuerpo text-[0.8125rem] text-tenue">
+                    <p
+                      className={[
+                        "cifra hidden text-lg font-bold md:block",
+                        n === 0 ? "text-error" : "text-tinta",
+                      ].join(" ")}
+                    >
+                      <span className="sr-only">Existencias: </span>
+                      {n}
+                      {n === 0 ? <span className="ml-1.5 text-xs font-bold">Agotado</span> : null}
+                    </p>
+
+                    <div className="flex justify-end gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => ajustar(p.id, -1, p.existencias)}
+                        disabled={n === 0}
+                        aria-label={`Restar una unidad de ${p.nombre}`}
+                        className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave disabled:opacity-35"
+                      >
+                        <Icono nombre="menos" tamano={18} grosor={2.4} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => ajustar(p.id, 1, p.existencias)}
+                        aria-label={`Sumar una unidad de ${p.nombre}`}
+                        className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave"
+                      >
+                        <Icono nombre="mas" tamano={18} grosor={2.4} />
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {!cargando && filtrados.length === 0 ? (
+        <p className="mt-6 text-tenue">No hay productos que coincidan con «{busqueda}».</p>
+      ) : !cargando ? (
+        <p className="mt-4 text-[0.8125rem] text-tenue">
           <span className="cifra">{filtrados.length}</span>{" "}
-          {filtrados.length === 1 ? "producto" : "productos"} en pantalla ·{" "}
-          <span className="rotulo text-tenue">cambios sin persistir</span>
+          {filtrados.length === 1 ? "producto" : "productos"} en pantalla · cambios sin persistir
         </p>
-      )}
+      ) : null}
     </div>
   );
 }

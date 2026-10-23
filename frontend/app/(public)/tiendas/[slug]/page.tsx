@@ -1,16 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { TIENDAS, tiendaPorSlug, clasesAcento, clasesTratamiento } from "@/lib/tiendas";
+import { TIENDAS, tiendaPorSlug, paletaTienda } from "@/lib/tiendas";
 import { productosDe } from "@/lib/catalogo";
-import { estadoHorario, formatoHora, formatoPrecio } from "@/lib/formato";
-import { fotoTienda } from "@/lib/imagenes";
+import { estadoHorario, formatoHora } from "@/lib/formato";
+import { FOTO_CAFETERIA, fotoTienda } from "@/lib/imagenes";
 import { jsonLdMigas, jsonLdListaProductos, urlAbsoluta } from "@/lib/seo";
-import { Etiqueta } from "@/components/ui/Etiqueta";
-import { Boton } from "@/components/ui/Boton";
-import { CampoFoto } from "@/components/tienda/CampoFoto";
-import { ProductoCard } from "@/components/tienda/ProductoCard";
 import { JsonLd } from "@/components/seo/JsonLd";
+import { Revelar } from "@/components/motion/Revelar";
+import { Boton } from "@/components/ui/Boton";
+import { Icono } from "@/components/ui/Icono";
+import { CartaTienda } from "@/components/tienda/CartaTienda";
+import { ResumenPedido } from "@/components/tienda/ResumenPedido";
 
 /**
  * El estado "abierto ahora" se calcula en el servidor, así que la página se
@@ -67,13 +68,14 @@ export default async function PaginaTienda({
   if (!tienda) notFound();
 
   const productos = productosDe(tienda.slug);
-  const acento = clasesAcento(tienda.acento);
+  const paleta = paletaTienda(tienda.slug);
   const estado = estadoHorario(tienda.horario);
-  const foto = fotoTienda(tienda.slug);
-  const desde = productos.length
-    ? Math.min(...productos.map((p) => p.precioCentavos))
-    : null;
-  const indice = TIENDAS.findIndex((t) => t.slug === tienda.slug) + 1;
+  const indice = TIENDAS.findIndex((t) => t.slug === tienda.slug);
+  // Mientras no haya foto propia de la tienda, la cabecera usa una foto de la
+  // cafetería (con su alt honesto, sin decir que es de esta tienda).
+  const foto = fotoTienda(tienda.slug) ?? FOTO_CAFETERIA[(indice + 4) % FOTO_CAFETERIA.length];
+  const hayMuestra = productos.some((p) => p.esMuestra);
+  const haySabores = productos.some((p) => p.sabores?.length);
 
   return (
     <>
@@ -85,181 +87,128 @@ export default async function PaginaTienda({
       />
       <JsonLd datos={jsonLdListaProductos(tienda)} />
 
-      {/* Cabecera: la sábana azul de la app */}
-      <header className="sabana">
-        <div className="contenedor pb-16 pt-8 lg:pb-20 lg:pt-10">
-          <Link
-            href="/#tiendas"
-            className="inline-flex items-center gap-2 font-display text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-cyan-claro underline-offset-4 hover:underline"
-          >
-            <span aria-hidden="true">←</span> Directorio
-          </Link>
+      {/* Sábana: las cinco tiendas como pastillas; la actual, en blanco. */}
+      <div className="sabana bajo-nav">
+        <nav aria-label="Tiendas" className="contenedor pb-7 pt-2">
+          <ul className="fila-desliza -mx-[var(--tk-margen)] flex gap-2 px-[var(--tk-margen)] md:mx-0 md:flex-wrap md:px-0">
+            {TIENDAS.map((t) => {
+              const actual = t.slug === tienda.slug;
+              return (
+                <li key={t.slug} className="shrink-0">
+                  <Link
+                    href={`/tiendas/${t.slug}`}
+                    aria-current={actual ? "page" : undefined}
+                    className={[
+                      "inline-flex h-11 items-center gap-2 rounded-pill px-4 text-sm font-bold transition-colors duration-[var(--tk-dur)]",
+                      actual
+                        ? "bg-blanco text-carnet-tinta"
+                        : "bg-sabana-vidrio text-sobre-sabana hover:bg-[color:var(--tk-sabana-vidrio-alto)]",
+                    ].join(" ")}
+                  >
+                    <span aria-hidden="true" className={`h-2 w-2 rounded-pill ${paletaTienda(t.slug).punto}`} />
+                    {t.nombre}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+      </div>
 
-          <div className="mt-8 flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="flex items-center gap-3">
-                <span className="rotulo cifra text-cyan-claro">
-                  {String(indice).padStart(2, "0")}
-                </span>
-                <span className="rotulo rounded-[var(--tk-radio-pill)] bg-white/15 px-2.5 py-1 text-superficie">
-                  {tienda.categoria}
-                </span>
-              </div>
-
-              <h1 className={`mt-5 text-superficie ${clasesTratamiento(tienda.tratamiento, "hero")}`}>
-                {tienda.nombre}
-              </h1>
-              <p className="lead mt-4 max-w-[42ch] text-cyan-claro">
-                {tienda.tagline}
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-4">
-              <span className="inline-flex items-center gap-2 rounded-[var(--tk-radio-pill)] bg-white/15 px-3.5 py-2">
+      <div className="contenedor pb-16 pt-5 md:pt-7">
+        {/* Cabecera con foto y velo */}
+        <Revelar
+          as="header"
+          inmediato
+          className="relative isolate flex min-h-[260px] flex-col justify-end overflow-hidden rounded-xl bg-oscuro text-blanco [--tk-foco:var(--tk-sobre-sabana)]"
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={foto.src}
+            alt={foto.alt}
+            width={960}
+            height={1280}
+            fetchPriority="high"
+            className="foto-contenido absolute inset-0 -z-20 h-full w-full object-cover object-[center_40%]"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 [background:var(--tk-velo-foto-vertical)] md:[background:var(--tk-velo-foto)]"
+          />
+          <div className="max-w-[560px] px-5 pb-6 pt-16 md:px-9 md:pb-8">
+            <span
+              className={`inline-flex h-[26px] items-center rounded-pill px-3 text-[0.8125rem] font-bold ${paleta.relleno} ${paleta.sobreRelleno}`}
+            >
+              {tienda.categoria}
+            </span>
+            <h1 className="titulo mt-2.5">{tienda.nombre}</h1>
+            <p className="mt-2.5 text-sm leading-snug opacity-95 md:text-[1.0625rem] md:leading-[1.45]">
+              <span className="md:hidden">{tienda.tagline}</span>
+              <span className="hidden md:inline">{tienda.descripcion}</span>
+            </p>
+            <ul className="mt-3.5 flex flex-wrap gap-2 text-xs font-semibold md:text-[0.8125rem]">
+              <li className="inline-flex h-[30px] items-center gap-1.5 rounded-pill bg-sabana-vidrio px-3">
                 <span
                   aria-hidden="true"
-                  className={[
-                    "h-2.5 w-2.5 rounded-[var(--tk-radio-pill)]",
-                    estado.abierta ? "bg-ok" : "border border-superficie",
-                  ].join(" ")}
+                  className={`h-[7px] w-[7px] rounded-pill ${estado.abierta ? "bg-fit" : "border border-blanco"}`}
                 />
-                <span className="font-display text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-superficie">
-                  {estado.abierta ? "Abierto" : "Cerrado"}
-                </span>
-                <span className="font-cuerpo text-[0.8125rem] text-cyan-claro">
-                  {estado.detalle}
-                </span>
-              </span>
-              <span className="font-cuerpo text-[0.8125rem] text-cyan-claro">
-                {formatoHora(tienda.horario.abre)} – {formatoHora(tienda.horario.cierra)}
-              </span>
-            </div>
+                {estado.abierta ? `Abierto · cierra ${formatoHora(tienda.horario.cierra)}` : estado.texto}
+              </li>
+              <li className="inline-flex h-[30px] items-center rounded-pill bg-sabana-vidrio px-3">
+                Pago en el mostrador
+              </li>
+              {productos.length > 0 ? (
+                <li className="inline-flex h-[30px] items-center rounded-pill bg-sabana-vidrio px-3">
+                  {hayMuestra ? "Precios de referencia" : "Precios confirmados"}
+                </li>
+              ) : null}
+            </ul>
           </div>
-        </div>
-      </header>
+        </Revelar>
 
-      {/* Contenido */}
-      <div className="bg-tinta">
-        <div className="contenedor grid gap-10 py-12 lg:grid-cols-12 lg:gap-12 lg:py-16">
-          {/* Ficha */}
-          <aside className="lg:col-span-4">
-            <div className="lg:sticky lg:top-24">
-              {foto ? (
-                <div className="overflow-hidden rounded-[var(--tk-radio)] bg-navy">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={foto.src}
-                    alt={foto.alt}
-                    width={800}
-                    height={960}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ) : (
-                <CampoFoto
-                  acento={tienda.acento}
-                  slug={tienda.slug}
-                  nombre={tienda.nombre}
-                />
-              )}
+        {tienda.nota ? (
+          <p className="mt-4 flex items-start gap-2.5 rounded-sm bg-aviso-suave px-4 py-3 text-sm leading-snug text-aviso">
+            <Icono nombre="info" tamano={18} className="mt-px shrink-0" />
+            {tienda.nota}
+          </p>
+        ) : null}
 
-              <div className="mt-6 flex items-baseline justify-between gap-4 border-t border-linea pt-4">
-                <Etiqueta>Carta</Etiqueta>
-                <span className="rotulo cifra text-tenue">
-                  {String(productos.length).padStart(2, "0")} productos
-                </span>
-              </div>
-
-              {desde !== null ? (
-                <p className="mt-3 font-cuerpo text-[0.9375rem] text-tenue">
-                  Desde{" "}
-                  <span className="cifra font-display font-bold text-cyan-claro">
-                    {formatoPrecio(desde)}
-                  </span>
-                </p>
-              ) : null}
-
-              <p className="cuerpo mt-4 text-tenue">{tienda.descripcion}</p>
-
-              {tienda.nota ? (
-                <div className="mt-5 rounded-[var(--tk-radio-sm)] border-l-4 border-ambar bg-ambar/10 px-4 py-3">
-                  <p className="font-cuerpo text-[0.875rem] leading-snug text-superficie">
-                    {tienda.nota}
-                  </p>
-                </div>
-              ) : null}
-
-              <p className="mt-5 font-cuerpo text-[0.8125rem] leading-relaxed text-tenue">
-                Para apartar necesitas tu pase. El pago es en el mostrador, al
-                recoger.
-              </p>
-
-              <div className="mt-5 flex flex-col gap-3">
-                <Boton href="/auth/ingresar" variante="solido" bloque>
-                  Entrar para apartar
-                </Boton>
-                <span className={`h-[3px] w-16 rounded-[var(--tk-radio-pill)] ${acento.punto}`} />
-              </div>
-            </div>
-          </aside>
-
-          {/* Productos */}
-          <section aria-labelledby="carta" className="lg:col-span-8">
-            <div className="flex items-baseline justify-between gap-4 border-b border-linea pb-3">
-              <h2
-                id="carta"
-                className="font-display text-[1.5rem] font-extrabold tracking-[-0.02em] text-superficie"
-              >
-                {productos.length > 0 ? "Lo que hay hoy" : "Carta en preparación"}
-              </h2>
-              <Link
-                href="/#tiendas"
-                className="rotulo text-tenue underline underline-offset-4 hover:text-superficie"
-              >
-                Otras tiendas
-              </Link>
-            </div>
+        <div className="mt-7 flex flex-wrap items-start gap-7">
+          <Revelar as="section" aria-labelledby="carta" className="min-w-0 flex-[999_1_560px]">
+            <h2 id="carta" className="sr-only">
+              {productos.length > 0 ? `La carta de ${tienda.nombre}` : "Carta en preparación"}
+            </h2>
 
             {productos.length > 0 ? (
-              <ul className="mt-6 flex flex-col gap-4">
-                {productos.map((producto) => (
-                  <ProductoCard
-                    key={producto.id}
-                    producto={producto}
-                    acento={tienda.acento}
-                  />
-                ))}
-              </ul>
+              <CartaTienda productos={productos} />
             ) : (
-              <div className="tarjeta mt-6 border border-dashed border-borde px-6 py-12 text-center">
-                <p className="font-display text-[1.125rem] font-bold text-superficie">
-                  Este punto todavía no publica su carta.
-                </p>
-                <p className="cuerpo mx-auto mt-2 max-w-[44ch] text-tenue">
+              <div className="rounded-tarjeta border border-dashed border-borde bg-tarjeta px-6 py-12 text-center">
+                <p className="font-display text-2xl font-semibold">Este punto todavía no publica su carta.</p>
+                <p className="mx-auto mt-2 max-w-[44ch] text-tenue">
                   Está en montaje dentro de la cafetería. Cuando abra, sus
                   productos aparecen aquí con precios confirmados.
                 </p>
                 <div className="mt-6 flex justify-center">
-                  <Boton href="/#tiendas" variante="solido">
+                  <Boton href="/#tiendas" variante="primario">
                     Ver las otras tiendas
                   </Boton>
                 </div>
               </div>
             )}
 
-            {productos.length > 0 &&
-            (productos.some((p) => p.esMuestra) ||
-              productos.some((p) => p.sabores?.length)) ? (
-              <p className="mt-8 max-w-[62ch] font-cuerpo text-[0.8125rem] leading-relaxed text-tenue">
-                {productos.some((p) => p.esMuestra)
+            {productos.length > 0 && (hayMuestra || haySabores) ? (
+              <p className="mt-8 max-w-[62ch] text-[0.8125rem] leading-relaxed text-tenue">
+                {hayMuestra
                   ? "Los productos marcados como referencia todavía no tienen precio confirmado por la tienda. "
                   : ""}
-                {productos.some((p) => p.sabores?.length)
-                  ? "El sabor de los snacks y helados se elige en el mostrador al recoger."
-                  : ""}
+                {haySabores ? "El sabor de los snacks y helados se elige en el mostrador al recoger." : ""}
               </p>
             ) : null}
-          </section>
+          </Revelar>
+
+          <div className="hidden min-w-0 flex-[1_1_320px] lg:block lg:self-stretch">
+            <ResumenPedido />
+          </div>
         </div>
       </div>
     </>

@@ -23,24 +23,24 @@ export default function PaginaPrivacidad() {
         ])}
       />
 
-      <header className="sabana">
-        <div className="contenedor pb-14 pt-10 lg:pb-16">
+      <header className="sabana bajo-nav">
+        <div className="contenedor pb-20 pt-6 lg:pb-24 lg:pt-10">
           <Etiqueta tono="claro">Datos personales</Etiqueta>
-          <h1 className="mt-4 text-[clamp(2.25rem,1.5rem+4vw,4rem)] text-superficie">
+          <h1 className="titulo mt-3">
             Privacidad
           </h1>
-          <p className="lead mt-4 max-w-[52ch] text-cyan-claro">
+          <p className="lead mt-4 max-w-[52ch] opacity-95">
             Recogemos lo mínimo para que tu pedido exista. Nada de perfiles
             publicitarios ni venta de datos.
           </p>
-          <p className="mt-6 font-cuerpo text-[0.8125rem] text-cyan-claro">
+          <p className="mt-6 text-[0.8125rem] opacity-90">
             Última actualización: {ACTUALIZADO} · Versión 1.0
           </p>
         </div>
       </header>
 
-      <div className="bg-tinta">
-        <article className="contenedor mx-0 max-w-[74ch] py-12 lg:py-16">
+      <div className="contenedor relative -mt-12 pb-16">
+        <article className="max-w-[52rem] rounded-xl bg-tarjeta px-5 py-8 shadow-tarjeta sm:px-10 sm:py-12">
           <div className="prosa">
             <h2>1. Responsable del tratamiento</h2>
             <p>

@@ -3,7 +3,7 @@ import type { ProductOut } from "../api/generated/contract";
 /**
  * Datos de muestra del catálogo (endpoint `preview` hasta que exista el
  * backend). Los cuatro primeros reproducen el seed real de
- * `backend/app/modules/catalog/seed.py`; los demás añaden densidad para
+ * seed anterior a Alembic (hoy en `backend/app/seed.py`); los demás añaden densidad para
  * diseñar la vista. Se marcan en la UI hasta conectar el endpoint real.
  */
 export const PRODUCTOS_MOCK: ProductOut[] = [

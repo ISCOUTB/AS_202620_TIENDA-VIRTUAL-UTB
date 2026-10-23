@@ -11,7 +11,7 @@
  * al mapearlas se reemplaza el texto y se rellena `FOTO_TIENDA`.
  *
  * `FOTO_TIENDA` vacío = la tienda usa el campo de color diseñado (ver
- * components/tienda/CampoFoto.tsx), no una caja gris.
+ * components/tienda/MarcadorFoto.tsx), no una caja gris.
  */
 
 import type { SlugTienda } from "./tiendas";

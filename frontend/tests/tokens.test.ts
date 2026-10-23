@@ -3,9 +3,15 @@ import { colorDeToken } from "@/lib/tokens";
 
 describe("colorDeToken", () => {
   it("lee el valor real desde app/tokens.css", () => {
-    expect(colorDeToken("ambar")).toBe("#ffc300");
-    expect(colorDeToken("superficie")).toBe("#ffffff");
-    expect(colorDeToken("tinta")).toBe("#04060e");
+    expect(colorDeToken("p-azul")).toBe("#093ad8");
+    expect(colorDeToken("p-blanco")).toBe("#ffffff");
+    expect(colorDeToken("p-sabana-1")).toBe("#0a3fe0");
+    expect(colorDeToken("p-sabana-noche-2")).toBe("#030b45");
+  });
+
+  it("de un token con tema devuelve el valor claro (el primero del archivo)", () => {
+    expect(colorDeToken("fondo")).toBe("#f3f5fa");
+    expect(colorDeToken("tinta")).toBe("#0a1330");
   });
 
   it("cae al respaldo cuando el token no existe", () => {
@@ -17,6 +23,6 @@ describe("colorDeToken", () => {
   });
 
   it("memoiza el resultado de cada token", () => {
-    expect(colorDeToken("cyan")).toBe(colorDeToken("cyan"));
+    expect(colorDeToken("t-antojos")).toBe(colorDeToken("t-antojos"));
   });
 });

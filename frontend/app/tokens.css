@@ -1,91 +1,158 @@
 /*
  * tokens.css — ÚNICA fuente de valores de color, tipografía, espacio y motion.
  *
- * La regla es la misma que en la v2: ningún valor literal (hex, rgb, hsl,
- * oklch) fuera de este archivo. `npm run check:tokens` lo verifica y corre
- * dentro de `npm run verify`. Tailwind v4 los expone como utilidades
- * (`bg-tarjeta`, `text-tenue`…) vía `@theme inline` en globals.css.
+ * Ningún valor literal (hex, rgb, hsl, oklch) vive fuera de este archivo.
+ * `pnpm run check:tokens` lo verifica y corre dentro de `pnpm run verify`.
+ * Tailwind v4 los expone como utilidades (`bg-tarjeta`, `text-tenue`…) vía
+ * `@theme inline` en globals.css.
  *
- * Dirección de arte: design/SPEC.md v3 — «Campus oscuro».
+ * Dirección de arte: design/SPEC.md v4 — «Azul de marca, claro y oscuro»
+ * (artefacto «Tienda UTB rediseño», dirección A).
  *
  * ─────────────────────────────────────────────────────────────────────────
- * REGLAS DE USO DEL COLOR (medidas sobre el fondo indicado, WCAG 2.1)
+ * ESTRUCTURA
  *
- * El sitio es oscuro de punta a punta, como la app oficial de la UTB.
+ * 1. Primitivas (`--tk-p-*`): la paleta cruda, una sola vez. Son las que lee
+ *    `colorDeToken()` para la meta `theme-color` y la imagen Open Graph, que
+ *    no pueden usar variables CSS. La primera aparición de cada nombre manda.
+ * 2. Semánticas (`--tk-fondo`, `--tk-tinta`…): lo que usan los componentes.
+ *    Tienen valor CLARO en `:root` y valor OSCURO en `[data-theme="dark"]`.
+ * 3. Sin JavaScript, `@media (prefers-color-scheme: dark)` aplica el oscuro
+ *    mientras `<html>` no diga lo contrario. Con JavaScript, el script en
+ *    línea de app/layout.tsx fija `data-theme` antes del primer pintado.
  *
- * Texto principal sobre oscuro → --tk-superficie   (blanco: 17.6 sobre tarjeta)
- * Texto secundario sobre oscuro → --tk-tenue       (6.9 sobre tarjeta)
- * Acento de dato sobre oscuro   → --tk-cyan-claro  (11.3 sobre tarjeta)
+ * REGLAS DE CONTRASTE (WCAG 2.1, medidas sobre el fondo indicado)
  *
- * La sábana de cabecera lleva un degradado azul (--tk-sabana-1 → -2). Sobre
- * ella, blanco (≥ 4.6 en todo el recorrido) y --tk-cyan-claro.
- *
- * El logo UTB tiene versión monocroma blanca y ESTE proyecto la usa sobre la
- * sábana azul y sobre el carnet, igual que la app oficial.
- *
- * Superficies claras (solo el carnet y su banda): texto --tk-tinta.
- *
- * --tk-ambar / --tk-amarillo → relleno; el texto encima va en --tk-tinta
- *                              (12.5 / 14.2). Como texto sobre oscuro el ámbar
- *                              da 11.4: también vale para acentos de dato.
- * --tk-error / --tk-ok        → texto sobre oscuro (6.2 / 6.9); nunca solo
- *                              color, siempre acompañados de palabra.
+ * Claro  · tinta sobre tarjeta 17.1 · tenue 7.4 · enlace (azul) 7.6
+ * Oscuro · tinta sobre tarjeta 16.0 · tenue 8.1 · enlace (azul claro) 8.6
+ * Botón primario: blanco sobre --tk-primario 7.6 en ambos temas.
+ * Sobre la sábana azul solo va blanco (≥ 5.9 en todo el degradado).
+ * --tk-borde cumple 3:1 como componente no textual sobre la tarjeta.
+ * Los acentos de tienda (`--tk-t-*`) son RELLENO: el texto encima usa su
+ * `-sobre`; como texto se usa su `-tinta`, que pasa 4.5:1 sobre su `-suave`.
  * ─────────────────────────────────────────────────────────────────────────
  */
 
 :root {
-  color-scheme: dark;
+  /* — 1. Primitivas — */
+  --tk-p-azul: #093ad8; /* azul de marca: botones y acción primaria */
+  --tk-p-azul-hover: #0730b8;
+  --tk-p-azul-claro: #80c0ff; /* azul de enlace sobre oscuro */
+  --tk-p-sabana-1: #0a3fe0; /* sábana clara: alto del degradado */
+  --tk-p-sabana-2: #0018c9; /* sábana clara: base del degradado */
+  --tk-p-sabana-noche-1: #0a2fb0; /* sábana oscura */
+  --tk-p-sabana-noche-2: #030b45;
+  --tk-p-brillo: #19e6f5; /* brillo cian de la esquina de la sábana */
+  --tk-p-hueso: #f3f5fa; /* ground claro */
+  --tk-p-noche: #050a1c; /* ground oscuro */
+  --tk-p-tinta: #0a1330; /* tinta clara y fondo de foto */
+  --tk-p-blanco: #ffffff;
+  --tk-p-negro: #000000;
+  --tk-p-verde: #2fbf2f; /* punto de «abierto» */
 
-  /* — Ground y superficies oscuras — */
-  --tk-tinta: #04060e; /* ground del sitio */
-  --tk-navy: #0b1120; /* panel profundo, sábana de sección */
-  --tk-tarjeta: #12161f; /* superficie de tarjeta */
-  --tk-tarjeta-alta: #1c222e; /* tarjeta elevada y controles */
+  /* — 2. Semánticas · tema claro — */
+  color-scheme: light;
+  --tk-fondo: #f3f5fa; /* ground del sitio */
+  --tk-tarjeta: #ffffff; /* superficie de tarjeta y hojas */
+  --tk-suave: #f1f4fb; /* pasos, chips, cajas de nota */
+  --tk-suave-2: #eaeef8; /* pista del control segmentado */
+  --tk-tinta: #0a1330; /* texto principal */
+  --tk-tenue: #4b5672; /* texto secundario */
+  --tk-linea: #e1e6f0; /* hairline */
+  --tk-borde: #7d88a1; /* borde de control (3:1) */
+  --tk-enlace: #093ad8; /* enlaces y acentos de texto */
+  --tk-primario: #093ad8;
+  --tk-primario-hover: #0730b8;
+  --tk-sobre-primario: #ffffff;
+  --tk-primario-suave: #e7edfd; /* stepper, pestaña activa del nav inferior */
+  --tk-oscuro: #0a1330; /* botón oscuro sobre la sábana, fondo de foto */
+  --tk-aviso: #8a5a00; /* «últimas unidades», precios de referencia */
+  --tk-aviso-suave: #fff2cc;
+  --tk-error: #b3261e;
+  --tk-error-suave: #fde8e7;
+  --tk-ok: #1e7a1e; /* texto de estado positivo */
+  --tk-ok-suave: #e2fbd6;
+  --tk-ok-punto: #2fbf2f;
+  --tk-foco: #093ad8; /* anillo de foco sobre superficies */
+  --tk-velo: rgba(10, 19, 48, 0.5); /* fondo de diálogo */
+  --tk-raya: rgba(10, 19, 48, 0.05); /* rayado de los marcadores de foto */
+  --tk-esqueleto: #e6eaf3;
+  --tk-esqueleto-brillo: rgba(255, 255, 255, 0.75);
+  --tk-sombra: 0 1px 2px rgba(10, 19, 48, 0.06), 0 18px 48px rgba(10, 19, 48, 0.1);
+  --tk-sombra-alta: 0 16px 40px rgba(0, 10, 60, 0.22);
+  --tk-sombra-pestana: 0 1px 3px rgba(10, 19, 48, 0.15);
+  --tk-sombra-primaria: 0 12px 30px rgba(9, 58, 216, 0.35);
+  --tk-sombra-hoja: -20px 0 60px rgba(0, 0, 0, 0.25);
+  --tk-logo-filtro: none; /* el logo azul original sobre claro */
+  --tk-foto-filtro: none; /* fotos de contenido: tal cual sobre claro */
+  --tk-sabana: radial-gradient(60% 80% at 100% 0%, rgba(25, 230, 245, 0.8) 0%, rgba(25, 230, 245, 0) 60%),
+    linear-gradient(165deg, #0a3fe0 0%, #0018c9 100%);
 
-  /* — Marca y acentos —
-     Solo TRES acentos de tienda: ámbar (Antojos), cian (Punto Fit) y el
-     sistema azul (Alegría + Almuerzos). El ámbar y el amarillo son
-     indistinguibles como chip: el segundo queda para foco y badge. */
-  --tk-deep: #03045e; /* azul profundo de marca (carnet, superficies claras) */
-  --tk-sabana-1: #0b2bd6; /* sábana azul: base del degradado */
-  --tk-sabana-2: #2b4dff; /* sábana azul: alto del degradado */
-  --tk-azure: #0077b6; /* enlaces, íconos */
-  --tk-cyan: #00b4d8; /* acento Punto Fit + dato vivo */
-  --tk-cyan-claro: #90e0ef; /* texto secundario sobre oscuro (claro) */
-  --tk-cyan-palido: #caf0f8; /* superficie clara alterna (carnet) */
-  --tk-ambar: #ffc300; /* acento Antojos + CTA */
-  --tk-amarillo: #ffd60a; /* SOLO foco de teclado y badge "nuevo" */
+  /* Material de la sábana (igual en ambos temas: siempre va sobre azul) */
+  --tk-sobre-sabana: #ffffff;
+  --tk-sabana-vidrio: rgba(255, 255, 255, 0.14); /* botones redondos sobre azul */
+  --tk-sabana-vidrio-alto: rgba(255, 255, 255, 0.22);
+  --tk-sabana-borde: rgba(255, 255, 255, 0.35);
+  --tk-velo-foto: linear-gradient(90deg, rgba(3, 10, 50, 0.92) 0%, rgba(3, 10, 50, 0.6) 50%, rgba(3, 10, 50, 0.1) 100%);
+  --tk-velo-foto-vertical: linear-gradient(180deg, rgba(3, 10, 50, 0.35) 0%, rgba(3, 10, 50, 0.15) 35%, rgba(3, 10, 50, 0.9) 100%);
 
-  /* — Texto y líneas — */
-  --tk-superficie: #ffffff; /* texto principal sobre oscuro y superficie clara */
-  --tk-tenue: #9aa6b6; /* texto secundario sobre oscuro */
-  --tk-linea: #232a36; /* hairline de tarjeta y regla decorativa */
-  --tk-borde: #5c6b80; /* borde de control (3.4:1 sobre tarjeta) */
+  /* Banda oscura de «La cuenta» (portada). Siempre oscura: en claro es tinta,
+     en oscuro sube a tarjeta con filo azul para separarse del ground. */
+  --tk-banda: #0a1330;
+  --tk-banda-borde: #0a1330;
+  --tk-banda-tinta: #f1f4ff; /* 15.9 sobre la banda */
+  --tk-banda-tenue: #a6b1d3; /* 8.4 sobre la banda */
+  --tk-banda-linea: rgba(255, 255, 255, 0.12);
+  --tk-banda-acento: #70f2fc; /* rótulo e íconos cian, 13.4 sobre la banda */
+  --tk-banda-acento-fondo: rgba(112, 242, 252, 0.1);
+  --tk-banda-acento-borde: rgba(112, 242, 252, 0.25);
 
-  /* — Estado — */
-  --tk-ok: #22c55e;
-  --tk-aviso: #f0b429;
-  --tk-error: #ff7b72;
+  /* El carnet: superficie clara en ambos temas, como el plástico real */
+  --tk-carnet: #ffffff;
+  --tk-carnet-tinta: #0a1330;
+  --tk-carnet-tenue: #4b5672;
+  --tk-carnet-linea: #e1e6f0;
+  --tk-carnet-azul: #093ad8;
+  --tk-carnet-azul-suave: #e7edfd;
+  --tk-sombra-carnet: 0 2px 4px rgba(0, 0, 0, 0.25), 0 30px 60px rgba(0, 8, 60, 0.55);
 
-  /* — Material de la sábana (arcos y halos) — */
-  --tk-arco: #ffffff14; /* arco concéntrico sobre el azul */
-  --tk-halo: #6f95ff40; /* halo radial sobre el azul */
-  --tk-sombra: #000000a6; /* sombra suave de superficies elevadas */
+  /* — Acentos de tienda: relleno, texto encima, campo suave y tinta — */
+  --tk-t-antojos: #ffbc15;
+  --tk-t-antojos-sobre: #000000;
+  --tk-t-antojos-suave: #fff2cc;
+  --tk-t-antojos-tinta: #7a5500;
+  --tk-t-fit: #71ec37;
+  --tk-t-fit-sobre: #000000;
+  --tk-t-fit-suave: #e2fbd6;
+  --tk-t-fit-tinta: #2c6b0e;
+  --tk-t-alegria: #6259e2;
+  --tk-t-alegria-sobre: #ffffff;
+  --tk-t-alegria-suave: #e6e4ff;
+  --tk-t-alegria-tinta: #4a41c8;
+  --tk-t-alm1: #70f2fc;
+  --tk-t-alm1-sobre: #000000;
+  --tk-t-alm1-suave: #d9fcff;
+  --tk-t-alm1-tinta: #0a6770;
+  --tk-t-alm2: #093ad8;
+  --tk-t-alm2-sobre: #ffffff;
+  --tk-t-alm2-suave: #e7edfd;
+  --tk-t-alm2-tinta: #093ad8;
+  --tk-t-alm2-punto: #80c0ff; /* el azul no se ve sobre la sábana azul */
 
-  /* — Tipografía: una familia para todo, la serif solo en prosa legal — */
-  --tk-font-display: var(--font-archivo), "Archivo", "Arial Narrow", sans-serif;
-  --tk-font-texto: var(--font-archivo), "Archivo", system-ui, sans-serif;
-  --tk-font-cuerpo: var(--font-literata), "Literata", Georgia, serif;
+  /* — Tipografía — */
+  --tk-font-texto: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+  --tk-font-display: var(--font-fraunces), "Fraunces", Georgia, serif;
+  --tk-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; /* códigos */
 
   /* — Escala de tipo — */
-  --tk-texto-legal: 0.75rem; /* 12px, solo letra pequeña legal */
+  --tk-texto-legal: 0.75rem; /* 12px */
   --tk-texto-chico: 0.8125rem; /* 13px, rótulos y notas */
   --tk-texto-sm: 0.9375rem; /* 15px */
-  --tk-texto-base: clamp(1rem, 0.97rem + 0.2vw, 1.125rem);
-  --tk-texto-lead: clamp(1.125rem, 1rem + 0.9vw, 1.5rem);
-  --tk-titulo-seccion: clamp(1.75rem, 1.3rem + 2.2vw, 3rem);
-  --tk-titulo: clamp(2.5rem, 1.6rem + 4.6vw, 5.5rem);
-  --tk-display: clamp(3rem, 1.4rem + 7vw, 6rem);
+  --tk-texto-base: 1rem;
+  --tk-texto-lead: clamp(1rem, 0.94rem + 0.3vw, 1.125rem);
+  --tk-titulo-seccion: clamp(1.375rem, 1.05rem + 1.6vw, 2rem); /* 22 → 32 */
+  --tk-titulo: clamp(2.125rem, 1.5rem + 3vw, 3.25rem); /* 34 → 52 */
+  --tk-display: clamp(2.125rem, 1.1rem + 5vw, 4.25rem); /* 34 → 68 */
 
   /* — Espacio (base 4) — */
   --tk-esp-1: 0.25rem;
@@ -97,20 +164,136 @@
   --tk-esp-8: 2rem;
   --tk-esp-10: 2.5rem;
   --tk-esp-12: 3rem;
+  --tk-esp-14: 3.5rem;
   --tk-esp-16: 4rem;
-  --tk-esp-20: 5rem;
-  --tk-esp-24: 6rem;
-  --tk-margen: clamp(1rem, 4vw, 2.5rem); /* un solo par de márgenes exteriores */
+  --tk-margen: clamp(1rem, 4vw, 1.5rem); /* 16px a 320px, 24px en escritorio */
+  --tk-ancho: 1200px; /* ancho máximo del contenido */
+  --tk-alto-nav: 4.75rem; /* alto de la barra superior sobre la sábana */
 
-  /* — Radio: geometría redondeada de la app — */
-  --tk-radio: 20px; /* tarjetas y controles */
-  --tk-radio-sm: 14px; /* chips y campos */
-  --tk-radio-sabana: 28px; /* esquinas inferiores de la cabecera */
-  --tk-radio-pill: 999px; /* pills */
+  /* — Radio — */
+  --tk-radio-xs: 12px; /* miniaturas */
+  --tk-radio-sm: 14px; /* campos, franjas horarias, número de paso */
+  --tk-radio-md: 18px; /* botón de bloque, preguntas, pasos móviles */
+  --tk-radio: 24px; /* tarjetas */
+  --tk-radio-lg: 28px; /* hojas y paneles */
+  --tk-radio-xl: 32px; /* cabeceras de foto y sección destacada */
+  --tk-radio-pill: 999px;
 
-  /* — Motion — */
+  /* — Motion — (GSAP lee sus constantes de lib/movimiento.ts) */
   --tk-dur: 160ms;
   --tk-dur-media: 320ms;
-  --tk-dur-lenta: 480ms;
   --tk-ease: cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+/* — 2b. Semánticas · tema oscuro — */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --tk-fondo: #050a1c;
+  --tk-tarjeta: #0b1230;
+  --tk-suave: #121b3d;
+  --tk-suave-2: #121b3d;
+  --tk-tinta: #f1f4ff;
+  --tk-tenue: #a6b1d3;
+  --tk-linea: #223060;
+  --tk-borde: #5d6ea6;
+  --tk-enlace: #80c0ff;
+  --tk-primario: #093ad8;
+  --tk-primario-hover: #1f4ff0;
+  --tk-sobre-primario: #ffffff;
+  --tk-primario-suave: #16246a;
+  --tk-oscuro: #0a1330;
+  --tk-aviso: #ffd266;
+  --tk-aviso-suave: #33280a;
+  --tk-error: #ff8a80;
+  --tk-error-suave: #3a1418;
+  --tk-ok: #7ee07e;
+  --tk-ok-suave: #14321a;
+  --tk-ok-punto: #2fbf2f;
+  --tk-foco: #80c0ff;
+  --tk-velo: rgba(0, 0, 0, 0.65);
+  --tk-raya: rgba(255, 255, 255, 0.05);
+  --tk-esqueleto: #16204a;
+  --tk-esqueleto-brillo: rgba(255, 255, 255, 0.07);
+  --tk-sombra: 0 18px 48px rgba(0, 0, 0, 0.45);
+  --tk-sombra-alta: 0 16px 40px rgba(0, 0, 0, 0.5);
+  --tk-sombra-pestana: 0 1px 3px rgba(0, 0, 0, 0.5);
+  --tk-sombra-primaria: 0 12px 30px rgba(0, 0, 0, 0.45);
+  --tk-sombra-hoja: -20px 0 60px rgba(0, 0, 0, 0.55);
+  --tk-logo-filtro: brightness(0) invert(1);
+  --tk-foto-filtro: brightness(0.8) saturate(0.92);
+  --tk-sabana: radial-gradient(60% 80% at 100% 0%, rgba(25, 230, 245, 0.28) 0%, rgba(25, 230, 245, 0) 60%),
+    linear-gradient(165deg, #0a2fb0 0%, #030b45 100%);
+  --tk-banda: #0b1230;
+  --tk-banda-borde: #223060;
+
+  --tk-t-antojos-suave: #33280a;
+  --tk-t-antojos-tinta: #ffd266;
+  --tk-t-fit-suave: #14321a;
+  --tk-t-fit-tinta: #9bf56e;
+  --tk-t-alegria-suave: #1f1c4d;
+  --tk-t-alegria-tinta: #b3aeff;
+  --tk-t-alm1-suave: #0c3438;
+  --tk-t-alm1-tinta: #8ff6fd;
+  --tk-t-alm2-suave: #16246a;
+  --tk-t-alm2-tinta: #80c0ff;
+}
+
+/*
+ * — 3. Sin JavaScript: el sistema decide —
+ * Copia exacta del bloque anterior. Solo aplica si `<html>` no trae
+ * `data-theme` (JavaScript desactivado); con JavaScript el script en línea ya
+ * lo fijó. Si cambias un valor oscuro, cámbialo en los dos bloques.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --tk-fondo: #050a1c;
+    --tk-tarjeta: #0b1230;
+    --tk-suave: #121b3d;
+    --tk-suave-2: #121b3d;
+    --tk-tinta: #f1f4ff;
+    --tk-tenue: #a6b1d3;
+    --tk-linea: #223060;
+    --tk-borde: #5d6ea6;
+    --tk-enlace: #80c0ff;
+    --tk-primario: #093ad8;
+    --tk-primario-hover: #1f4ff0;
+    --tk-sobre-primario: #ffffff;
+    --tk-primario-suave: #16246a;
+    --tk-oscuro: #0a1330;
+    --tk-aviso: #ffd266;
+    --tk-aviso-suave: #33280a;
+    --tk-error: #ff8a80;
+    --tk-error-suave: #3a1418;
+    --tk-ok: #7ee07e;
+    --tk-ok-suave: #14321a;
+    --tk-ok-punto: #2fbf2f;
+    --tk-foco: #80c0ff;
+    --tk-velo: rgba(0, 0, 0, 0.65);
+    --tk-raya: rgba(255, 255, 255, 0.05);
+    --tk-esqueleto: #16204a;
+    --tk-esqueleto-brillo: rgba(255, 255, 255, 0.07);
+    --tk-sombra: 0 18px 48px rgba(0, 0, 0, 0.45);
+    --tk-sombra-alta: 0 16px 40px rgba(0, 0, 0, 0.5);
+    --tk-sombra-pestana: 0 1px 3px rgba(0, 0, 0, 0.5);
+    --tk-sombra-primaria: 0 12px 30px rgba(0, 0, 0, 0.45);
+    --tk-sombra-hoja: -20px 0 60px rgba(0, 0, 0, 0.55);
+    --tk-logo-filtro: brightness(0) invert(1);
+    --tk-foto-filtro: brightness(0.8) saturate(0.92);
+    --tk-sabana: radial-gradient(60% 80% at 100% 0%, rgba(25, 230, 245, 0.28) 0%, rgba(25, 230, 245, 0) 60%),
+      linear-gradient(165deg, #0a2fb0 0%, #030b45 100%);
+    --tk-banda: #0b1230;
+    --tk-banda-borde: #223060;
+
+    --tk-t-antojos-suave: #33280a;
+    --tk-t-antojos-tinta: #ffd266;
+    --tk-t-fit-suave: #14321a;
+    --tk-t-fit-tinta: #9bf56e;
+    --tk-t-alegria-suave: #1f1c4d;
+    --tk-t-alegria-tinta: #b3aeff;
+    --tk-t-alm1-suave: #0c3438;
+    --tk-t-alm1-tinta: #8ff6fd;
+    --tk-t-alm2-suave: #16246a;
+    --tk-t-alm2-tinta: #80c0ff;
+  }
 }

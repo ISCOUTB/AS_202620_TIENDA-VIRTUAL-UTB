@@ -1,14 +1,16 @@
 /**
  * Las tiendas de la cafetería UTB — fuente única de su identidad.
  *
- * Solo TRES acentos (design/SPEC.md v3 §2.4): ámbar (Antojos), cian
- * (Punto Fit) y el sistema azul (Alegría y los dos almuerzos). La identidad
- * de cada tienda la cargan la tipografía, el motivo y la foto; el color no
- * puede ser el único diferenciador porque el ámbar y el amarillo de foco son
- * indistinguibles a tamaño de chip.
+ * Color (design/SPEC.md v4 §2.1): cada tienda tiene su propia paleta
+ * (`paletaTienda`): ámbar Antojos, verde Punto Fit, violeta Alegría, cian
+ * Almuerzo 01 y azul Almuerzo 02. El color nunca es el único diferenciador:
+ * cada tienda lleva además su nombre y su ícono propio.
  *
- * Ningún color literal aquí: los componentes traducen `acento` a utilidades
- * de Tailwind (`bg-ambar`, `text-cyan`, …).
+ * `acento` y `tratamiento` son el modelo de la v3; se conservan porque los
+ * usan las pruebas y quien solo conozca tres acentos (`clasesAcento`).
+ *
+ * Ningún color literal aquí: las paletas son clases de Tailwind que leen
+ * los tokens de app/tokens.css.
  */
 
 export type SlugTienda =
@@ -165,7 +167,14 @@ export function tiendaPorSlug(slug: string): Tienda | undefined {
 
 export const SLUGS_TIENDA = TIENDAS.map((t) => t.slug);
 
-/** Utilidad de clases por acento — mantiene el color fuera de los componentes. */
+/**
+ * Utilidad de clases por acento (modelo de tres acentos de la v3).
+ *
+ * La interfaz v4 colorea cada tienda con su propia paleta (`paletaTienda`);
+ * esta función se conserva para quien solo conoce el `Acento` y la mapea a
+ * los mismos tokens (`ambar` = Antojos, `cyan` = Almuerzo 01, `azure` =
+ * azul de marca).
+ */
 export function clasesAcento(acento: Acento): {
   fondo: string;
   texto: string;
@@ -175,26 +184,95 @@ export function clasesAcento(acento: Acento): {
   switch (acento) {
     case "ambar":
       return {
-        fondo: "bg-ambar text-tinta",
-        texto: "text-ambar",
+        fondo: "bg-ambar text-antojos-sobre",
+        texto: "text-antojos-tinta",
         borde: "border-ambar",
         punto: "bg-ambar",
       };
     case "cyan":
       return {
-        fondo: "bg-cyan text-tinta",
-        texto: "text-cyan",
+        fondo: "bg-cyan text-alm1-sobre",
+        texto: "text-alm1-tinta",
         borde: "border-cyan",
         punto: "bg-cyan",
       };
     case "azul":
       return {
-        fondo: "bg-deep text-superficie",
-        texto: "text-cyan-claro",
+        fondo: "bg-azure text-sobre-primario",
+        texto: "text-enlace",
         borde: "border-azure",
         punto: "bg-azure",
       };
   }
+}
+
+/**
+ * Paleta propia de cada tienda (SPEC v4 §2.1): cinco acentos, uno por punto.
+ *
+ * - `relleno` + `sobreRelleno`: chip con el nombre, punto de color, ficha
+ *   del ícono. El acento es RELLENO; el texto encima va en `sobreRelleno`.
+ * - `suave` + `tinta`: campo de la tarjeta y su texto/ícono (≥ 4.5:1).
+ * - `punto`: el punto de color sobre la sábana azul (el azul de Almuerzo 02
+ *   se cambia por su versión clara para que se vea).
+ *
+ * Clases completas y literales para que Tailwind las detecte.
+ */
+export type PaletaTienda = {
+  relleno: string;
+  sobreRelleno: string;
+  suave: string;
+  tinta: string;
+  punto: string;
+  /** Borde del mismo color que el relleno (fichas sobre el campo suave). */
+  bordeSuave: string;
+};
+
+const PALETAS: Record<SlugTienda, PaletaTienda> = {
+  antojos: {
+    relleno: "bg-antojos",
+    sobreRelleno: "text-antojos-sobre",
+    suave: "bg-antojos-suave",
+    tinta: "text-antojos-tinta",
+    punto: "bg-antojos",
+    bordeSuave: "border-antojos-suave",
+  },
+  "punto-fit": {
+    relleno: "bg-fit",
+    sobreRelleno: "text-fit-sobre",
+    suave: "bg-fit-suave",
+    tinta: "text-fit-tinta",
+    punto: "bg-fit",
+    bordeSuave: "border-fit-suave",
+  },
+  alegria: {
+    relleno: "bg-alegria",
+    sobreRelleno: "text-alegria-sobre",
+    suave: "bg-alegria-suave",
+    tinta: "text-alegria-tinta",
+    punto: "bg-alegria",
+    bordeSuave: "border-alegria-suave",
+  },
+  "almuerzo-01": {
+    relleno: "bg-alm1",
+    sobreRelleno: "text-alm1-sobre",
+    suave: "bg-alm1-suave",
+    tinta: "text-alm1-tinta",
+    punto: "bg-alm1",
+    bordeSuave: "border-alm1-suave",
+  },
+  "almuerzo-02": {
+    relleno: "bg-alm2",
+    sobreRelleno: "text-alm2-sobre",
+    suave: "bg-alm2-suave",
+    tinta: "text-alm2-tinta",
+    punto: "bg-alm2-punto",
+    bordeSuave: "border-alm2-suave",
+  },
+};
+
+/** Paleta de una tienda por slug; una desconocida usa la del azul de marca. */
+export function paletaTienda(slug: string): PaletaTienda {
+  return PALETAS[slug as SlugTienda] ?? PALETAS["almuerzo-02"];
 }
 
 /**

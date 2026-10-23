@@ -5,10 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Campo } from "@/components/ui/Campo";
 import { Boton } from "@/components/ui/Boton";
-import { Etiqueta } from "@/components/ui/Etiqueta";
+import { Icono } from "@/components/ui/Icono";
+import { Revelar } from "@/components/motion/Revelar";
 import { iniciarSesion, CLAVE_DEMO } from "@/lib/sesion";
 
-/** Aviso de error: color + texto + rol, nunca solo color. */
+/** Aviso: color + ícono + texto + rol, nunca solo color. */
 export function Aviso({
   children,
   tono = "error",
@@ -16,13 +17,11 @@ export function Aviso({
   children: React.ReactNode;
   tono?: "error" | "info";
 }) {
-  const clases =
-    tono === "error"
-      ? "border-error bg-error/10 text-error"
-      : "border-cyan bg-cyan/10 text-cyan-claro";
+  const clases = tono === "error" ? "bg-error-suave text-error" : "bg-primario-suave text-enlace";
   return (
-    <p role="alert" className={`rounded-[var(--tk-radio-sm)] border-l-4 px-4 py-3 font-cuerpo text-[0.9375rem] leading-snug ${clases}`}>
-      {children}
+    <p role="alert" className={`flex items-start gap-2.5 rounded-sm px-4 py-3 text-[0.9375rem] leading-snug ${clases}`}>
+      <Icono nombre="info" tamano={18} className="mt-0.5 shrink-0" />
+      <span>{children}</span>
     </p>
   );
 }
@@ -65,17 +64,21 @@ export function FormIngreso() {
   }
 
   return (
-    <div className="tarjeta p-7 sm:p-9">
-      <Etiqueta>Acceso</Etiqueta>
-      <h1 className="mt-3 font-display text-[2rem] font-extrabold leading-[1.02] tracking-[-0.02em] text-superficie">
-        Ingresa a tu pase
-      </h1>
-      <p className="mt-3 font-cuerpo text-[0.9375rem] leading-relaxed text-tenue">
+    <Revelar inmediato className="rounded-xl bg-tarjeta p-6 shadow-tarjeta sm:p-8">
+      <p className="rotulo text-tenue">Acceso</p>
+      <h1 className="mt-2 font-display text-[2rem] font-semibold leading-tight">Ingresa a tu pase</h1>
+      <p className="mt-2 text-[0.9375rem] leading-relaxed text-tenue">
         Usa tu correo institucional. Si todavía no tienes cuenta, créala en un
         minuto.
       </p>
 
-      <form onSubmit={enviar} className="mt-7 flex flex-col gap-6" noValidate>
+      {motivo === "requiere-sesion" && !error ? (
+        <div className="mt-5">
+          <Aviso tono="info">Esa página necesita tu pase. Entra y te llevamos allá.</Aviso>
+        </div>
+      ) : null}
+
+      <form onSubmit={enviar} className="mt-7 flex flex-col gap-5" noValidate>
         <Campo
           etiqueta="Correo institucional"
           type="email"
@@ -99,47 +102,45 @@ export function FormIngreso() {
 
         {error ? <Aviso>{error}</Aviso> : null}
 
-        <Boton type="submit" variante="solido" tamano="lg" bloque disabled={enviando}>
+        <Boton type="submit" variante="primario" tamano="lg" bloque disabled={enviando}>
           {enviando ? "Entrando…" : "Entrar"}
         </Boton>
       </form>
 
-      <p className="mt-6 font-cuerpo text-[0.9375rem] text-tenue">
+      <p className="mt-6 text-[0.9375rem] text-tenue">
         ¿Sin cuenta?{" "}
-        <Link
-          href="/auth/crear-cuenta"
-          className="font-semibold text-cyan-claro underline underline-offset-4"
-        >
+        <Link href="/auth/crear-cuenta" className="font-bold text-enlace underline underline-offset-4">
           Crear mi pase
         </Link>
       </p>
 
-      <details className="mt-7 border-t border-linea pt-4">
-        <summary className="cursor-pointer font-display text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-tenue">
+      <details className="group mt-6 border-t border-linea pt-2">
+        <summary className="flex min-h-11 list-none items-center justify-between text-sm font-semibold text-tenue [&::-webkit-details-marker]:hidden">
           Modo demostración
+          <Icono nombre="mas" tamano={16} className="transition-transform duration-[var(--tk-dur-media)] group-open:rotate-45" />
         </summary>
-        <div className="mt-3 font-cuerpo text-[0.875rem] leading-relaxed text-tenue">
+        <div className="pb-1 text-sm leading-relaxed text-tenue">
           <p>
             El módulo de identidad todavía no está en producción. Para recorrer
             la tienda usa:
           </p>
           <ul className="mt-2 flex flex-col gap-1">
             <li>
-              <span className="cifra text-superficie">demo@utb.edu.co</span> · cliente
+              <span className="font-mono text-tinta">demo@utb.edu.co</span> · cliente
             </li>
             <li>
-              <span className="cifra text-superficie">admin@utb.edu.co</span> · administración
+              <span className="font-mono text-tinta">admin@utb.edu.co</span> · administración
             </li>
             <li>
-              Contraseña: <span className="cifra text-superficie">{CLAVE_DEMO}</span>
+              Contraseña: <span className="font-mono text-tinta">{CLAVE_DEMO}</span>
             </li>
           </ul>
           <p className="mt-2">
-            Cuando la API responda en <span className="cifra">/identity/login</span>,
+            Cuando la API responda en <span className="font-mono">/identity/login</span>,
             estas credenciales dejan de usarse solas.
           </p>
         </div>
       </details>
-    </div>
+    </Revelar>
   );
 }

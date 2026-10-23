@@ -21,7 +21,7 @@ const EVENTO = "tvutb:carrito";
 /** Evento con el que cualquier pantalla pide abrir el panel del pedido. */
 export const EVENTO_ABRIR_PEDIDO = "tvutb:abrir-pedido";
 
-/** Abre el panel del pedido (lo escucha CarritoBarra). */
+/** Abre el panel del pedido (lo escucha components/tienda/PanelPedido.tsx). */
 export function abrirPedido(): void {
   if (disponible()) window.dispatchEvent(new Event(EVENTO_ABRIR_PEDIDO));
 }

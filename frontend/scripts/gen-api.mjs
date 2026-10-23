@@ -4,11 +4,11 @@
  * `docs/openapi/tienda-virtual.yaml`.
  *
  * Idempotente: misma entrada ⇒ misma salida byte a byte. Si el contrato
- * cambia, `npm run gen:api` actualiza el archivo y el diff obliga a revisar
+ * cambia, `pnpm run gen:api` actualiza el archivo y el diff obliga a revisar
  * el frontend (el contrato ejecutable, `docs/api/openapi.json`, lo valida el
  * backend en su propio job de CI y este script no lo toca).
  *
- * Uso: npm run gen:api
+ * Uso: pnpm run gen:api
  */
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -109,7 +109,7 @@ const cuerpo = [];
 cuerpo.push("/**");
 cuerpo.push(" * ARCHIVO GENERADO — no editar a mano.");
 cuerpo.push(` * Fuente: docs/openapi/tienda-virtual.yaml (API v${spec.info.version}, OpenAPI ${spec.openapi})`);
-cuerpo.push(" * Regenerar: npm run gen:api (verificado por npm run verify)");
+cuerpo.push(" * Regenerar: pnpm run gen:api (verificado por pnpm run verify)");
 cuerpo.push(" */");
 cuerpo.push("");
 

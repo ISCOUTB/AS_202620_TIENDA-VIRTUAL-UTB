@@ -1,94 +1,86 @@
 import Link from "next/link";
 import Image from "next/image";
-import { TIENDAS, clasesAcento } from "@/lib/tiendas";
+import { TIENDAS, paletaTienda } from "@/lib/tiendas";
 import { formatoHora } from "@/lib/formato";
-import { Etiqueta } from "@/components/ui/Etiqueta";
 import { LOGO } from "@/lib/imagenes";
+import { BotonTema } from "@/components/chrome/BotonTema";
+import { Revelar } from "@/components/motion/Revelar";
+import { IconoTienda, Icono } from "@/components/ui/Icono";
 
 /**
- * Shell del pase (design/SPEC.md v3 §2.6).
- *
- * Panel izquierdo con la sábana azul de la app y el logo institucional en su
- * versión monocroma blanca; a la derecha, el formulario sobre la superficie
- * oscura. En móvil la sábana se reduce a la cabecera y el pase ocupa el resto.
+ * Shell del pase (SPEC v4 §3, `/auth/*`). A la izquierda (arriba en móvil),
+ * la sábana azul con el logo blanco, el titular en Fraunces y las cinco
+ * tiendas con sus fichas; a la derecha, el formulario en una tarjeta sobre
+ * el ground.
  */
 export default function LayoutAuth({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="min-h-svh bg-tinta lg:grid lg:grid-cols-[55fr_45fr]">
-      {/* Panel de marca */}
-      <aside className="sabana lg:rounded-none">
-        <div className="relative flex min-h-[15rem] flex-col justify-between px-[var(--tk-margen)] pb-10 pt-8 lg:min-h-svh lg:pb-12 lg:pt-10">
-          <div className="flex items-center justify-between gap-4">
-            <Link href="/" className="flex items-center gap-3">
+    <div className="min-h-svh bg-fondo lg:grid lg:grid-cols-[55fr_45fr]">
+      <aside className="sabana rounded-b-lg lg:rounded-none">
+        <div className="flex flex-col gap-10 px-[var(--tk-margen)] pb-12 pt-4 sm:px-8 lg:sticky lg:top-0 lg:min-h-svh lg:justify-between lg:px-12 lg:pb-12 lg:pt-6">
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex min-h-11 items-center" aria-label="Tienda Virtual UTB, inicio">
               <Image
                 src={LOGO.src}
-                alt={LOGO.alt}
+                alt=""
                 width={LOGO.ancho}
                 height={LOGO.alto}
                 priority
-                className="h-8 w-auto [filter:brightness(0)_invert(1)]"
+                className="h-[30px] w-auto [filter:brightness(0)_invert(1)] sm:h-[34px]"
               />
             </Link>
-            <Link
-              href="/"
-              className="rotulo text-cyan-claro underline underline-offset-4"
-            >
-              Volver
+            <span className="flex-1" />
+            <BotonTema />
+            <Link href="/" className="boton-vidrio" aria-label="Volver a la tienda">
+              <Icono nombre="atras" grosor={2.2} />
             </Link>
           </div>
 
-          <div className="mt-10 lg:mt-0 lg:max-w-[30ch]">
-            <Etiqueta tono="claro">Cafetería del campus</Etiqueta>
-            <h2 className="mt-4 text-[clamp(2rem,1.2rem+3.2vw,3.5rem)] text-superficie">
+          <Revelar inmediato className="lg:max-w-[30ch]">
+            <p data-escalon="" className="rotulo opacity-90">
+              Cafetería La Placita · Campus UTB
+            </p>
+            <p data-escalon="" className="titulo mt-3">
               Tu pase de cafetería.
-            </h2>
-            <p className="lead mt-5 max-w-[38ch] text-cyan-claro">
+            </p>
+            <p data-escalon="" className="lead mt-4 max-w-[38ch] opacity-95">
               Un solo acceso para las cinco tiendas. Con él apartas, eliges la
               hora y recoges sin fila.
             </p>
-          </div>
+          </Revelar>
 
-          {/* Índice del corredor */}
-          <div className="mt-10 lg:mt-0">
-            <div className="flex items-baseline justify-between gap-4 border-b border-white/25 pb-2">
-              <Etiqueta tono="claro">El corredor</Etiqueta>
-              <span className="rotulo cifra text-cyan-claro">
-                {String(TIENDAS.length).padStart(2, "0")}
-              </span>
-            </div>
-            <ul className="mt-3 grid gap-x-6 gap-y-1 sm:grid-cols-2">
-              {TIENDAS.map((t, i) => {
-                const acento = clasesAcento(t.acento);
+          <div className="hidden sm:block">
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {TIENDAS.map((t) => {
+                const p = paletaTienda(t.slug);
                 return (
-                  <li key={t.slug} className="flex items-center gap-3 py-1.5">
-                    <span className="rotulo cifra w-5 text-cyan-claro">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
+                  <li key={t.slug} className="flex items-center gap-3 rounded-md bg-sabana-vidrio px-3 py-2.5">
                     <span
                       aria-hidden="true"
-                      className={`h-4 w-[5px] rounded-[var(--tk-radio-pill)] ${acento.punto}`}
-                    />
-                    <span className="font-display text-[0.9375rem] font-semibold text-superficie">
-                      {t.nombre}
+                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xs ${p.relleno} ${p.sobreRelleno}`}
+                    >
+                      <IconoTienda slug={t.slug} tamano={20} />
                     </span>
+                    <span className="text-[0.9375rem] font-semibold">{t.nombre}</span>
                   </li>
                 );
               })}
             </ul>
-            <p className="mt-4 font-cuerpo text-[0.8125rem] text-cyan-claro">
-              {formatoHora(TIENDAS[0].horario.abre)} –{" "}
-              {formatoHora(TIENDAS[0].horario.cierra)} · lunes a viernes
+            <p className="mt-4 text-[0.8125rem] opacity-90">
+              Lun a vie · {formatoHora(TIENDAS[0].horario.abre)} – {formatoHora(TIENDAS[0].horario.cierra)}
             </p>
           </div>
         </div>
       </aside>
 
-      {/* El pase */}
-      <section className="flex items-start justify-center bg-tinta px-[var(--tk-margen)] py-10 lg:min-h-svh lg:items-center lg:py-16">
+      <main
+        id="contenido"
+        className="flex items-start justify-center px-[var(--tk-margen)] py-8 lg:min-h-svh lg:items-center lg:py-16"
+      >
         <div className="w-full max-w-[27rem]">{children}</div>
-      </section>
+      </main>
     </div>
   );
 }

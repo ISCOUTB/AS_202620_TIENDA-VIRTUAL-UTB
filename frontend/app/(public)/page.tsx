@@ -1,20 +1,27 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { TIENDAS, clasesAcento, clasesTratamiento, type Tienda } from "@/lib/tiendas";
+import { TIENDAS, paletaTienda } from "@/lib/tiendas";
 import { FOTOS_LUGAR } from "@/lib/imagenes";
-import { formatoHora, formatoPrecio } from "@/lib/formato";
-import { productosDe } from "@/lib/catalogo";
-import { Etiqueta } from "@/components/ui/Etiqueta";
-import { Boton } from "@/components/ui/Boton";
-import { CampoFoto } from "@/components/tienda/CampoFoto";
+import { estadoHorario, formatoHora } from "@/lib/formato";
+import { productosDestacados } from "@/lib/catalogo";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { jsonLdCafeteria, jsonLdFaq, DESCRIPCION_SITIO } from "@/lib/seo";
+import { Revelar } from "@/components/motion/Revelar";
+import { Boton } from "@/components/ui/Boton";
+import { Icono, IconoTienda, type NombreIcono } from "@/components/ui/Icono";
+import { TarjetaTienda } from "@/components/tienda/TarjetaTienda";
+import { ProductoCard } from "@/components/tienda/ProductoCard";
+import { BuscadorProductos } from "@/components/tienda/BuscadorProductos";
+import { Carnet } from "@/components/auth/Carnet";
 
 export const metadata: Metadata = {
   title: "Cafetería del campus: cinco tiendas, un solo pase",
   description: DESCRIPCION_SITIO,
   alternates: { canonical: "/" },
 };
+
+/** «Abierto ahora» se calcula en el servidor: la portada se regenera cada minuto. */
+export const revalidate = 60;
 
 const PASOS = [
   {
@@ -32,31 +39,35 @@ const PASOS = [
   {
     n: "03",
     titulo: "Recoge y paga ahí",
-    texto:
-      "Llegas al mostrador, dices tu nombre, pagas y te vas. Sin fila y sin repetir el pedido.",
+    texto: "Llegas al mostrador, dices tu nombre, pagas y te vas.",
   },
 ];
 
-const BENEFICIOS = [
+const BENEFICIOS: Array<{ titulo: string; texto: string; icono: NombreIcono }> = [
   {
     titulo: "Tus pedidos en un solo lugar",
-    texto: "Historial, estado y hora de recogida sin buscar correos.",
+    texto: "Historial, estado y hora de recogida, sin buscar correos.",
+    icono: "pedidos",
   },
   {
     titulo: "Reserva sin hacer fila",
     texto: "Apartas lo que quieres y eliges cuándo pasar por él.",
+    icono: "reloj",
   },
   {
     titulo: "Existencias honestas",
-    texto: "Si algo se agotó, se dice. Cero se imprime como cero.",
+    texto: "Si algo se agotó, lo ves antes de pedirlo. Cero es cero.",
+    icono: "caja",
   },
   {
     titulo: "Un pase para las cinco tiendas",
     texto: "Antojos, Punto Fit, Alegría y los dos almuerzos, con una sola cuenta.",
+    icono: "tiendas",
   },
   {
     titulo: "Avisos de lo que te gusta",
     texto: "Te contamos cuando vuelve lo que ya habías pedido.",
+    icono: "campana",
   },
 ];
 
@@ -104,382 +115,306 @@ const PREGUNTAS = [
 ];
 
 export default function Landing() {
+  const horario = TIENDAS[0].horario;
+  const estado = estadoHorario(horario);
+  const franja = `Lun a vie, ${formatoHora(horario.abre)} – ${formatoHora(horario.cierra)}`;
+  const destacados = productosDestacados();
+  const [fotoHero, fotoPromo] = FOTOS_LUGAR;
+
   return (
     <>
       <JsonLd datos={jsonLdCafeteria()} />
       <JsonLd datos={jsonLdFaq(PREGUNTAS)} />
 
-      {/* ───────────────────────── Hero ───────────────────────── */}
-      <section className="sabana">
-        <div className="contenedor grid gap-10 pb-24 pt-12 lg:grid-cols-12 lg:items-center lg:gap-12 lg:pb-32 lg:pt-16">
-          <div className="lg:col-span-6">
-            <div className="flex items-center gap-3">
-              <span aria-hidden="true" className="h-3 w-3 rounded-[var(--tk-radio-pill)] bg-ambar" />
-              <Etiqueta tono="claro">Cafetería UTB · Campus Cartagena</Etiqueta>
-            </div>
-
-            <h1 className="display mt-6 text-superficie">
-              Cinco puntos.
+      {/* ───────────── Sábana: titular, buscador y foto ───────────── */}
+      <section aria-labelledby="titular" className="sabana bajo-nav">
+        <Revelar
+          inmediato
+          className="contenedor flex flex-wrap items-center gap-12 pb-[60px] pt-4 md:pb-[110px] md:pt-10"
+        >
+          <div className="min-w-0 flex-[1_1_460px]">
+            <p data-escalon="" className="mb-1.5 text-[0.8125rem] font-medium tracking-[0.02em] opacity-90 sm:mb-3.5 sm:text-[0.9375rem] sm:font-semibold">
+              Cafetería La Placita · Campus UTB
+            </p>
+            <h1 id="titular" data-escalon="" className="display">
+              Cinco tiendas,
               <br />
-              Un solo pase.
+              un solo pase.
             </h1>
-
-            <p className="lead mt-8 max-w-[46ch] text-cyan-claro">
-              Antojos, Punto Fit, Alegría y los dos almuerzos del campus.
-              Consulta qué hay hoy, aparta lo tuyo y recógelo entre clases sin
-              hacer fila.
+            <p data-escalon="" className="mt-5 hidden max-w-[30em] text-lg leading-normal opacity-95 sm:block">
+              Aparta en Antojos, Punto Fit, Alegría y los dos almuerzos con tu
+              correo institucional. Eliges la hora, pasas y pagas en el
+              mostrador.
             </p>
-
-            <div className="mt-9 flex flex-wrap items-center gap-4">
-              <Boton href="/auth/ingresar" variante="ambar" tamano="lg">
-                Entrar con tu correo
-              </Boton>
-              <Boton href="#tiendas" variante="contorno" tamano="lg" className="border-white/40">
-                Ver el menú
+            <div data-escalon="" className="relative z-20 mt-[22px] flex flex-wrap gap-3 sm:mt-7">
+              <BuscadorProductos />
+              <Boton href="#tiendas" variante="oscuro" tamano="lg" className="hidden px-[26px] sm:inline-flex">
+                Ver las tiendas
               </Boton>
             </div>
-
-            <p className="mt-8 max-w-[44ch] font-cuerpo text-[0.875rem] leading-relaxed text-cyan-claro">
-              Se paga en el mostrador. La cuenta solo se pide para apartar;
-              mirar el menú es libre.
-            </p>
           </div>
-        </div>
+
+          <div data-escalon="" className="relative hidden min-w-0 flex-[1_1_380px] md:block">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={fotoHero.src}
+              alt={fotoHero.alt}
+              width={960}
+              height={1280}
+              fetchPriority="high"
+              className="foto-contenido h-[400px] w-full rounded-xl bg-oscuro object-cover"
+            />
+            <div className="absolute -left-4 bottom-7 flex items-center gap-3 rounded-[20px] bg-tarjeta px-[18px] py-3.5 text-tinta shadow-alta">
+              <span
+                aria-hidden="true"
+                className={`h-2.5 w-2.5 rounded-pill ${estado.abierta ? "bg-ok-punto" : "border-2 border-tenue"}`}
+              />
+              <div>
+                <p className="text-[0.9375rem] font-bold">{estado.abierta ? "Abierto ahora" : "Cerrado ahora"}</p>
+                <p className="mt-0.5 text-[0.8125rem] text-tenue">{franja}</p>
+              </div>
+            </div>
+          </div>
+        </Revelar>
       </section>
 
-      {/* Directorio: la señalética hecha navegación, solapada a la sábana */}
-      <div className="contenedor -mt-16 lg:-mt-20">
-        <div className="tarjeta mx-auto max-w-[46rem] overflow-hidden shadow-[0_28px_60px_-32px_var(--tk-sombra)]">
-          <div className="flex items-baseline justify-between gap-4 border-b border-linea px-5 py-4">
-            <span className="font-display text-[1.125rem] font-extrabold tracking-[-0.01em] text-superficie">
-              Directorio
-            </span>
-            <span className="rotulo text-tenue">5 puntos</span>
+      {/* ───────────── Elige tienda (se solapa con la sábana) ───────────── */}
+      <div className="contenedor relative -mt-8 md:-mt-16">
+        <Revelar
+          as="section"
+          id="tiendas"
+          aria-labelledby="h-tiendas"
+          className="-mx-[var(--tk-margen)] scroll-mt-6 rounded-t-lg bg-tarjeta px-5 pb-2 pt-[22px] md:mx-0 md:rounded-xl md:p-8 md:shadow-tarjeta"
+        >
+          <p className="flex flex-wrap items-center gap-x-2 text-[0.8125rem] text-tenue md:hidden">
+            <span
+              aria-hidden="true"
+              className={`h-2 w-2 rounded-pill ${estado.abierta ? "bg-ok-punto" : "border-2 border-tenue"}`}
+            />
+            <span className="font-semibold text-tinta">{estado.abierta ? "Abierto ahora" : "Cerrado ahora"}</span>
+            <span>· {franja}</span>
+          </p>
+
+          <div className="mt-[22px] flex flex-wrap items-baseline justify-between gap-2 md:mt-0">
+            <h2 id="h-tiendas" className="rotulo text-tenue md:font-display md:text-[length:var(--tk-titulo-seccion)] md:font-semibold md:normal-case md:leading-[1.1] md:tracking-normal md:text-tinta">
+              Elige tienda
+            </h2>
+            <p className="hidden text-[0.9375rem] text-tenue md:block">
+              Puedes mezclar tiendas en un mismo pedido.
+            </p>
           </div>
 
-          <ul className="divide-y divide-linea">
-            {TIENDAS.map((t, i) => {
-              const acento = clasesAcento(t.acento);
+          {/* Móvil: la fila de fichas del artefacto. */}
+          <ul className="mt-3 grid grid-cols-5 gap-2 md:hidden">
+            {TIENDAS.map((t) => {
+              const p = paletaTienda(t.slug);
               return (
-                <li key={t.slug}>
-                  <Link
-                    href={`/tiendas/${t.slug}`}
-                    className="group flex items-center gap-3 px-4 py-3.5 transition-colors duration-[var(--tk-dur)] hover:bg-tarjeta-alta"
-                  >
-                    <span className="rotulo cifra text-tenue">
-                      {String(i + 1).padStart(2, "0")}
-                    </span>
+                <li key={t.slug} data-escalon="">
+                  <Link href={`/tiendas/${t.slug}`} className="flex flex-col items-center gap-2 text-center">
                     <span
                       aria-hidden="true"
-                      className={`h-9 w-[5px] shrink-0 rounded-[var(--tk-radio-pill)] ${acento.punto}`}
-                    />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-display text-[1.0625rem] font-extrabold tracking-[-0.01em] text-superficie">
-                        {t.nombre}
-                      </span>
-                      <span className="mt-0.5 block truncate font-cuerpo text-[0.8125rem] text-tenue">
-                        {t.categoria}
-                      </span>
-                    </span>
-                    <span className="hidden shrink-0 text-right font-cuerpo text-[0.8125rem] leading-tight text-tenue sm:block">
-                      {formatoHora(t.horario.abre)}
-                      <br />
-                      {formatoHora(t.horario.cierra)}
-                    </span>
-                    <span
-                      aria-hidden="true"
-                      className="shrink-0 font-display text-[1.25rem] font-bold text-cyan-claro transition-transform duration-[var(--tk-dur)] group-hover:translate-x-1"
+                      className={`relative flex aspect-square w-full max-w-[62px] items-center justify-center rounded-[20px] ${p.suave} ${p.tinta}`}
                     >
-                      →
+                      <IconoTienda slug={t.slug} tamano={28} />
+                      <span className={`absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-pill border-2 border-tarjeta ${p.relleno}`} />
                     </span>
+                    <span className="text-xs font-semibold leading-tight">{t.nombre}</span>
                   </Link>
                 </li>
               );
             })}
           </ul>
-        </div>
+
+          {/* Desde md: tarjetas con foto. */}
+          <ul className="mt-6 hidden grid-cols-[repeat(auto-fit,minmax(190px,1fr))] gap-4 md:grid">
+            {TIENDAS.map((t) => (
+              <li key={t.slug}>
+                <TarjetaTienda tienda={t} />
+              </li>
+            ))}
+          </ul>
+
+          {/* Móvil: la promo «Aparta y recoge sin fila». */}
+          <div className="relative mt-6 h-[168px] overflow-hidden rounded-[22px] bg-oscuro md:hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={fotoPromo.src}
+              alt={fotoPromo.alt}
+              width={960}
+              height={1280}
+              loading="lazy"
+              className="foto-contenido h-full w-full object-cover object-[center_40%]"
+            />
+            <div aria-hidden="true" className="absolute inset-0 [background:var(--tk-velo-foto)]" />
+            <div className="absolute inset-y-[18px] left-[18px] right-[110px] flex flex-col justify-between text-blanco [--tk-foco:var(--tk-sobre-sabana)]">
+              <div>
+                <p className="font-display text-[1.375rem] font-semibold leading-[1.1]">Aparta y recoge sin fila</p>
+                <p className="mt-1.5 text-[0.8125rem] leading-snug opacity-90">
+                  Eliges la hora, pagas en el mostrador.
+                </p>
+              </div>
+              <a
+                href="#como"
+                className="inline-flex min-h-11 items-center self-start rounded-pill bg-blanco px-4 text-[0.8125rem] font-bold text-carnet-azul"
+              >
+                Así funciona
+              </a>
+            </div>
+          </div>
+        </Revelar>
       </div>
 
-      {/* ───────────────────────── El lugar ───────────────────────── */}
-      <section aria-labelledby="lugar" className="bg-tinta">
-        <div className="contenedor pt-16 lg:pt-20">
+      <div className="contenedor pb-16">
+        {/* ───────────── Lo más pedido ───────────── */}
+        <Revelar as="section" aria-labelledby="h-pedido" className="mt-[22px] md:mt-14">
           <div className="flex items-baseline justify-between gap-4">
-            <h2 id="lugar" className="font-display text-[1rem] font-extrabold uppercase tracking-[0.08em] text-superficie">
-              El lugar
+            <h2 id="h-pedido" className="titulo-seccion">
+              Lo más pedido
             </h2>
-            <Etiqueta tono="claro">Cafetería UTB</Etiqueta>
+            <Link
+              href="/tiendas/almuerzo-01"
+              className="inline-flex min-h-11 items-center text-sm font-semibold text-enlace md:text-[0.9375rem] md:font-bold"
+            >
+              Ver toda la carta
+            </Link>
           </div>
-          <div className="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-            {FOTOS_LUGAR.map((foto) => (
-              <div key={foto.src} className="relative overflow-hidden rounded-[var(--tk-radio)] bg-navy">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={foto.src}
-                  alt={foto.alt}
-                  width={480}
-                  height={640}
-                  loading="lazy"
-                  decoding="async"
-                  className="h-full w-full object-cover"
-                />
-              </div>
+          <ul className="fila-desliza -mx-[var(--tk-margen)] mt-2 flex gap-3 px-[var(--tk-margen)] scroll-px-[var(--tk-margen)] pb-1.5 md:mx-0 md:scroll-px-0 md:mt-5 md:grid md:grid-cols-[repeat(auto-fit,minmax(230px,1fr))] md:gap-4 md:overflow-visible md:px-0">
+            {destacados.map((p) => (
+              <ProductoCard
+                key={p.id}
+                producto={p}
+                disposicion="vertical"
+                mostrarTienda
+                className="w-[156px] shrink-0 md:w-auto"
+              />
             ))}
-          </div>
-        </div>
-      </section>
+          </ul>
+        </Revelar>
 
-      {/* ───────────────────────── Las tiendas ───────────────────────── */}
-      <section id="tiendas" aria-labelledby="tiendas-titulo" className="bg-tinta">
-        <div className="contenedor py-16 lg:py-24">
-          <div className="grid gap-6 lg:grid-cols-12 lg:items-end">
-            <div className="lg:col-span-7">
-              <Etiqueta tono="claro">Directorio completo</Etiqueta>
-              <h2 id="tiendas-titulo" className="titulo-seccion mt-3 text-superficie">
-                Lo que hay, tienda por tienda.
-              </h2>
-            </div>
-            <p className="cuerpo max-w-[52ch] text-tenue lg:col-span-5">
-              Cada punto tiene su propia carta, su horario y su encargado. Los
-              precios de la línea oriental están confirmados; los demás se
-              marcan como referencia mientras la tienda los define.
+        {/* ───────────── Cómo funciona ───────────── */}
+        <Revelar
+          as="section"
+          id="como"
+          aria-labelledby="h-como"
+          className="mt-[26px] flex scroll-mt-6 flex-wrap gap-3 md:mt-14 md:gap-8"
+        >
+          <div className="flex-[1_1_280px]">
+            <h2 id="h-como" className="titulo-seccion">
+              Cómo funciona
+            </h2>
+            <p className="mt-3 hidden leading-normal text-tenue md:block">
+              Tres pasos, sin fila y sin repetir el pedido.
             </p>
           </div>
-
-          <div className="mt-12 flex flex-col gap-6">
-            {TIENDAS.map((tienda, i) => (
-              <SeccionTienda key={tienda.slug} tienda={tienda} indice={i} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ───────────────────────── Cómo pedir ───────────────────────── */}
-      <section aria-labelledby="como-pedir" className="bg-navy py-16 lg:py-24">
-        <div className="contenedor">
-          <Etiqueta tono="claro">Cómo funciona</Etiqueta>
-          <h2 id="como-pedir" className="titulo-seccion mt-3 text-superficie">
-            Tres pasos y ya estás en el mostrador.
-          </h2>
-
-          <ol className="mt-12 grid gap-4 md:grid-cols-3">
+          <ol className="grid flex-[3_1_600px] gap-2.5 md:grid-cols-[repeat(auto-fit,minmax(200px,1fr))] md:gap-4">
             {PASOS.map((paso) => (
-              <li key={paso.n} className="tarjeta p-6">
-                <span className="rotulo cifra block text-ambar">{paso.n}</span>
-                <h3 className="mt-5 text-[1.375rem] text-superficie">
-                  {paso.titulo}
-                </h3>
-                <p className="cuerpo mt-3 text-tenue">{paso.texto}</p>
+              <li
+                key={paso.n}
+                data-escalon=""
+                className="flex items-start gap-3.5 rounded-md bg-suave p-3.5 md:block md:rounded-tarjeta md:border md:border-linea md:bg-tarjeta md:p-[22px]"
+              >
+                <span
+                  aria-hidden="true"
+                  className="cifra flex h-9 w-9 shrink-0 items-center justify-center rounded-xs bg-primario text-sm font-bold text-sobre-primario md:h-11 md:w-11 md:rounded-sm md:text-base"
+                >
+                  {paso.n}
+                </span>
+                <div>
+                  <h3 className="text-[0.9375rem] font-semibold md:mt-4 md:text-lg">
+                    <span className="sr-only">Paso {Number(paso.n)}: </span>
+                    {paso.titulo}
+                  </h3>
+                  <p className="mt-1 text-[0.8125rem] leading-snug text-tenue md:mt-1.5 md:text-[0.9375rem] md:leading-normal">
+                    {paso.texto}
+                  </p>
+                </div>
               </li>
             ))}
           </ol>
+        </Revelar>
+      </div>
 
-          <div className="mt-10">
-            <Boton href="/auth/crear-cuenta" variante="claro" tamano="lg">
-              Crear mi pase
-            </Boton>
-          </div>
-        </div>
-      </section>
-
-      {/* ───────────────────────── Tu pase ───────────────────────── */}
-      <section aria-labelledby="tu-pase" className="bg-tinta py-16 lg:py-24">
-        <div className="contenedor grid gap-12 lg:grid-cols-12">
-          <div className="lg:col-span-5">
-            <Etiqueta tono="claro">La cuenta</Etiqueta>
-            <h2 id="tu-pase" className="titulo-seccion mt-3 text-superficie">
-              Tu pase no es un usuario más.
+      {/* ───────────── La cuenta: banda oscura con el carnet ───────────── */}
+      <section
+        id="cuenta"
+        aria-labelledby="h-cuenta"
+        className="scroll-mt-6 border-y border-banda-borde bg-banda text-banda-tinta [--tk-foco:var(--tk-banda-acento)]"
+      >
+        <Revelar className="contenedor flex flex-wrap items-center gap-x-[72px] gap-y-14 py-14 md:py-[88px]">
+          <div className="min-w-0 flex-[1_1_420px]">
+            <p data-escalon="" className="text-[0.8125rem] font-bold uppercase tracking-[0.12em] text-banda-acento">
+              La cuenta
+            </p>
+            <h2
+              id="h-cuenta"
+              data-escalon=""
+              className="mt-3.5 font-display text-[clamp(2rem,1.2rem+3.2vw,3.25rem)] font-semibold leading-[1.04] tracking-[-0.015em]"
+            >
+              Tu pase no es
+              <br />
+              un usuario más.
             </h2>
-            <p className="cuerpo mt-5 max-w-[42ch] text-tenue">
+            <p data-escalon="" className="mt-[18px] max-w-[30em] text-[1.0625rem] leading-relaxed text-banda-tenue">
               Es la forma en que la cafetería sabe que lo tuyo ya está apartado
               y que vas a pasar por él. Sin fila, sin repetir el pedido y sin
               quedarte sin lo que querías.
             </p>
-
-            {/* La credencial, como en la app */}
-            <div className="credencial mt-8 max-w-[26rem] -rotate-[1.5deg] p-5">
-              <div className="flex items-start justify-between gap-3">
-                <span className="font-display text-[1.375rem] font-extrabold tracking-[-0.02em] text-deep">
-                  UTB
-                </span>
-                <span className="rotulo text-deep">Carnet digital</span>
-              </div>
-              <div className="mt-5 flex items-center gap-4">
-                <span className="flex h-14 w-14 items-center justify-center rounded-[var(--tk-radio-sm)] bg-deep font-display text-[1.25rem] font-extrabold text-superficie">
-                  MA
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate font-display text-[1.0625rem] font-extrabold text-deep">
-                    Marta Rodríguez
-                  </p>
-                  <p className="cifra mt-0.5 font-cuerpo text-[0.875rem] text-tinta/70">
-                    T00000001
-                  </p>
-                </div>
-              </div>
-              <div className="mt-5 flex items-center justify-between gap-3 border-t border-deep/15 pt-4">
-                <span className="rotulo rounded-[var(--tk-radio-pill)] bg-deep px-2.5 py-1 text-superficie">
-                  Estudiante
-                </span>
-                <span className="rotulo text-deep">Cafetería</span>
-              </div>
+            <div data-escalon="" className="mt-10 px-2 sm:px-0">
+              <Carnet nombre="Marta Rodríguez" codigo="T00000001" rol="Estudiante" />
+              <p className="sr-only">Ejemplo de carnet digital.</p>
             </div>
           </div>
 
-          <ul className="flex flex-col gap-3 lg:col-span-7">
+          <ol className="min-w-0 flex-[1_1_480px] border-t border-banda-linea">
             {BENEFICIOS.map((b, i) => (
-              <li key={b.titulo} className="tarjeta flex gap-4 p-5">
-                <span className="rotulo cifra pt-1 text-tenue">
-                  {String(i + 1).padStart(2, "0")}
+              <li key={b.titulo} data-escalon="" className="flex items-start gap-4 border-b border-banda-linea py-[22px] sm:gap-5">
+                <span
+                  aria-hidden="true"
+                  className="flex h-12 w-12 shrink-0 items-center justify-center rounded-sm border border-[color:var(--tk-banda-acento-borde)] bg-[color:var(--tk-banda-acento-fondo)] text-banda-acento"
+                >
+                  <Icono nombre={b.icono} tamano={22} grosor={1.9} />
                 </span>
-                <div>
-                  <h3 className="font-display text-[1.125rem] font-bold tracking-[-0.01em] text-superficie">
-                    {b.titulo}
+                <div className="min-w-0 flex-1">
+                  <h3 className="flex items-baseline gap-2.5">
+                    <span className="cifra font-mono text-xs font-semibold text-banda-tenue">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-lg font-semibold">{b.titulo}</span>
                   </h3>
-                  <p className="cuerpo mt-1 text-tenue">{b.texto}</p>
+                  <p className="mt-1.5 text-[0.9375rem] leading-relaxed text-banda-tenue">{b.texto}</p>
                 </div>
               </li>
             ))}
-          </ul>
-        </div>
+          </ol>
+        </Revelar>
       </section>
 
-      {/* ───────────────────────── FAQ ───────────────────────── */}
-      <section aria-labelledby="preguntas" className="bg-navy py-16 lg:py-24">
-        <div className="contenedor grid gap-10 lg:grid-cols-12">
-          <div className="lg:col-span-4">
-            <Etiqueta tono="claro">Preguntas</Etiqueta>
-            <h2 id="preguntas" className="titulo-seccion mt-3 text-superficie">
-              Lo que suelen preguntar.
-            </h2>
-          </div>
-
-          <div className="flex flex-col gap-3 lg:col-span-8">
+      {/* ───────────── Preguntas ───────────── */}
+      <div className="contenedor pb-16 pt-14 md:pt-[72px]">
+        <Revelar as="section" id="preguntas" aria-labelledby="h-faq" className="flex scroll-mt-6 flex-wrap gap-6 md:gap-8">
+          <h2 id="h-faq" className="titulo-seccion flex-[1_1_280px]">
+            Preguntas
+          </h2>
+          <div className="flex min-w-0 flex-[3_1_600px] flex-col gap-2.5">
             {PREGUNTAS.map((p) => (
-              <details key={p.pregunta} className="tarjeta group p-5">
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-6 font-display text-[1.125rem] font-bold tracking-[-0.01em] text-superficie marker:hidden">
+              <details key={p.pregunta} data-escalon="" className="group rounded-md border border-linea bg-tarjeta">
+                <summary className="flex min-h-14 list-none items-center justify-between gap-4 px-5 py-4 text-base font-semibold sm:px-[22px] sm:text-[1.0625rem] [&::-webkit-details-marker]:hidden">
                   {p.pregunta}
                   <span
                     aria-hidden="true"
-                    className="mt-1 shrink-0 text-[1.25rem] leading-none text-cyan transition-transform duration-[var(--tk-dur)] group-open:rotate-45"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-pill bg-suave text-enlace transition-transform duration-[var(--tk-dur-media)] ease-[var(--tk-ease)] group-open:rotate-45"
                   >
-                    +
+                    <Icono nombre="mas" tamano={16} grosor={2.4} />
                   </span>
                 </summary>
-                <p className="cuerpo mt-3 max-w-[62ch] text-tenue">
+                <p className="max-w-[62ch] px-5 pb-[18px] text-[0.9375rem] leading-relaxed text-tenue sm:px-[22px]">
                   {p.respuesta}
                 </p>
               </details>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* ───────────────────────── Cierre ───────────────────────── */}
-      <section className="sabana">
-        <div className="contenedor flex flex-col items-start gap-8 py-16 lg:flex-row lg:items-center lg:justify-between lg:py-20">
-          <div>
-            <h2 className="text-[clamp(2rem,1.4rem+3vw,3.5rem)] text-superficie">
-              ¿Almorzamos?
-            </h2>
-            <p className="lead mt-3 max-w-[40ch] text-cyan-claro">
-              Entra con tu correo institucional y aparta lo tuyo en menos de un
-              minuto.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-4">
-            <Boton href="/auth/ingresar" variante="ambar" tamano="lg">
-              Entrar
-            </Boton>
-            <Boton
-              href="/auth/crear-cuenta"
-              variante="contorno"
-              tamano="lg"
-              className="border-white/40"
-            >
-              Crear cuenta
-            </Boton>
-          </div>
-        </div>
-      </section>
+        </Revelar>
+      </div>
     </>
-  );
-}
-
-/** Una tienda como tarjeta con barra de acento + ficha. */
-function SeccionTienda({ tienda, indice }: { tienda: Tienda; indice: number }) {
-  const acento = clasesAcento(tienda.acento);
-  const productos = productosDe(tienda.slug);
-  const desde = productos.length
-    ? Math.min(...productos.map((p) => p.precioCentavos))
-    : null;
-
-  return (
-    <article
-      aria-labelledby={`tienda-${tienda.slug}`}
-      className={`tarjeta grid overflow-hidden border-l-4 lg:grid-cols-12 ${acento.borde}`}
-    >
-      <div className="p-6 lg:col-span-5 lg:p-7">
-        <div className="flex items-center gap-3">
-          <span className="rotulo cifra text-tenue">
-            {String(indice + 1).padStart(2, "0")}
-          </span>
-          <span className="rotulo rounded-[var(--tk-radio-pill)] bg-tarjeta-alta px-2.5 py-1 text-cyan-claro">
-            {tienda.categoria}
-          </span>
-        </div>
-
-        <h3
-          id={`tienda-${tienda.slug}`}
-          className={`mt-4 font-extrabold tracking-[-0.02em] text-superficie ${clasesTratamiento(
-            tienda.tratamiento,
-            "grande",
-          )}`}
-        >
-          {tienda.nombre}
-        </h3>
-
-        <p className="mt-3 font-cuerpo text-[1.0625rem] leading-snug text-cyan-claro">
-          {tienda.tagline}
-        </p>
-        <p className="cuerpo mt-4 max-w-[46ch] text-tenue">
-          {tienda.descripcion}
-        </p>
-
-        <ul className="mt-6 flex flex-col gap-2">
-          {tienda.destacados.map((d) => (
-            <li key={d} className="flex items-start gap-3 font-cuerpo text-[0.9375rem] text-superficie">
-              <span
-                aria-hidden="true"
-                className={`mt-[0.55rem] h-[6px] w-[6px] shrink-0 rounded-[var(--tk-radio-pill)] ${acento.punto}`}
-              />
-              {d}
-            </li>
-          ))}
-        </ul>
-
-        <div className="mt-7 flex flex-wrap items-center gap-4">
-          <Boton href={`/tiendas/${tienda.slug}`} variante="contorno">
-            Ver la carta
-          </Boton>
-          <p className="font-cuerpo text-[0.8125rem] leading-relaxed text-tenue">
-            {desde !== null ? `${productos.length} productos · desde ${formatoPrecio(desde)}` : "Carta en preparación"}
-          </p>
-        </div>
-
-        {tienda.nota ? (
-          <p className="mt-4 font-cuerpo text-[0.8125rem] leading-relaxed text-tenue">
-            {tienda.nota}
-          </p>
-        ) : null}
-      </div>
-
-      <div className="p-3 lg:col-span-7 lg:p-4">
-        <CampoFoto
-          acento={tienda.acento}
-          slug={tienda.slug}
-          nombre={tienda.nombre}
-        />
-      </div>
-    </article>
   );
 }

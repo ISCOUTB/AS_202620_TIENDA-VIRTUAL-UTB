@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Campo } from "@/components/ui/Campo";
 import { Boton } from "@/components/ui/Boton";
-import { Etiqueta } from "@/components/ui/Etiqueta";
+import { Icono } from "@/components/ui/Icono";
+import { Revelar } from "@/components/motion/Revelar";
 import { crearCuenta } from "@/lib/sesion";
 import { Aviso } from "./FormIngreso";
 
@@ -57,25 +58,28 @@ export function FormRegistro() {
   }
 
   return (
-    <div className="tarjeta p-7 sm:p-9">
-      <Etiqueta>Nuevo pase</Etiqueta>
-      <h1 className="mt-3 font-display text-[2rem] font-extrabold leading-[1.02] tracking-[-0.02em] text-superficie">
-        Crea tu pase
-      </h1>
-      <p className="mt-3 font-cuerpo text-[0.9375rem] leading-relaxed text-tenue">
+    <Revelar inmediato className="rounded-xl bg-tarjeta p-6 shadow-tarjeta sm:p-8">
+      <p className="rotulo text-tenue">Nuevo pase</p>
+      <h1 className="mt-2 font-display text-[2rem] font-semibold leading-tight">Crea tu pase</h1>
+      <p className="mt-2 text-[0.9375rem] leading-relaxed text-tenue">
         Con tu correo institucional. Toma menos que pedir un café.
       </p>
 
-      <ul className="mt-5 flex flex-col gap-1.5">
+      <ul className="mt-5 flex flex-col gap-2">
         {BENEFICIOS.map((b) => (
-          <li key={b} className="flex items-start gap-2 font-cuerpo text-[0.875rem] text-superficie">
-            <span aria-hidden="true" className="mt-[0.5rem] h-[5px] w-[5px] shrink-0 rounded-[var(--tk-radio-pill)] bg-ambar" />
+          <li key={b} className="flex items-start gap-2.5 text-sm">
+            <span
+              aria-hidden="true"
+              className="mt-px flex h-5 w-5 shrink-0 items-center justify-center rounded-pill bg-primario-suave text-enlace"
+            >
+              <Icono nombre="check" tamano={13} grosor={2.8} />
+            </span>
             {b}
           </li>
         ))}
       </ul>
 
-      <form onSubmit={enviar} className="mt-7 flex flex-col gap-6" noValidate>
+      <form onSubmit={enviar} className="mt-7 flex flex-col gap-5" noValidate>
         <Campo
           etiqueta="Nombre completo"
           value={nombre}
@@ -113,15 +117,15 @@ export function FormRegistro() {
             type="checkbox"
             checked={acepta}
             onChange={(e) => setAcepta(e.target.checked)}
-            className="mt-1 h-4 w-4 shrink-0 accent-[var(--tk-cyan)]"
+            className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--tk-primario)]"
           />
-          <label htmlFor="acepta" className="font-cuerpo text-[0.875rem] leading-snug text-tenue">
+          <label htmlFor="acepta" className="text-sm leading-snug text-tenue">
             Acepto los{" "}
-            <Link href="/terminos" className="text-cyan-claro underline underline-offset-4">
+            <Link href="/terminos" className="font-semibold text-enlace underline underline-offset-4">
               términos de uso
             </Link>{" "}
             y la{" "}
-            <Link href="/privacidad" className="text-cyan-claro underline underline-offset-4">
+            <Link href="/privacidad" className="font-semibold text-enlace underline underline-offset-4">
               política de privacidad
             </Link>
             .
@@ -130,20 +134,17 @@ export function FormRegistro() {
 
         {error ? <Aviso>{error}</Aviso> : null}
 
-        <Boton type="submit" variante="solido" tamano="lg" bloque disabled={enviando}>
+        <Boton type="submit" variante="primario" tamano="lg" bloque disabled={enviando}>
           {enviando ? "Creando…" : "Crear mi pase"}
         </Boton>
       </form>
 
-      <p className="mt-6 font-cuerpo text-[0.9375rem] text-tenue">
+      <p className="mt-6 text-[0.9375rem] text-tenue">
         ¿Ya tienes cuenta?{" "}
-        <Link
-          href="/auth/ingresar"
-          className="font-semibold text-cyan-claro underline underline-offset-4"
-        >
+        <Link href="/auth/ingresar" className="font-bold text-enlace underline underline-offset-4">
           Entrar
         </Link>
       </p>
-    </div>
+    </Revelar>
   );
 }

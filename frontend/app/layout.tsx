@@ -1,31 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Archivo, Literata } from "next/font/google";
+import { DM_Sans, Fraunces } from "next/font/google";
 import "./globals.css";
 import { SITIO_URL, NOMBRE_SITIO, DESCRIPCION_SITIO } from "@/lib/seo";
 import { colorDeToken } from "@/lib/tokens";
+import { SCRIPT_TEMA_INICIAL } from "@/lib/tema-inicial";
 
 /*
- * Una familia para la interfaz y una serif solo para la prosa legal
- * (design/SPEC.md v3 §2.3):
- * - Archivo variable (peso 100–900 + eje de ancho 62–125) para display, UI y
- *   los cuatro tratamientos de tienda.
- * - Literata variable, usada únicamente dentro de `.prosa` (/terminos,
- *   /privacidad).
+ * Dos familias (design/SPEC.md v4 §2.3):
+ * - DM Sans variable para la interfaz, el cuerpo y las cifras.
+ * - Fraunces variable para títulos: hero, secciones, nombres de tienda.
  * El subset `latin` cubre á é í ó ú ñ ü ¿ ¡.
  */
-const archivo = Archivo({
+const dmSans = DM_Sans({
   subsets: ["latin"],
-  axes: ["wdth"],
-  weight: "variable",
   display: "swap",
-  variable: "--font-archivo",
+  variable: "--font-dm-sans",
 });
 
-const literata = Literata({
+const fraunces = Fraunces({
   subsets: ["latin"],
-  weight: "variable",
   display: "swap",
-  variable: "--font-literata",
+  variable: "--font-fraunces",
 });
 
 export const metadata: Metadata = {
@@ -52,17 +47,30 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: colorDeToken("tinta"),
+  // La barra del navegador toma el azul de la sábana, que abre cada página.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: colorDeToken("p-sabana-1") },
+    { media: "(prefers-color-scheme: dark)", color: colorDeToken("p-sabana-noche-2") },
+  ],
   width: "device-width",
   initialScale: 1,
-  colorScheme: "dark",
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="es-CO" className={`${archivo.variable} ${literata.variable}`}>
+    // `data-theme` y `data-motion` los pone el script de abajo antes del
+    // primer pintado; React no los conoce, de ahí suppressHydrationWarning.
+    <html
+      lang="es-CO"
+      className={`${dmSans.variable} ${fraunces.variable}`}
+      suppressHydrationWarning
+    >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA_INICIAL }} />
+      </head>
       <body>{children}</body>
     </html>
   );

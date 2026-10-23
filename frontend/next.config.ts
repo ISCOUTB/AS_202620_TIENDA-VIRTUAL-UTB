@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
 
   output: "standalone",
 
-  // Sin esto Next infiere la raíz del workspace desde un package-lock ajeno y
+  // Sin esto Next infiere la raíz del workspace desde un lockfile ajeno y
   // el árbol de `.next/standalone` sale con una profundidad inesperada, que
   // rompe el COPY del Dockerfile.
   outputFileTracingRoot: path.resolve(process.cwd()),

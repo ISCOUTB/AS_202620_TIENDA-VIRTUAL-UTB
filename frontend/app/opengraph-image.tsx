@@ -16,15 +16,15 @@ export const contentType = "image/png";
  * como círculos (satori no soporta `repeating-radial-gradient`) y texto blanco.
  */
 export default function OpengraphImage() {
-  const sabana1 = colorDeToken("sabana-1", "darkblue");
-  const sabana2 = colorDeToken("sabana-2", "royalblue");
-  const ambar = colorDeToken("ambar", "gold");
-  const cyanClaro = colorDeToken("cyan-claro", "lightblue");
-  const superficie = colorDeToken("superficie", "white");
+  const sabana1 = colorDeToken("p-sabana-1", "darkblue");
+  const sabana2 = colorDeToken("p-sabana-2", "royalblue");
+  const ambar = colorDeToken("t-antojos", "gold");
+  const cyanClaro = colorDeToken("t-alm1-suave", "lightblue");
+  const superficie = colorDeToken("p-blanco", "white");
   // Los dos materiales translúcidos de la sábana viven en tokens.css; se leen
   // aquí para no repetir un color literal en este archivo.
-  const arco = colorDeToken("arco", "transparent");
-  const halo = colorDeToken("halo", "transparent");
+  const arco = colorDeToken("sabana-borde", "transparent");
+  const halo = colorDeToken("sabana-vidrio", "transparent");
 
   return new ImageResponse(
     (
@@ -37,7 +37,7 @@ export default function OpengraphImage() {
           justifyContent: "space-between",
           position: "relative",
           overflow: "hidden",
-          background: `linear-gradient(158deg, ${sabana1} 0%, ${sabana2} 100%)`,
+          background: `linear-gradient(165deg, ${sabana1} 0%, ${sabana2} 100%)`,
           padding: "64px 72px",
           fontFamily: "sans-serif",
         }}
@@ -75,7 +75,7 @@ export default function OpengraphImage() {
               textTransform: "uppercase",
             }}
           >
-            Cafetería UTB · Campus Cartagena
+            Cafetería La Placita · Campus UTB
           </div>
         </div>
 
@@ -84,23 +84,23 @@ export default function OpengraphImage() {
             style={{
               color: superficie,
               fontSize: 92,
-              fontWeight: 800,
+              fontWeight: 700,
               lineHeight: 0.92,
               letterSpacing: -4,
             }}
           >
-            Cinco puntos.
+            Cinco tiendas,
           </div>
           <div
             style={{
               color: superficie,
               fontSize: 92,
-              fontWeight: 800,
+              fontWeight: 700,
               lineHeight: 0.92,
               letterSpacing: -4,
             }}
           >
-            Un solo pase.
+            un solo pase.
           </div>
           <div
             style={{

@@ -6,57 +6,120 @@
  * `bg-tarjeta`, `text-tenue`, `font-display`…
  *
  * `inline` hace que las utilidades resuelvan la variable en tiempo de página
- * en vez de copiar su valor, de modo que tokens.css sigue siendo la única
- * fuente de verdad y `npm run check:tokens` sigue teniendo sentido.
+ * en vez de copiar su valor: así un solo `data-theme` en <html> cambia todo
+ * el sitio y tokens.css sigue siendo la única fuente de verdad.
  */
 @theme inline {
-  --color-tinta: var(--tk-tinta);
-  --color-navy: var(--tk-navy);
+  --color-fondo: var(--tk-fondo);
   --color-tarjeta: var(--tk-tarjeta);
-  --color-tarjeta-alta: var(--tk-tarjeta-alta);
-  --color-deep: var(--tk-deep);
-  --color-sabana-1: var(--tk-sabana-1);
-  --color-sabana-2: var(--tk-sabana-2);
-  --color-azure: var(--tk-azure);
-  --color-cyan: var(--tk-cyan);
-  --color-cyan-claro: var(--tk-cyan-claro);
-  --color-cyan-palido: var(--tk-cyan-palido);
-  --color-ambar: var(--tk-ambar);
-  --color-amarillo: var(--tk-amarillo);
-  --color-superficie: var(--tk-superficie);
+  --color-suave: var(--tk-suave);
+  --color-suave-2: var(--tk-suave-2);
+  --color-tinta: var(--tk-tinta);
   --color-tenue: var(--tk-tenue);
   --color-linea: var(--tk-linea);
   --color-borde: var(--tk-borde);
-  --color-ok: var(--tk-ok);
+  --color-enlace: var(--tk-enlace);
+  --color-primario: var(--tk-primario);
+  --color-primario-hover: var(--tk-primario-hover);
+  --color-sobre-primario: var(--tk-sobre-primario);
+  --color-primario-suave: var(--tk-primario-suave);
+  --color-oscuro: var(--tk-oscuro);
   --color-aviso: var(--tk-aviso);
+  --color-aviso-suave: var(--tk-aviso-suave);
   --color-error: var(--tk-error);
+  --color-error-suave: var(--tk-error-suave);
+  --color-ok: var(--tk-ok);
+  --color-ok-suave: var(--tk-ok-suave);
+  --color-ok-punto: var(--tk-ok-punto);
+  --color-velo: var(--tk-velo);
+  --color-blanco: var(--tk-p-blanco);
+  --color-negro: var(--tk-p-negro);
+  --color-sobre-sabana: var(--tk-sobre-sabana);
+  --color-sabana-vidrio: var(--tk-sabana-vidrio);
+  --color-sabana-borde: var(--tk-sabana-borde);
+  --color-banda: var(--tk-banda);
+  --color-banda-borde: var(--tk-banda-borde);
+  --color-banda-tinta: var(--tk-banda-tinta);
+  --color-banda-tenue: var(--tk-banda-tenue);
+  --color-banda-linea: var(--tk-banda-linea);
+  --color-banda-acento: var(--tk-banda-acento);
+  --color-carnet: var(--tk-carnet);
+  --color-carnet-tinta: var(--tk-carnet-tinta);
+  --color-carnet-tenue: var(--tk-carnet-tenue);
+  --color-carnet-linea: var(--tk-carnet-linea);
+  --color-carnet-azul: var(--tk-carnet-azul);
+  --color-carnet-azul-suave: var(--tk-carnet-azul-suave);
 
-  --font-display: var(--tk-font-display);
+  /* Acentos de tienda */
+  --color-antojos: var(--tk-t-antojos);
+  --color-antojos-sobre: var(--tk-t-antojos-sobre);
+  --color-antojos-suave: var(--tk-t-antojos-suave);
+  --color-antojos-tinta: var(--tk-t-antojos-tinta);
+  --color-fit: var(--tk-t-fit);
+  --color-fit-sobre: var(--tk-t-fit-sobre);
+  --color-fit-suave: var(--tk-t-fit-suave);
+  --color-fit-tinta: var(--tk-t-fit-tinta);
+  --color-alegria: var(--tk-t-alegria);
+  --color-alegria-sobre: var(--tk-t-alegria-sobre);
+  --color-alegria-suave: var(--tk-t-alegria-suave);
+  --color-alegria-tinta: var(--tk-t-alegria-tinta);
+  --color-alm1: var(--tk-t-alm1);
+  --color-alm1-sobre: var(--tk-t-alm1-sobre);
+  --color-alm1-suave: var(--tk-t-alm1-suave);
+  --color-alm1-tinta: var(--tk-t-alm1-tinta);
+  --color-alm2: var(--tk-t-alm2);
+  --color-alm2-sobre: var(--tk-t-alm2-sobre);
+  --color-alm2-suave: var(--tk-t-alm2-suave);
+  --color-alm2-tinta: var(--tk-t-alm2-tinta);
+  --color-alm2-punto: var(--tk-t-alm2-punto);
+
+  /* Alias del modelo de tres acentos (lib/tiendas.ts → clasesAcento) */
+  --color-ambar: var(--tk-t-antojos);
+  --color-cyan: var(--tk-t-alm1);
+  --color-azure: var(--tk-primario);
+
   --font-texto: var(--tk-font-texto);
-  --font-cuerpo: var(--tk-font-cuerpo);
+  --font-display: var(--tk-font-display);
+  --font-mono: var(--tk-font-mono);
+
+  --radius-xs: var(--tk-radio-xs);
+  --radius-sm: var(--tk-radio-sm);
+  --radius-md: var(--tk-radio-md);
+  --radius-tarjeta: var(--tk-radio);
+  --radius-lg: var(--tk-radio-lg);
+  --radius-xl: var(--tk-radio-xl);
+  --radius-pill: var(--tk-radio-pill);
+
+  --shadow-tarjeta: var(--tk-sombra);
+  --shadow-alta: var(--tk-sombra-alta);
+  --shadow-pestana: var(--tk-sombra-pestana);
+  --shadow-primaria: var(--tk-sombra-primaria);
+  --shadow-hoja: var(--tk-sombra-hoja);
+  --shadow-carnet: var(--tk-sombra-carnet);
 }
 
 /*
  * IMPORTANTE: todo lo de este archivo va dentro de `@layer`.
- *
- * Las hojas de Tailwind v4 viven en capas (`base`, `components`,
- * `utilities`) y en CSS una regla sin capa gana a cualquier capa. Sin estos
- * `@layer`, el `button { color: inherit }` de aquí pisaba `text-superficie`
- * y el texto del botón sólido quedaba azul sobre azul.
+ * Las hojas de Tailwind v4 viven en capas y una regla sin capa gana a
+ * cualquier capa: sin `@layer`, un `button { color: inherit }` pisaría
+ * `text-sobre-primario`.
  */
 @layer base {
   html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    background: var(--tk-fondo);
   }
 
   body {
     margin: 0;
-    background: var(--tk-tinta);
-    color: var(--tk-superficie);
+    min-width: 320px;
+    overflow-x: hidden;
+    background: var(--tk-fondo);
+    color: var(--tk-tinta);
     font-family: var(--tk-font-texto);
     font-size: var(--tk-texto-base);
-    font-variant-numeric: tabular-nums;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
@@ -66,10 +129,8 @@
   h3,
   h4 {
     margin: 0;
-    font-family: var(--tk-font-display);
-    font-weight: 800;
-    line-height: 1.02;
-    letter-spacing: -0.02em;
+    font-weight: 600;
+    line-height: 1.15;
     text-wrap: balance;
   }
 
@@ -91,64 +152,66 @@
     color: inherit;
   }
 
+  button:not(:disabled),
+  summary {
+    cursor: pointer;
+  }
+
   img,
   svg {
     display: block;
     max-width: 100%;
   }
 
-  /* El foco es visible SIEMPRE, en amarillo de marca sobre cualquier fondo. */
+  ::placeholder {
+    color: var(--tk-tenue);
+    opacity: 1;
+  }
+
+  /* Foco visible SIEMPRE. Sobre la sábana azul el token cambia a blanco. */
   :focus-visible {
-    outline: 3px solid var(--tk-amarillo);
+    outline: 3px solid var(--tk-foco);
     outline-offset: 2px;
+  }
+
+  /* Icono de sol/luna: el estado lo da `data-theme`, no React, así el botón
+     nunca muestra el ícono equivocado durante la hidratación. */
+  :root[data-theme="dark"] .solo-claro,
+  :root:not([data-theme="dark"]) .solo-oscuro {
+    display: none;
   }
 }
 
 @layer components {
-  /* ── La sábana: cabecera azul con arcos concéntricos y halo ──
-     Es la firma de la app. Se repite como cabecera de página y como
-     encabezado de bloque destacado. Esquinas inferiores redondeadas. */
+  /* ── La sábana: degradado de marca con brillo cian en la esquina ── */
   .sabana {
+    --tk-foco: var(--tk-sobre-sabana);
     position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    background-color: var(--tk-sabana-1);
-    background-image: linear-gradient(
-      158deg,
-      var(--tk-sabana-1) 0%,
-      var(--tk-sabana-2) 100%
-    );
-    border-bottom-left-radius: var(--tk-radio-sabana);
-    border-bottom-right-radius: var(--tk-radio-sabana);
-    color: var(--tk-superficie);
+    background: var(--tk-sabana);
+    color: var(--tk-sobre-sabana);
   }
 
-  /* Los arcos concéntricos, centrados fuera del borde superior derecho. */
-  .sabana::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background-image: repeating-radial-gradient(
-      circle at 84% -20%,
-      transparent 0 46px,
-      var(--tk-arco) 46px 47px
-    );
+  /* Espacio superior para la barra de navegación que flota sobre la sábana. */
+  .bajo-nav {
+    padding-top: var(--tk-alto-nav);
   }
 
-  /* El halo suave, abajo a la izquierda. */
-  .sabana::after {
-    content: "";
-    position: absolute;
-    left: -12%;
-    bottom: -60%;
-    z-index: -1;
-    pointer-events: none;
-    width: 62%;
-    aspect-ratio: 1;
+  /* Botón redondo translúcido sobre la sábana (tema, volver, menú). */
+  .boton-vidrio {
+    display: inline-flex;
+    height: 44px;
+    width: 44px;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
     border-radius: var(--tk-radio-pill);
-    background: radial-gradient(circle, var(--tk-halo), transparent 68%);
+    border: 1px solid var(--tk-sabana-borde);
+    background: var(--tk-sabana-vidrio);
+    color: var(--tk-sobre-sabana);
+    transition: background-color var(--tk-dur) var(--tk-ease);
+  }
+  .boton-vidrio:hover {
+    background: var(--tk-sabana-vidrio-alto);
   }
 
   /* ── Superficies ── */
@@ -158,122 +221,115 @@
     background: var(--tk-tarjeta);
   }
 
-  .tarjeta-alta {
-    border: 1px solid var(--tk-linea);
-    border-radius: var(--tk-radio);
-    background: var(--tk-tarjeta-alta);
+  /* Tarjeta que se levanta al pasar el cursor (solo transform y sombra). */
+  .levanta {
+    transition:
+      transform var(--tk-dur-media) var(--tk-ease),
+      box-shadow var(--tk-dur-media) var(--tk-ease);
+  }
+  @media (hover: hover) {
+    .levanta:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--tk-sombra);
+    }
   }
 
-  /* Control pill: fondo elevado, sin borde, radio completo. */
-  .pill {
-    border-radius: var(--tk-radio-pill);
-    background: var(--tk-tarjeta-alta);
-  }
-
-  /* El degradado de la sábana, suelto, para acciones primarias. */
-  .gradiente-marca {
-    background-image: linear-gradient(
+  /* Marcador de foto: rayado sutil sobre el campo suave de cada tienda,
+     mientras el producto no tenga foto asignada. */
+  .marcador {
+    background-image: repeating-linear-gradient(
       135deg,
-      var(--tk-sabana-1) 0%,
-      var(--tk-sabana-2) 100%
+      var(--tk-raya) 0 10px,
+      transparent 10px 20px
     );
   }
 
-  /* Los arcos concéntricos, sueltos, para superponer en cualquier campo. */
-  .arcos {
-    background-image: repeating-radial-gradient(
-      circle at 84% -20%,
-      transparent 0 46px,
-      var(--tk-arco) 46px 47px
-    );
+  /* Fila con desplazamiento horizontal propio (no desborda la página). */
+  .fila-desliza {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
   }
-
-  /* Píldora de estado tintada: el color entra con `currentColor`. */
-  .pildora {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.375rem;
-    border-radius: var(--tk-radio-pill);
-    background: color-mix(in srgb, currentColor 16%, transparent);
-    padding: 0.25rem 0.625rem;
+  .fila-desliza::-webkit-scrollbar {
+    display: none;
   }
-
-  /* Barra de acento al borde izquierdo: marca la fila o tarjeta activa. */
-  .acento-izq {
-    border-left: 4px solid currentColor;
+  .fila-desliza > * {
+    scroll-snap-align: start;
   }
-
-  /* ── La credencial: el carnet de la app, claro y ligeramente inclinado ── */
-  .credencial {
-    position: relative;
-    border-radius: var(--tk-radio-sm);
-    background-image: linear-gradient(
-      150deg,
-      var(--tk-cyan-palido) 0%,
-      var(--tk-superficie) 74%
-    );
-    color: var(--tk-tinta);
-    box-shadow: 0 24px 46px -26px var(--tk-sombra);
-  }
-
-  /* Regla decorativa de 1 px con paso de tono. */
-  .regla {
-    border: 0;
-    border-top: 1px solid;
-    border-color: color-mix(in srgb, currentColor 22%, transparent);
-  }
-
-  /* ── Utilidades de composición ── */
 
   .contenedor {
     width: 100%;
-    max-width: 1440px;
+    max-width: var(--tk-ancho);
     margin-inline: auto;
     padding-inline: var(--tk-margen);
   }
 
-  .titulo-seccion {
-    font-size: var(--tk-titulo-seccion);
-  }
-
-  /* Tailwind no puede inferir una longitud dentro de `text-[var(--x)]`: la
-     interpreta como color. Estas dos clases son la forma explícita. */
+  /* ── Tipografía ── */
   .display {
+    font-family: var(--tk-font-display);
     font-size: var(--tk-display);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.015em;
   }
 
   .titulo {
+    font-family: var(--tk-font-display);
     font-size: var(--tk-titulo);
+    font-weight: 600;
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+  }
+
+  .titulo-seccion {
+    font-family: var(--tk-font-display);
+    font-size: var(--tk-titulo-seccion);
+    font-weight: 600;
+    line-height: 1.1;
   }
 
   .lead {
     font-size: var(--tk-texto-lead);
     line-height: 1.5;
-    font-weight: 400;
-  }
-
-  .cuerpo {
-    font-size: var(--tk-texto-base);
-    line-height: 1.6;
   }
 
   .rotulo {
-    font-family: var(--tk-font-display);
     font-size: var(--tk-texto-chico);
     font-weight: 600;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.06em;
     text-transform: uppercase;
-    line-height: 1;
+    line-height: 1.2;
   }
 
   .cifra {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1;
+  }
+
+  /* ── Esqueletos de carga: tokens del tema + brillo que se desliza ── */
+  .esqueleto {
+    position: relative;
+    overflow: hidden;
+    display: block;
+    background: var(--tk-esqueleto);
+    border-radius: var(--tk-radio-xs);
+  }
+  .esqueleto::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--tk-esqueleto-brillo) 50%,
+      transparent 100%
+    );
+    animation: esqueleto-brillo 1.4s ease-in-out infinite;
   }
 
   /* ── Prosa legal: un ritmo de lectura único para /terminos y /privacidad ── */
   .prosa {
-    font-family: var(--tk-font-cuerpo);
     font-size: 1.0625rem;
     line-height: 1.75;
     color: var(--tk-tenue);
@@ -285,22 +341,20 @@
     margin-top: 2.75rem;
     font-family: var(--tk-font-display);
     font-size: 1.5rem;
-    font-weight: 800;
-    letter-spacing: -0.01em;
-    line-height: 1.15;
-    color: var(--tk-superficie);
+    font-weight: 600;
+    line-height: 1.2;
+    color: var(--tk-tinta);
   }
   .prosa h3 {
     margin-top: 2rem;
-    font-family: var(--tk-font-display);
     font-size: 1.125rem;
-    font-weight: 700;
-    color: var(--tk-superficie);
+    font-weight: 600;
+    color: var(--tk-tinta);
     line-height: 1.3;
   }
   .prosa strong {
     font-weight: 600;
-    color: var(--tk-superficie);
+    color: var(--tk-tinta);
   }
   .prosa ul {
     margin-top: 0.75rem;
@@ -318,19 +372,83 @@
     left: 0;
     top: 0.72em;
     width: 6px;
-    height: 2px;
+    height: 6px;
     border-radius: var(--tk-radio-pill);
-    background: var(--tk-cyan);
+    background: var(--tk-primario);
   }
   .prosa a {
-    color: var(--tk-cyan-claro);
+    color: var(--tk-enlace);
     text-decoration: underline;
     text-underline-offset: 3px;
   }
 }
 
-/* ── Movimiento: solo transform/opacity, y se apaga si el usuario lo pide ── */
+@keyframes esqueleto-brillo {
+  to {
+    transform: translateX(100%);
+  }
+}
 
+/*
+ * ── Entrada de secciones (GSAP, components/motion/Revelar.tsx) ──
+ *
+ * El script en línea de app/layout.tsx pone `data-motion="si"` en <html>
+ * cuando el usuario NO pide movimiento reducido. Solo entonces los bloques
+ * `[data-revelar]` nacen invisibles para que GSAP los traiga sin parpadeo.
+ * GSAP marca `data-revelado` en cuanto toma el control. Si el JavaScript no
+ * llega nunca, la animación de respaldo los muestra a los 2.5 s.
+ */
+:root[data-motion="si"] [data-revelar]:not([data-revelado]) {
+  opacity: 0;
+  animation: revelar-respaldo 0.3s ease-out 2.5s forwards;
+}
+
+@keyframes revelar-respaldo {
+  to {
+    opacity: 1;
+  }
+}
+
+/*
+ * ── Cambio de tema con círculo creciente (lib/tema.ts) ──
+ *
+ * Se apaga el fundido por defecto de la View Transitions API: la vista nueva
+ * queda encima y lib/tema.ts recorta `::view-transition-new(root)` con un
+ * `clip-path: circle()` que crece desde el botón con la curva de GSAP.
+ * Dentro del círculo = tema nuevo; fuera = la captura del tema anterior.
+ * Ningún elemento de la app lleva `view-transition-name`: la página entera
+ * (cabecera, barra del pedido, barra inferior) va en la captura raíz y el
+ * círculo la cubre por igual.
+ */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+::view-transition-new(root) {
+  z-index: 2;
+}
+
+/* Fotos de contenido (portada, promo, cabecera de tienda): en oscuro bajan un
+   poco de brillo para no deslumbrar sobre el fondo marino. Así además difieren
+   entre temas y se nota el círculo al pasar por encima de ellas. Logos e
+   íconos no llevan la clase. */
+.foto-contenido {
+  filter: var(--tk-foto-filtro);
+}
+
+/* Mientras cambia el tema, nada transiciona su color por su cuenta: el
+   cambio lo cuenta el círculo, no cada botón. */
+:root.tema-cambiando *,
+:root.tema-cambiando *::before,
+:root.tema-cambiando *::after {
+  transition: none !important;
+}
+
+/* ── Movimiento reducido: sin brillo, sin desplazamiento, sin smooth scroll ── */
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
@@ -342,29 +460,10 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-@keyframes aparecer {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
+  .esqueleto::after {
+    display: none;
   }
-  to {
-    opacity: 1;
+  .levanta:hover {
     transform: none;
-  }
-}
-
-@layer components {
-  .aparecer {
-    animation: aparecer var(--tk-dur-lenta) var(--tk-ease) both;
-  }
-
-  /* La aparición escalonada de secciones: un solo uso, sin coreografía. */
-  .aparecer-2 {
-    animation-delay: 80ms;
-  }
-  .aparecer-3 {
-    animation-delay: 160ms;
   }
 }

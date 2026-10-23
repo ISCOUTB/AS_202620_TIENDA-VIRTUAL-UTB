@@ -2,7 +2,7 @@
  * Catálogo de muestra mientras el backend expone el catálogo real.
  *
  * Convención del contrato: `precioCentavos = pesos × 100`
- * (backend/app/modules/catalog/seed.py: 350000 = $3.500).
+ * (backend/app/seed.py: 350000 = $3.500).
  *
  * `esMuestra: true` significa que el precio todavía no fue confirmado por
  * la tienda y la UI debe marcarlo. Las tiendas con productos de muestra
@@ -576,6 +576,54 @@ export function productosDe(slug: SlugTienda): Producto[] {
 
 export function productoPorId(id: number): Producto | undefined {
   return PRODUCTOS.find((p) => p.id === id);
+}
+
+/**
+ * Presentaciones pensadas para compartir. La carta de la tienda las separa en
+ * la pestaña «Para compartir»; el resto va en «Para uno». Sale de los datos
+ * (las descripciones lo dicen: «Plato entero para compartir», «Bolsa para
+ * compartir»), no de una lista paralela.
+ */
+const PRESENTACIONES_COMPARTIR = new Set(["Entero", "Bolsa"]);
+
+export function esParaCompartir(producto: Producto): boolean {
+  return producto.presentacion !== undefined && PRESENTACIONES_COMPARTIR.has(producto.presentacion);
+}
+
+/** «Lo más pedido» de la portada: un producto por tienda con carta. */
+const IDS_DESTACADOS = [150, 129, 139, 101];
+
+export function productosDestacados(): Producto[] {
+  return IDS_DESTACADOS.map((id) => productoPorId(id)).filter(
+    (p): p is Producto => p !== undefined,
+  );
+}
+
+/** Minúsculas y sin tildes: «Piña» y «pina» deben encontrarse. */
+function normalizar(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Búsqueda del buscador de la portada, sobre el mismo catálogo que pinta las
+ * cartas. Coincide por nombre, descripción, presentación o sabor. Primero los
+ * que empiezan por el término; los agotados siguen apareciendo (se dicen).
+ */
+export function buscarProductos(consulta: string, limite = 6): Producto[] {
+  const q = normalizar(consulta);
+  if (q.length < 2) return [];
+  const coincidencias = PRODUCTOS.filter((p) => {
+    const campos = [p.nombre, p.descripcion, p.presentacion ?? "", ...(p.sabores ?? [])];
+    return campos.some((c) => normalizar(c).includes(q));
+  });
+  const empieza = (p: Producto) => (normalizar(p.nombre).startsWith(q) ? 0 : 1);
+  return [...coincidencias]
+    .sort((a, b) => empieza(a) - empieza(b))
+    .slice(0, Math.max(0, limite));
 }
 
 /** true si la tienda ya alcanza el mínimo de contenido indexable (G16). */

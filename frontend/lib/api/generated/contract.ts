@@ -1,7 +1,7 @@
 /**
  * ARCHIVO GENERADO — no editar a mano.
  * Fuente: docs/openapi/tienda-virtual.yaml (API v0.3.0, OpenAPI 3.1.0)
- * Regenerar: npm run gen:api (verificado por npm run verify)
+ * Regenerar: pnpm run gen:api (verificado por pnpm run verify)
  */
 
 /** Métodos y rutas de cada operación del contrato de diseño. */

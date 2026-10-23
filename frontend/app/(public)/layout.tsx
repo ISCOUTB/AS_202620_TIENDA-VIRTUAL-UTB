@@ -1,27 +1,47 @@
 import { Nav } from "@/components/chrome/Nav";
+import { NavInferior } from "@/components/chrome/NavInferior";
 import { Footer } from "@/components/chrome/Footer";
-import { CarritoBarra } from "@/components/tienda/CarritoBarra";
+import { BarraPedido } from "@/components/tienda/BarraPedido";
+import { PanelPedido } from "@/components/tienda/PanelPedido";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { jsonLdSitio } from "@/lib/seo";
 
+/**
+ * Shell público (SPEC v4 §2.7). Cada página empieza con una sábana azul
+ * (`.sabana.bajo-nav`) sobre la que flota `Nav`. En móvil manda la
+ * navegación inferior; el pedido vive en un panel global.
+ */
 export default function LayoutPublico({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <>
+    // `overflow-x-clip`: nada de lo que hay dentro puede ensanchar la página.
+    // En móvil, un desborde horizontal agranda el viewport de maquetación
+    // (aunque `body` tenga `overflow-x: hidden`) y lo `fixed` —la barra
+    // «Ver pedido», la navegación inferior— se estira y se corta a la
+    // derecha. `clip` no crea contenedor de desplazamiento: `sticky` sigue
+    // funcionando.
+    <div className="group/publico relative overflow-x-clip">
       <a
         href="#contenido"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-[var(--tk-radio-pill)] focus:bg-amarillo focus:px-4 focus:py-2 focus:font-display focus:font-semibold focus:text-tinta"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-pill focus:bg-tarjeta focus:px-5 focus:py-3 focus:font-bold focus:text-tinta focus:shadow-alta"
       >
         Saltar al contenido
       </a>
       <JsonLd datos={jsonLdSitio()} />
       <Nav />
-      <main id="contenido">{children}</main>
-      <Footer />
-      {/* Deja sitio a la barra inferior flotante de móvil. */}
-      <div aria-hidden="true" className="h-20 lg:hidden" />
-      <CarritoBarra />
-    </>
+      <main id="contenido" tabIndex={-1} className="outline-none">
+        {children}
+      </main>
+      {/* En móvil el pie reserva justo lo que tapa lo fijo de abajo: la
+          navegación inferior (4rem + 1px de filo + su relleno inferior) y,
+          solo si existe la barra «Ver pedido» (`data-barra-pedido`), su
+          altura y su separación (5rem + 60px sobre el mismo relleno). El
+          respiro lo pone el `py-6` propio del pie. Desde `lg` no hay nada. */}
+      <Footer className="max-lg:pb-[calc(4rem+1px+max(0.5rem,env(safe-area-inset-bottom)))] max-lg:group-has-[[data-barra-pedido]]/publico:pb-[calc(8.75rem+max(0.5rem,env(safe-area-inset-bottom)))]" />
+      <NavInferior />
+      <BarraPedido />
+      <PanelPedido />
+    </div>
   );
 }

@@ -4,7 +4,7 @@
  *
  * Es la regla "los hex solo en tokens.css" del plan de diseño idempotente:
  * si alguien escribe `#005aa9` en un componente, este script falla y con él
- * `npm run verify`.
+ * `pnpm run verify`.
  */
 import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";

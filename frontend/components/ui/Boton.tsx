@@ -1,27 +1,32 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 
 /**
- * Botón único del sitio: pill con la geometría redondeada de la app
- * (design/SPEC.md v3 §2.3).
+ * Botón único del sitio (SPEC v4 §4): pill de 44 px (56 px el grande), con la
+ * geometría del artefacto de diseño.
  *
- * El sólido es la acción primaria y lleva el degradado de marca; el ámbar
- * queda para el CTA de conversión; el contorno para acciones secundarias.
+ * - `primario`  azul de marca, texto blanco — la acción principal.
+ * - `claro`     blanco con texto azul — acción sobre la sábana («Ingresar»).
+ * - `oscuro`    tinta con texto blanco — segunda acción sobre la sábana.
+ * - `suave`     campo azul suave con texto de enlace — acción secundaria.
+ * - `contorno`  borde de control — terciaria.
+ * - `texto`     subrayado, sin caja.
  */
 
-export type VarianteBoton = "solido" | "ambar" | "claro" | "contorno" | "texto";
+export type VarianteBoton = "primario" | "claro" | "oscuro" | "suave" | "contorno" | "texto";
 
 const VARIANTES: Record<VarianteBoton, string> = {
-  solido: "gradiente-marca text-superficie hover:brightness-110",
-  ambar: "bg-ambar text-tinta hover:bg-amarillo",
-  claro: "bg-superficie text-tinta hover:bg-cyan-palido",
-  contorno: "border border-borde bg-transparent text-superficie hover:bg-tarjeta-alta",
-  texto: "bg-transparent underline underline-offset-4",
+  primario: "bg-primario text-sobre-primario hover:bg-primario-hover",
+  claro: "bg-blanco text-carnet-azul hover:bg-carnet-azul-suave",
+  oscuro: "bg-oscuro text-blanco hover:opacity-90",
+  suave: "bg-primario-suave text-enlace hover:opacity-85",
+  contorno: "border border-borde bg-transparent text-tinta hover:bg-suave",
+  texto: "bg-transparent text-enlace underline underline-offset-4",
 };
 
 const TAMANOS = {
-  md: "px-5 py-2.5 text-[0.9375rem]",
-  lg: "px-7 py-3.5 text-[1.0625rem]",
+  md: "min-h-11 px-5 text-[0.9375rem]",
+  lg: "min-h-14 px-6 text-base",
 } as const;
 
 type Props = {
@@ -33,14 +38,18 @@ type Props = {
   onClick?: () => void;
   disabled?: boolean;
   className?: string;
-  /** Ancho completo en móvil. */
+  /** Ancho completo. */
   bloque?: boolean;
+  /** Radio de bloque (18 px) en vez de pill: botones de confirmar. */
+  cuadrado?: boolean;
   "aria-label"?: string;
+  "aria-describedby"?: string;
+  ref?: Ref<HTMLButtonElement>;
 };
 
 export function Boton({
   children,
-  variante = "solido",
+  variante = "primario",
   tamano = "md",
   href,
   type = "button",
@@ -48,16 +57,18 @@ export function Boton({
   disabled,
   className = "",
   bloque = false,
+  cuadrado = false,
+  ref,
   ...resto
 }: Props) {
   const clases = [
-    "inline-flex items-center justify-center gap-2 font-display font-semibold",
-    "rounded-[var(--tk-radio-pill)]",
-    "transition-[filter,background-color,color] duration-[var(--tk-dur)] ease-[var(--tk-ease)]",
+    "inline-flex items-center justify-center gap-2 font-bold leading-tight text-center",
+    cuadrado ? "rounded-md" : "rounded-pill",
+    "transition-[background-color,color,opacity,transform] duration-[var(--tk-dur)] ease-[var(--tk-ease)] active:scale-[0.98]",
     VARIANTES[variante],
-    variante === "texto" ? "" : TAMANOS[tamano],
+    variante === "texto" ? "min-h-11 px-1" : TAMANOS[tamano],
     bloque ? "w-full" : "",
-    disabled ? "pointer-events-none opacity-40" : "",
+    disabled ? "pointer-events-none opacity-45" : "",
     className,
   ]
     .filter(Boolean)
@@ -65,7 +76,7 @@ export function Boton({
 
   if (href) {
     return (
-      <Link href={href} className={clases} {...resto}>
+      <Link href={href} className={clases} onClick={onClick} {...resto}>
         {children}
       </Link>
     );
@@ -73,6 +84,7 @@ export function Boton({
 
   return (
     <button
+      ref={ref}
       type={type}
       onClick={onClick}
       disabled={disabled}

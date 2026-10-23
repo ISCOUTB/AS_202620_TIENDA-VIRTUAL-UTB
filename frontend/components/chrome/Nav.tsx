@@ -3,42 +3,61 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
-import { TIENDAS } from "@/lib/tiendas";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { TIENDAS, paletaTienda } from "@/lib/tiendas";
 import { useSesion, cerrarSesion } from "@/lib/sesion";
 import { useCarrito, unidades, abrirPedido } from "@/lib/carrito";
 import { LOGO } from "@/lib/imagenes";
+import { gsap, useGSAP, CONDICIONES, MOVIMIENTO } from "@/lib/movimiento";
+import { Icono, IconoTienda } from "@/components/ui/Icono";
+import { BotonTema } from "./BotonTema";
+import { ContadorPedido } from "./ContadorPedido";
 
 /**
- * Navegación del sitio (design/SPEC.md v3 §2.4).
- *
- * Barra superior translúcida con el logo institucional en su versión
- * monocroma blanca —uso autorizado de la marca, igual que la app oficial— y,
- * en móvil, una **barra inferior flotante** con el pedido integrado: es el
- * gesto más reconocible de la app de la UTB.
+ * Barra superior (SPEC v4 §2.7). Flota, transparente, sobre la sábana azul
+ * con la que empieza cada página: logo blanco, enlaces de sección, pedido,
+ * tema e «Ingresar». Bajo `lg` los enlaces se recogen en un menú desplegable
+ * animado con GSAP; la navegación principal de móvil es `NavInferior`.
  */
 
-const ENLACES = TIENDAS.map((t) => ({
-  href: `/tiendas/${t.slug}`,
-  nombre: t.nombre,
-  categoria: t.categoria,
-}));
+const SECCIONES = [
+  { href: "/#tiendas", nombre: "Tiendas" },
+  { href: "/#como", nombre: "Cómo funciona" },
+  { href: "/#cuenta", nombre: "La cuenta" },
+  { href: "/#preguntas", nombre: "Preguntas" },
+];
 
 export function Nav() {
   const ruta = usePathname();
-  const [abierto, setAbierto] = useState(false);
   const { sesion } = useSesion();
   const { carrito } = useCarrito();
   const n = unidades(carrito);
+  const enTienda = ruta.startsWith("/tiendas/");
+
+  // `abierto` = lo que pidió el usuario; `montado` = el menú sigue en el DOM
+  // mientras dura la animación de salida.
+  const [abierto, setAbierto] = useState(false);
+  const [montado, setMontado] = useState(false);
+  const botonMenu = useRef<HTMLButtonElement>(null);
+  const panel = useRef<HTMLDivElement>(null);
+
+  const cerrar = useCallback(() => setAbierto(false), []);
 
   useEffect(() => {
     setAbierto(false);
   }, [ruta]);
 
   useEffect(() => {
+    if (abierto) setMontado(true);
+  }, [abierto]);
+
+  useEffect(() => {
     if (!abierto) return;
     const alTeclear = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setAbierto(false);
+      if (e.key === "Escape") {
+        setAbierto(false);
+        botonMenu.current?.focus();
+      }
     };
     document.addEventListener("keydown", alTeclear);
     document.body.style.overflow = "hidden";
@@ -50,267 +69,238 @@ export function Nav() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-tinta/85 backdrop-blur">
-        <div className="contenedor flex h-16 items-center justify-between gap-4">
-          <Link href="/" className="flex items-center gap-3">
+      <header className="absolute inset-x-0 top-0 z-[60] text-sobre-sabana [--tk-foco:var(--tk-sobre-sabana)]">
+        <div className="contenedor flex h-[var(--tk-alto-nav)] items-center gap-3 sm:gap-5">
+          <Link href="/" className="flex min-h-11 shrink-0 items-center" aria-label="Tienda Virtual UTB, inicio">
             <Image
               src={LOGO.src}
-              alt={LOGO.alt}
+              alt=""
               width={LOGO.ancho}
               height={LOGO.alto}
               priority
-              className="h-7 w-auto [filter:brightness(0)_invert(1)]"
+              className="h-[30px] w-auto [filter:brightness(0)_invert(1)] sm:h-[34px]"
             />
-            <span aria-hidden="true" className="hidden h-6 w-px bg-white/20 sm:block" />
-            <span className="hidden font-display text-[0.9375rem] font-extrabold tracking-[-0.01em] text-superficie sm:inline">
-              Tienda Virtual
-            </span>
           </Link>
 
-          <nav aria-label="Tiendas" className="hidden lg:flex items-center gap-1">
-            {ENLACES.map((e) => {
-              const activa = ruta === e.href;
-              return (
-                <Link
-                  key={e.href}
-                  href={e.href}
-                  aria-current={activa ? "page" : undefined}
-                  className={[
-                    "rounded-[var(--tk-radio-pill)] px-3.5 py-2 font-display text-[0.875rem] font-semibold tracking-[0.01em]",
-                    "transition-colors duration-[var(--tk-dur)]",
-                    activa
-                      ? "bg-sabana-2/25 text-superficie"
-                      : "text-cyan-claro hover:bg-tarjeta-alta hover:text-superficie",
-                  ].join(" ")}
-                >
-                  {e.nombre}
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={abrirPedido}
-              aria-label={`Ver pedido${n > 0 ? `: ${n} ${n === 1 ? "unidad" : "unidades"}` : ""}`}
-              className="relative inline-flex h-10 w-10 items-center justify-center rounded-[var(--tk-radio-pill)] text-superficie transition-colors duration-[var(--tk-dur)] hover:bg-tarjeta-alta"
-            >
-              <Icono nombre="pedido" />
-              {n > 0 ? (
-                <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-[var(--tk-radio-pill)] bg-ambar px-1 font-display text-[0.6875rem] font-bold text-tinta cifra">
-                  {n}
-                </span>
-              ) : null}
-            </button>
-
+          {enTienda ? (
             <Link
-              href="/cuenta"
-              className="hidden rounded-[var(--tk-radio-pill)] px-3.5 py-2 font-display text-[0.875rem] font-semibold text-superficie transition-colors duration-[var(--tk-dur)] hover:bg-tarjeta-alta sm:inline-flex"
+              href="/#tiendas"
+              className="hidden min-h-11 items-center gap-1.5 text-[0.9375rem] font-semibold hover:underline hover:underline-offset-4 md:inline-flex"
             >
-              {sesion ? sesion.usuario.nombre.split(" ")[0] : "Mi pase"}
+              <Icono nombre="atras" tamano={18} grosor={2.2} />
+              Todas las tiendas
             </Link>
+          ) : (
+            <nav aria-label="Secciones" className="hidden lg:block">
+              <ul className="flex items-center gap-6 text-[0.9375rem] font-semibold">
+                {SECCIONES.map((s) => (
+                  <li key={s.href}>
+                    <Link
+                      href={s.href}
+                      className="inline-flex min-h-11 items-center underline-offset-4 hover:underline"
+                    >
+                      {s.nombre}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
 
-            <button
-              type="button"
-              onClick={() => setAbierto((v) => !v)}
-              aria-expanded={abierto}
-              aria-controls="menu-movil"
-              className="inline-flex h-10 w-10 items-center justify-center rounded-[var(--tk-radio-pill)] text-superficie transition-colors duration-[var(--tk-dur)] hover:bg-tarjeta-alta lg:hidden"
-            >
-              <span className="sr-only">{abierto ? "Cerrar menú" : "Abrir menú"}</span>
-              <svg width="20" height="14" viewBox="0 0 20 14" aria-hidden="true" fill="currentColor">
-                {abierto ? (
-                  <path d="M2 2l16 10M18 2L2 12" stroke="currentColor" strokeWidth="2" fill="none" />
-                ) : (
-                  <>
-                    <rect width="20" height="2.4" rx="1.2" />
-                    <rect y="5.8" width="20" height="2.4" rx="1.2" />
-                    <rect y="11.6" width="20" height="2.4" rx="1.2" />
-                  </>
-                )}
-              </svg>
-            </button>
-          </div>
+          <div className="flex-1" />
+
+          <button
+            type="button"
+            onClick={abrirPedido}
+            aria-label={`Ver pedido${n > 0 ? `: ${n} ${n === 1 ? "unidad" : "unidades"}` : ""}`}
+            className="boton-vidrio relative hidden sm:inline-flex"
+          >
+            <Icono nombre="pedidos" />
+            <ContadorPedido n={n} className="absolute -right-1 -top-1" />
+          </button>
+
+          <BotonTema />
+
+          <Link
+            href="/cuenta"
+            className="hidden min-h-11 items-center rounded-pill bg-blanco px-5 text-[0.9375rem] font-bold text-carnet-azul transition-colors duration-[var(--tk-dur)] hover:bg-carnet-azul-suave sm:inline-flex"
+          >
+            {sesion ? sesion.usuario.nombre.split(" ")[0] : "Ingresar"}
+          </Link>
+
+          <button
+            ref={botonMenu}
+            type="button"
+            onClick={() => setAbierto((v) => !v)}
+            aria-expanded={abierto}
+            aria-controls="menu-movil"
+            aria-label={abierto ? "Cerrar menú" : "Abrir menú"}
+            className="boton-vidrio lg:hidden"
+          >
+            <Icono nombre={abierto ? "cerrar" : "menu"} />
+          </button>
         </div>
       </header>
 
-      {abierto ? (
-        <div
-          id="menu-movil"
-          className="fixed inset-0 top-16 z-40 overflow-y-auto bg-tinta lg:hidden"
-        >
-          <nav aria-label="Tiendas" className="contenedor flex flex-col gap-3 py-6">
-            {ENLACES.map((e, i) => (
-              <Link
-                key={e.href}
-                href={e.href}
-                className="tarjeta flex items-center justify-between gap-4 px-5 py-4"
-              >
-                <span className="min-w-0">
-                  <span className="rotulo cifra block text-tenue">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="mt-1 block font-display text-[1.25rem] font-extrabold tracking-[-0.02em] text-superficie">
-                    {e.nombre}
-                  </span>
-                  <span className="block font-cuerpo text-[0.8125rem] text-tenue">
-                    {e.categoria}
-                  </span>
-                </span>
-                <span aria-hidden="true" className="font-display text-[1.25rem] text-cyan-claro">
-                  →
-                </span>
-              </Link>
-            ))}
-
-            <div className="mt-4 flex flex-col gap-4">
-              <Link
-                href="/cuenta"
-                className="font-display text-[0.9375rem] font-semibold uppercase tracking-[0.08em] text-ambar"
-              >
-                {sesion ? "Mi pase" : "Ingresar"}
-              </Link>
-              {sesion ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    cerrarSesion();
-                    setAbierto(false);
-                  }}
-                  className="self-start font-display text-[0.8125rem] uppercase tracking-[0.08em] text-cyan-claro underline underline-offset-4"
-                >
-                  Cerrar sesión
-                </button>
-              ) : null}
-            </div>
-          </nav>
-        </div>
+      {montado ? (
+        <MenuMovil
+          abierto={abierto}
+          alCerrar={cerrar}
+          alTerminarSalida={() => setMontado(false)}
+          panel={panel}
+          sesion={sesion}
+          rutaActual={ruta}
+        />
       ) : null}
-
-      <NavInferior sesion={sesion} unidadesPedido={n} />
     </>
   );
 }
 
-/** Barra inferior flotante (solo móvil): Inicio · Tiendas · Pedido · Pase. */
-function NavInferior({
+function MenuMovil({
+  abierto,
+  alCerrar,
+  alTerminarSalida,
+  panel,
   sesion,
-  unidadesPedido,
+  rutaActual,
 }: {
+  abierto: boolean;
+  alCerrar: () => void;
+  alTerminarSalida: () => void;
+  panel: React.RefObject<HTMLDivElement | null>;
   sesion: { usuario: { nombre: string } } | null;
-  unidadesPedido: number;
+  rutaActual: string;
 }) {
-  const ruta = usePathname();
+  const raiz = useRef<HTMLDivElement>(null);
 
-  const items = [
-    { clave: "inicio", href: "/", etiqueta: "Inicio", icono: "inicio" as const },
-    { clave: "tiendas", href: "/#tiendas", etiqueta: "Tiendas", icono: "tiendas" as const },
-    { clave: "pedido", href: null, etiqueta: "Pedido", icono: "pedido" as const },
-    { clave: "pase", href: "/cuenta", etiqueta: "Pase", icono: "pase" as const },
-  ];
+  useGSAP(
+    () => {
+      const velo = raiz.current?.querySelector("[data-velo]");
+      const hoja = panel.current;
+      if (!velo || !hoja) return;
+      const items = hoja.querySelectorAll("[data-item]");
+      const mm = gsap.matchMedia();
 
-  return (
-    <nav
-      aria-label="Navegación principal"
-      className="fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-3 lg:hidden"
-    >
-      <ul className="flex w-full max-w-[26rem] items-stretch gap-1 rounded-[var(--tk-radio-pill)] border border-white/10 bg-tinta/90 p-1.5 backdrop-blur">
-        {items.map((it) => {
-          const activa =
-            it.href === "/"
-              ? ruta === "/"
-              : it.href
-                ? ruta.startsWith(it.href.replace("/#tiendas", "/tiendas"))
-                : false;
-          const contenido = (
-            <>
-              <span className="relative">
-                <Icono nombre={it.icono} />
-                {it.clave === "pedido" && unidadesPedido > 0 ? (
-                  <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-[var(--tk-radio-pill)] bg-ambar px-1 font-display text-[0.625rem] font-bold text-tinta cifra">
-                    {unidadesPedido}
-                  </span>
-                ) : null}
-              </span>
-              <span className="font-display text-[0.6875rem] font-semibold">
-                {it.etiqueta}
-                {it.clave === "pase" && sesion ? (
-                  <span className="sr-only"> de {sesion.usuario.nombre.split(" ")[0]}</span>
-                ) : null}
-              </span>
-            </>
+      mm.add(CONDICIONES.movimiento, () => {
+        const { duracion, ease, salida, easeSalida } = MOVIMIENTO.panel;
+        if (abierto) {
+          gsap.fromTo(velo, { opacity: 0 }, { opacity: 1, duration: duracion, ease });
+          gsap.fromTo(
+            hoja,
+            { opacity: 0, y: -16 },
+            { opacity: 1, y: 0, duration: duracion, ease },
           );
-          const clases = [
-            "flex w-full flex-col items-center justify-center gap-1 rounded-[var(--tk-radio-pill)] px-2 py-2 transition-colors duration-[var(--tk-dur)]",
-            activa ? "bg-sabana-2/30 text-superficie" : "text-cyan-claro",
-          ].join(" ");
-
-          return (
-            <li key={it.clave} className="flex-1">
-              {it.href ? (
-                <Link href={it.href} aria-current={activa ? "page" : undefined} className={clases}>
-                  {contenido}
-                </Link>
-              ) : (
-                <button type="button" onClick={abrirPedido} className={clases}>
-                  {contenido}
-                </button>
-              )}
-            </li>
+          gsap.fromTo(
+            items,
+            { opacity: 0, y: 8 },
+            { opacity: 1, y: 0, duration: duracion, ease, stagger: 0.035, delay: 0.06 },
           );
-        })}
-      </ul>
-    </nav>
+          hoja.querySelector<HTMLElement>("a, button")?.focus();
+        } else {
+          gsap.to(velo, { opacity: 0, duration: salida, ease: easeSalida });
+          gsap.to(hoja, {
+            opacity: 0,
+            y: -12,
+            duration: salida,
+            ease: easeSalida,
+            onComplete: alTerminarSalida,
+          });
+        }
+      });
+
+      mm.add(CONDICIONES.reducido, () => {
+        if (abierto) {
+          hoja.querySelector<HTMLElement>("a, button")?.focus();
+        } else {
+          alTerminarSalida();
+        }
+      });
+    },
+    { dependencies: [abierto], scope: raiz, revertOnUpdate: true },
   );
-}
 
-type NombreIcono = "inicio" | "tiendas" | "pedido" | "pase";
-
-function Icono({ nombre }: { nombre: NombreIcono }): ReactNode {
-  const comun = {
-    width: 22,
-    height: 22,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    "aria-hidden": true,
-  };
-
-  if (nombre === "inicio") {
-    return (
-      <svg {...comun}>
-        <path d="M4 10.5 12 4l8 6.5" />
-        <path d="M6 9.5V20h12V9.5" />
-        <path d="M10 20v-5h4v5" />
-      </svg>
-    );
-  }
-  if (nombre === "tiendas") {
-    return (
-      <svg {...comun}>
-        <path d="M5 8h14l-1 12H6z" />
-        <path d="M9 8V6a3 3 0 0 1 6 0v2" />
-      </svg>
-    );
-  }
-  if (nombre === "pedido") {
-    return (
-      <svg {...comun}>
-        <path d="M4 5h2l2 10h9l2-7H7" />
-        <circle cx="9.5" cy="19" r="1.4" />
-        <circle cx="16.5" cy="19" r="1.4" />
-      </svg>
-    );
-  }
   return (
-    <svg {...comun}>
-      <rect x="3" y="4" width="18" height="16" rx="3" />
-      <circle cx="8.5" cy="11" r="2" />
-      <path d="M13 9.5h5M13 13h5M5.5 16.5c1-1.6 4.5-1.6 6 0" />
-    </svg>
+    <div ref={raiz} className="lg:hidden">
+      <div
+        data-velo=""
+        aria-hidden="true"
+        onClick={alCerrar}
+        className="fixed inset-0 z-[45] bg-velo"
+      />
+      <div
+        ref={panel}
+        id="menu-movil"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menú"
+        className="fixed inset-x-3 top-[calc(var(--tk-alto-nav)-0.25rem)] z-50 max-h-[calc(100svh-var(--tk-alto-nav)-1rem)] overflow-y-auto rounded-lg bg-tarjeta p-4 text-tinta shadow-alta"
+      >
+        <p data-item="" className="rotulo px-2 pb-2 text-tenue">
+          Tiendas
+        </p>
+        <ul className="flex flex-col">
+          {TIENDAS.map((t) => {
+            const p = paletaTienda(t.slug);
+            const href = `/tiendas/${t.slug}`;
+            return (
+              <li key={t.slug} data-item="">
+                <Link
+                  href={href}
+                  aria-current={rutaActual === href ? "page" : undefined}
+                  onClick={alCerrar}
+                  className="flex min-h-14 items-center gap-3 rounded-md px-2 py-2 hover:bg-suave aria-[current=page]:bg-primario-suave"
+                >
+                  <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-sm ${p.suave} ${p.tinta}`}>
+                    <IconoTienda slug={t.slug} tamano={22} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-semibold">{t.nombre}</span>
+                    <span className="block truncate text-sm text-tenue">{t.categoria}</span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+
+        <hr data-item="" className="my-3 border-linea" />
+
+        <ul className="flex flex-col">
+          {SECCIONES.filter((s) => s.href !== "/#tiendas").map((s) => (
+            <li key={s.href} data-item="">
+              <Link
+                href={s.href}
+                onClick={alCerrar}
+                className="flex min-h-11 items-center rounded-md px-2 font-semibold hover:bg-suave"
+              >
+                {s.nombre}
+              </Link>
+            </li>
+          ))}
+        </ul>
+
+        <div data-item="" className="mt-3 flex flex-col gap-2 border-t border-linea pt-4">
+          <Link
+            href="/cuenta"
+            onClick={alCerrar}
+            className="flex min-h-12 items-center justify-center rounded-pill bg-primario px-5 font-bold text-sobre-primario"
+          >
+            {sesion ? `Mi pase · ${sesion.usuario.nombre.split(" ")[0]}` : "Ingresar"}
+          </Link>
+          {sesion ? (
+            <button
+              type="button"
+              onClick={() => {
+                cerrarSesion();
+                alCerrar();
+              }}
+              className="min-h-11 text-sm font-semibold text-enlace underline underline-offset-4"
+            >
+              Cerrar sesión
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </div>
   );
 }

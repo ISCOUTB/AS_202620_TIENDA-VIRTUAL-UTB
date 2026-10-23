@@ -1,180 +1,150 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useSesion, cerrarSesion } from "@/lib/sesion";
-import { useCarrito, totalCentavos, unidades, porTienda } from "@/lib/carrito";
-import { formatoPrecio } from "@/lib/formato";
+import { useCarrito, totalCentavos, unidades, porTienda, abrirPedido } from "@/lib/carrito";
+import { formatoHora, formatoPrecio } from "@/lib/formato";
 import { productoPorId } from "@/lib/catalogo";
-import { acentoDeTienda, clasesAcento, nombreTienda } from "@/lib/tiendas";
-import { LOGO } from "@/lib/imagenes";
-import { Etiqueta } from "@/components/ui/Etiqueta";
+import { nombreTienda, paletaTienda } from "@/lib/tiendas";
 import { Badge } from "@/components/ui/Badge";
 import { Boton } from "@/components/ui/Boton";
+import { Esqueleto } from "@/components/ui/Esqueleto";
+import { Revelar } from "@/components/motion/Revelar";
+import { Carnet } from "./Carnet";
 
 /**
- * El pase de la cuenta. Siguiendo la app oficial, la tarjeta de identidad es
- * un **carnet**: superficie clara, ligeramente inclinado, con el logo de la
- * institución, las iniciales y el código (design/SPEC.md v3 §2.6).
+ * La cuenta (SPEC v4 §3, `/cuenta`): el carnet digital de la sección «La
+ * cuenta» del artefacto, con los datos reales de la sesión, y dos tarjetas:
+ * pedidos y lo que hay en el carrito agrupado por tienda.
  */
 export function PanelCuenta() {
   const { sesion } = useSesion();
-  const { carrito } = useCarrito();
+  const { carrito, cargando } = useCarrito();
 
   if (!sesion) return null;
   const { usuario, modo } = sesion;
-  const iniciales = usuario.nombre
-    .split(" ")
-    .slice(0, 2)
-    .map((p) => p[0]?.toUpperCase() ?? "")
-    .join("");
   const n = unidades(carrito);
   const total = totalCentavos(carrito);
   const grupos = porTienda(carrito);
+  const rol = usuario.rol === "admin" ? "Administración" : "Estudiante";
 
   return (
-    <div className="contenedor py-12 lg:py-16">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <Etiqueta>Mi pase</Etiqueta>
-          <h1 className="mt-3 text-[clamp(2.25rem,1.5rem+3vw,3.75rem)] text-superficie">
-            Hola, {usuario.nombre.split(" ")[0]}.
-          </h1>
-        </div>
-        <button
-          type="button"
-          onClick={cerrarSesion}
-          className="font-display text-[0.8125rem] font-semibold uppercase tracking-[0.08em] text-tenue underline underline-offset-4 hover:text-superficie"
-        >
-          Cerrar sesión
-        </button>
-      </div>
+    <Revelar className="grid gap-6 lg:grid-cols-12">
+      <section
+        data-escalon=""
+        aria-labelledby="saludo"
+        className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8 lg:col-span-5"
+      >
+        <h2 id="saludo" className="titulo-seccion">
+          Hola, {usuario.nombre.split(" ")[0]}.
+        </h2>
+        <p className="mt-1.5 truncate text-sm text-tenue">{usuario.email}</p>
 
-      {modo === "demo" ? (
-        <div className="mt-8 flex items-start gap-3 rounded-[var(--tk-radio-sm)] border-l-4 border-ambar bg-ambar/10 px-4 py-3">
-          <p className="font-cuerpo text-[0.9375rem] leading-snug text-superficie">
-            <strong className="font-semibold">Modo demostración.</strong> El
-            módulo de identidad todavía no está en producción: esta sesión vive
-            solo en tu navegador y no crea pedidos reales.
+        {modo === "demo" ? (
+          <p className="mt-5 rounded-sm bg-aviso-suave px-4 py-3 text-sm leading-snug text-aviso">
+            <strong className="font-bold">Modo demostración.</strong> El módulo
+            de identidad todavía no está en producción: esta sesión vive solo en
+            tu navegador y no crea pedidos reales.
           </p>
+        ) : null}
+
+        <div className="mt-8 px-2 sm:px-0">
+          <Carnet
+            nombre={usuario.nombre}
+            codigo={String(usuario.id).padStart(9, "0")}
+            rol={rol}
+          />
         </div>
-      ) : null}
 
-      <div className="mt-10 grid gap-8 lg:grid-cols-12">
-        {/* El carnet */}
-        <section aria-labelledby="datos" className="lg:col-span-5">
-          <div className="credencial -rotate-[1.5deg] p-5">
-            <div className="flex items-start justify-between gap-3">
-              <Image
-                src={LOGO.src}
-                alt={LOGO.alt}
-                width={LOGO.ancho}
-                height={LOGO.alto}
-                className="h-7 w-auto"
-              />
-              <span className="rotulo text-deep">Carnet UTB</span>
-            </div>
+        <div className="mt-8 flex flex-wrap items-center gap-2">
+          <Badge tono={modo === "demo" ? "muestra" : "abierto"}>
+            {modo === "demo" ? "Demostración" : "Cuenta real"}
+          </Badge>
+          <Badge tono="abierto">Activo</Badge>
+          <Badge tono="neutro">Rol: {usuario.rol}</Badge>
+        </div>
 
-            <div className="mt-5 flex items-center gap-4" id="datos">
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[var(--tk-radio-sm)] bg-deep font-display text-[1.25rem] font-extrabold text-superficie">
-                {iniciales}
-              </span>
-              <div className="min-w-0">
-                <h2 className="truncate font-display text-[1.125rem] font-extrabold text-deep">
-                  {usuario.nombre}
-                </h2>
-                <p className="truncate font-cuerpo text-[0.875rem] text-tinta/70">
-                  {usuario.email}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex items-center justify-between gap-3 border-t border-deep/15 pt-4">
-              <span className="rotulo rounded-[var(--tk-radio-pill)] bg-deep px-2.5 py-1 text-superficie">
-                {usuario.rol === "admin" ? "Administración" : "Estudiante"}
-              </span>
-              <span className="cifra font-display text-[0.9375rem] font-bold text-deep">
-                {String(usuario.id).padStart(6, "0")}
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <Badge tono={modo === "demo" ? "muestra" : "abierto"}>
-              {modo === "demo" ? "Demostración" : "Cuenta real"}
-            </Badge>
-            <Badge tono="abierto">Activo</Badge>
-            <span className="rotulo text-tenue">Rol: {usuario.rol}</span>
-          </div>
-
+        <div className="mt-6 flex flex-col gap-2">
           {usuario.rol === "admin" ? (
-            <div className="mt-5">
-              <Boton href="/admin" variante="contorno" bloque>
-                Ir a administración
-              </Boton>
-            </div>
+            <Boton href="/admin" variante="suave" bloque>
+              Ir a administración
+            </Boton>
           ) : null}
-        </section>
+          <Boton variante="contorno" bloque onClick={cerrarSesion}>
+            Cerrar sesión
+          </Boton>
+        </div>
+      </section>
 
-        {/* Pedidos */}
-        <section aria-labelledby="pedidos" className="lg:col-span-7">
-          <div className="flex items-baseline justify-between gap-4 border-b border-linea pb-3">
-            <h2 id="pedidos" className="font-display text-[1.25rem] font-extrabold text-superficie">
+      <div className="flex flex-col gap-6 lg:col-span-7">
+        <section
+          data-escalon=""
+          aria-labelledby="pedidos"
+          className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8"
+        >
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 id="pedidos" className="font-display text-2xl font-semibold">
               Pedidos
             </h2>
-            <span className="rotulo cifra text-tenue">0</span>
+            <span className="cifra text-sm font-semibold text-tenue">0</span>
           </div>
-
-          <div className="tarjeta mt-6 px-6 py-10 text-center">
-            <p className="font-display text-[1.0625rem] font-bold text-superficie">
-              Todavía no tienes pedidos.
-            </p>
-            <p className="cuerpo mx-auto mt-2 max-w-[42ch] text-tenue">
+          <div className="mt-5 rounded-tarjeta bg-suave px-6 py-9 text-center">
+            <p className="font-semibold">Todavía no tienes pedidos.</p>
+            <p className="mx-auto mt-1.5 max-w-[42ch] text-sm leading-relaxed text-tenue">
               Cuando apartes algo, aquí verás el estado, la hora de recogida y
               el total. No se envía nada por correo: todo queda en tu pase.
             </p>
-            <div className="mt-6 flex justify-center">
-              <Boton href="/#tiendas" variante="solido">
+            <div className="mt-5 flex justify-center">
+              <Boton href="/#tiendas" variante="primario">
                 Ver las tiendas
               </Boton>
             </div>
           </div>
+        </section>
 
-          {/* Carrito */}
-          <div className="mt-10 flex items-baseline justify-between gap-4 border-b border-linea pb-3">
-            <h2 className="font-display text-[1.25rem] font-extrabold text-superficie">
+        <section
+          data-escalon=""
+          aria-labelledby="carrito"
+          className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8"
+        >
+          <div className="flex items-baseline justify-between gap-4">
+            <h2 id="carrito" className="font-display text-2xl font-semibold">
               Tu carrito
             </h2>
-            <span className="rotulo cifra text-tenue">
-              {String(n).padStart(2, "0")}
+            <span className="cifra text-sm font-semibold text-tenue">
+              {n} {n === 1 ? "unidad" : "unidades"}
             </span>
           </div>
 
-          {n === 0 ? (
-            <p className="cuerpo mt-4 text-tenue">
+          {cargando ? (
+            <div aria-busy="true" className="mt-4 flex flex-col gap-2">
+              <span className="sr-only">Cargando tu carrito…</span>
+              <Esqueleto className="h-5 w-3/4" />
+              <Esqueleto className="h-5 w-1/2" />
+            </div>
+          ) : n === 0 ? (
+            <p className="mt-3 leading-relaxed text-tenue">
               Está vacío. Puedes mezclar productos de varias tiendas en un
               mismo pedido.
             </p>
           ) : (
-            <div className="mt-5 flex flex-col gap-4">
+            <div className="mt-4 flex flex-col gap-3">
               {grupos.map((g) => {
-                const acento = clasesAcento(acentoDeTienda(g.tienda));
+                const p = paletaTienda(g.tienda);
                 return (
-                  <div
-                    key={g.tienda}
-                    className={`tarjeta border-l-4 p-4 ${acento.borde}`}
-                  >
-                    <p className="rotulo text-tenue">{nombreTienda(g.tienda)}</p>
+                  <div key={g.tienda} className="rounded-md border border-linea p-4">
+                    <p className="flex items-center gap-2 text-sm font-bold">
+                      <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-pill ${p.relleno}`} />
+                      {nombreTienda(g.tienda)}
+                    </p>
                     <ul className="mt-2">
                       {g.items.map((item) => (
                         <li
                           key={item.nombre}
-                          className="flex items-baseline justify-between gap-4 border-b border-linea py-2 font-cuerpo text-[0.9375rem] text-superficie last:border-b-0"
+                          className="flex items-baseline justify-between gap-4 border-b border-linea py-2 text-[0.9375rem] last:border-b-0"
                         >
                           <span>{item.nombre}</span>
-                          <span className="cifra shrink-0 text-tenue">
-                            ×{item.cantidad}
-                          </span>
+                          <span className="cifra shrink-0 text-tenue">×{item.cantidad}</span>
                         </li>
                       ))}
                     </ul>
@@ -183,38 +153,67 @@ export function PanelCuenta() {
               })}
 
               {carrito.horaRecogida ? (
-                <p className="font-cuerpo text-[0.875rem] text-tenue">
-                  Recogida: <span className="cifra text-superficie">{carrito.horaRecogida}</span>
+                <p className="text-sm text-tenue">
+                  Recogida:{" "}
+                  <span className="cifra font-semibold text-tinta">{formatoHora(carrito.horaRecogida)}</span>
                 </p>
               ) : null}
 
               <div className="flex items-baseline justify-between border-t border-linea pt-3">
-                <span className="rotulo text-tenue">Total</span>
-                <span className="cifra font-display text-[1.5rem] font-extrabold text-superficie">
-                  {formatoPrecio(total)}
-                </span>
+                <span className="text-tenue">Total</span>
+                <span className="cifra text-2xl font-bold">{formatoPrecio(total)}</span>
               </div>
 
-              <p className="font-cuerpo text-[0.8125rem] leading-relaxed text-tenue">
-                {carrito.lineas.some(
-                  (l) => productoPorId(l.productoId)?.esMuestra,
-                )
+              <p className="text-[0.8125rem] leading-relaxed text-tenue">
+                {carrito.lineas.some((l) => productoPorId(l.productoId)?.esMuestra)
                   ? "Incluye precios de referencia: la tienda los confirma en el mostrador. "
                   : ""}
                 El pedido se confirma al recoger; el pago es en el mostrador.
               </p>
+
+              <Boton variante="primario" tamano="lg" bloque cuadrado onClick={abrirPedido}>
+                Elegir hora y apartar
+              </Boton>
             </div>
           )}
         </section>
-      </div>
 
-      <p className="mt-12 font-cuerpo text-[0.875rem] text-tenue">
-        ¿Necesitas cambiar algo?{" "}
-        <Link href="/#tiendas" className="text-cyan-claro underline underline-offset-4">
-          Vuelve al directorio
-        </Link>
-        .
-      </p>
+        <p className="text-sm text-tenue">
+          ¿Necesitas cambiar algo?{" "}
+          <Link href="/#tiendas" className="font-semibold text-enlace underline underline-offset-4">
+            Vuelve a las tiendas
+          </Link>
+          .
+        </p>
+      </div>
+    </Revelar>
+  );
+}
+
+/** Esqueleto con la misma rejilla y alturas que `PanelCuenta`. */
+export function EsqueletoCuenta() {
+  return (
+    <div aria-hidden="true" className="grid gap-6 lg:grid-cols-12">
+      <div className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8 lg:col-span-5">
+        <Esqueleto className="h-8 w-1/2" />
+        <Esqueleto className="mt-2.5 h-4 w-2/3" />
+        <Esqueleto className="mt-8 aspect-[1.586/1] w-full max-w-[400px] rounded-[22px]" />
+        <div className="mt-8 flex gap-2">
+          <Esqueleto className="h-6 w-28 rounded-pill" />
+          <Esqueleto className="h-6 w-16 rounded-pill" />
+        </div>
+        <Esqueleto className="mt-6 h-11 w-full rounded-pill" />
+      </div>
+      <div className="flex flex-col gap-6 lg:col-span-7">
+        <div className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8">
+          <Esqueleto className="h-7 w-32" />
+          <Esqueleto className="mt-5 h-[13.5rem] w-full rounded-tarjeta" />
+        </div>
+        <div className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8">
+          <Esqueleto className="h-7 w-36" />
+          <Esqueleto className="mt-4 h-5 w-3/4" />
+        </div>
+      </div>
     </div>
   );
 }

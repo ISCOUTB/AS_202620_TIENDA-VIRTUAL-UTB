@@ -2,7 +2,7 @@ import type { StockAvailabilityOut } from "../api/generated/contract";
 
 /**
  * Existencias de muestra (endpoint `preview`). Los cuatro primeros valores
- * reproducen el seed real de `backend/app/modules/inventory/seed.py`;
+ * reproducen el seed anterior a Alembic (hoy en `backend/app/seed.py`);
  * el producto 6 simula agotado para diseñar el estado "agotado".
  */
 export const INVENTARIO_MOCK: StockAvailabilityOut[] = [

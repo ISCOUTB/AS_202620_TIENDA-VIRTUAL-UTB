@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { PRODUCTOS } from "@/lib/catalogo";
-import { TIENDAS, clasesAcento } from "@/lib/tiendas";
+import { TIENDAS, paletaTienda } from "@/lib/tiendas";
 import { formatoPrecio } from "@/lib/formato";
-import { Etiqueta } from "@/components/ui/Etiqueta";
 import { Badge } from "@/components/ui/Badge";
+import { IconoTienda } from "@/components/ui/Icono";
+import { Revelar } from "@/components/motion/Revelar";
 import { TablaInventario } from "@/components/admin/TablaInventario";
 
 export const metadata: Metadata = {
@@ -23,19 +24,17 @@ function Kpi({
   tono?: "neutro" | "alerta";
 }) {
   return (
-    <div className="tarjeta border-t-2 border-azure p-5">
-      <Etiqueta>{rotulo}</Etiqueta>
+    <div data-escalon="" className="rounded-tarjeta bg-tarjeta p-5 shadow-tarjeta">
+      <p className="rotulo text-tenue">{rotulo}</p>
       <p
         className={[
-          "cifra mt-2 font-display text-[2rem] font-extrabold leading-none",
-          tono === "alerta" ? "text-error" : "text-superficie",
+          "cifra mt-2 text-[2rem] font-bold leading-none",
+          tono === "alerta" ? "text-error" : "text-tinta",
         ].join(" ")}
       >
         {valor}
       </p>
-      <p className="mt-2 font-cuerpo text-[0.8125rem] leading-snug text-tenue">
-        {nota}
-      </p>
+      <p className="mt-2 text-[0.8125rem] leading-snug text-tenue">{nota}</p>
     </div>
   );
 }
@@ -49,28 +48,24 @@ export default function PaginaAdmin() {
   );
 
   return (
-    <div className="contenedor py-10 lg:py-14">
-      <div className="flex flex-wrap items-end justify-between gap-6">
-        <div>
-          <Etiqueta>Panel de cafetería</Etiqueta>
-          <h1 className="mt-3 text-[clamp(2rem,1.4rem+3vw,3.25rem)] text-superficie">
-            Inventario y precios.
-          </h1>
-          <p className="cuerpo mt-3 max-w-[62ch] text-tenue">
-            Una sola vista para los cinco puntos. Los datos salen del catálogo
-            del frontend mientras la API no exponga el inventario real; cada
-            cifra que no viene del servidor se marca como tal.
-          </p>
+    <div className="contenedor pb-12">
+      <Revelar inmediato className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="rotulo text-tenue">Panel de cafetería</p>
+            <h1 className="titulo mt-2">Inventario y precios</h1>
+            <p className="mt-3 max-w-[62ch] leading-relaxed text-tenue">
+              Una sola vista para los cinco puntos. Los datos salen del catálogo
+              del frontend mientras la API no exponga el inventario real; cada
+              cifra que no viene del servidor se marca como tal.
+            </p>
+          </div>
+          <Badge tono="muestra">Datos de muestra</Badge>
         </div>
-        <Badge tono="muestra">Datos de muestra</Badge>
-      </div>
+      </Revelar>
 
-      <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <Kpi
-          rotulo="Productos"
-          valor={String(PRODUCTOS.length)}
-          nota="En los cinco puntos de la cafetería."
-        />
+      <Revelar className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi rotulo="Productos" valor={String(PRODUCTOS.length)} nota="En los cinco puntos de la cafetería." />
         <Kpi
           rotulo="Agotados"
           valor={String(agotados.length)}
@@ -87,57 +82,46 @@ export default function PaginaAdmin() {
           valor={formatoPrecio(valorInventario)}
           nota="Precio × existencias del catálogo cargado."
         />
-      </div>
+      </Revelar>
 
-      <section aria-labelledby="por-tienda" className="mt-12">
-        <h2
-          id="por-tienda"
-          className="font-display text-[1.25rem] font-extrabold text-superficie"
-        >
+      <Revelar as="section" aria-labelledby="por-tienda" className="mt-12">
+        <h2 id="por-tienda" className="titulo-seccion">
           Por tienda
         </h2>
-        <ul className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <ul className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-3">
           {TIENDAS.map((t) => {
-            const productos = PRODUCTOS.filter((p) => p.tienda === t.slug);
-            const acento = clasesAcento(t.acento);
-            const agotado = productos.filter((p) => p.existencias === 0).length;
+            const p = paletaTienda(t.slug);
+            const productos = PRODUCTOS.filter((x) => x.tienda === t.slug);
+            const agotado = productos.filter((x) => x.existencias === 0).length;
             return (
-              <li key={t.slug} className="tarjeta border-l-4 p-4">
-                <div className="flex items-center gap-2">
+              <li key={t.slug} data-escalon="" className={`rounded-tarjeta p-4 ${p.suave}`}>
+                <div className="flex items-center gap-2.5">
                   <span
                     aria-hidden="true"
-                    className={`h-4 w-[5px] rounded-[var(--tk-radio-pill)] ${acento.punto}`}
-                  />
-                  <span className="font-display text-[0.9375rem] font-extrabold text-superficie">
-                    {t.nombre}
+                    className={`flex h-9 w-9 items-center justify-center rounded-xs ${p.relleno} ${p.sobreRelleno}`}
+                  >
+                    <IconoTienda slug={t.slug} tamano={20} />
                   </span>
+                  <span className="font-semibold">{t.nombre}</span>
                 </div>
-                <p className="cifra mt-3 font-display text-[1.5rem] font-extrabold text-superficie">
-                  {productos.length}
+                <p className="cifra mt-3 text-2xl font-bold">{productos.length}</p>
+                <p className="text-[0.8125rem] text-tenue">
+                  productos{agotado > 0 ? ` · ${agotado} agotados` : ""}
                 </p>
-                <p className="font-cuerpo text-[0.8125rem] text-tenue">
-                  productos
-                  {agotado > 0 ? ` · ${agotado} agotados` : ""}
-                </p>
-                <p className="mt-2 font-cuerpo text-[0.75rem] leading-snug text-tenue">
-                  {t.categoria}
-                </p>
+                <p className={`mt-1.5 text-xs font-bold ${p.tinta}`}>{t.categoria}</p>
               </li>
             );
           })}
         </ul>
-      </section>
+      </Revelar>
 
       <section aria-labelledby="tabla" className="mt-12">
         <div className="flex flex-wrap items-baseline justify-between gap-3">
-          <h2
-            id="tabla"
-            className="font-display text-[1.25rem] font-extrabold text-superficie"
-          >
+          <h2 id="tabla" className="titulo-seccion">
             Tabla de inventario
           </h2>
           {agotados.length > 0 ? (
-            <p className="font-cuerpo text-[0.8125rem] text-tenue">
+            <p className="text-[0.8125rem] text-tenue">
               Agotados: {agotados.map((p) => p.nombre).join(" · ")}
             </p>
           ) : null}
