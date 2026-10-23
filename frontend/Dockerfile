@@ -1,17 +1,27 @@
-FROM node:22-alpine AS dependencies
+FROM node:22-alpine AS base
+
+# pnpm llega por Corepack, incluido en Node 22 (ADR 0015). La versión debe
+# coincidir con `packageManager` de package.json; se activa aquí, en la etapa
+# base, para que `dependencies` y `builder` reutilicen la misma capa en lugar
+# de descargar pnpm dos veces. Sin el prompt de descarga, el build no se
+# queda esperando una confirmación.
+ARG PNPM_VERSION=9.15.0
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+RUN corepack enable && corepack prepare pnpm@${PNPM_VERSION} --activate
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
+FROM base AS dependencies
+
+COPY package.json pnpm-lock.yaml ./
 # `--ignore-scripts` (SonarQube S6505): ningún paquete de este proyecto usa
 # scripts de instalación —los binarios nativos llegan por dependencias
 # opcionales por plataforma— y así la imagen no ejecuta `postinstall` de
-# terceros durante el build.
-RUN npm ci --ignore-scripts
+# terceros durante el build. `--frozen-lockfile` falla si pnpm-lock.yaml no
+# corresponde a package.json, igual que hacía `npm ci`.
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
-FROM node:22-alpine AS builder
-
-WORKDIR /app
+FROM base AS builder
 
 # `NEXT_PUBLIC_*` se hornea en el bundle durante el build, así que el dominio
 # público del sitio tiene que entrar aquí. Sin esto, `sitemap.xml`,
@@ -19,9 +29,11 @@ WORKDIR /app
 ARG NEXT_PUBLIC_SITIO_URL=https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io
 ENV NEXT_PUBLIC_SITIO_URL=$NEXT_PUBLIC_SITIO_URL
 
+# node_modules de pnpm es un árbol de enlaces simbólicos relativos hacia
+# node_modules/.pnpm; COPY los conserva tal cual.
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN pnpm run build
 
 FROM node:22-alpine AS runner
 

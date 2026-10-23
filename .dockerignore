@@ -12,6 +12,7 @@ __pycache__
 *.log
 .security-tools
 .contract-tools
-frontend/package-lock.json
+frontend/pnpm-lock.yaml
+.pnpm-store
 backend/tests
 backend/scripts
