@@ -22,7 +22,12 @@ def _tienda(sesion: Session, identificador: str = "antojos") -> Tienda:
 
 
 def _producto(sesion: Session, tienda: Tienda, **campos) -> Producto:
-    producto = Producto(tienda_id=tienda.id, nombre=campos.pop("nombre", "Arepa"), precio_centavos=1000, **campos)
+    producto = Producto(
+        tienda_id=tienda.id,
+        nombre=campos.pop("nombre", "Arepa"),
+        precio_centavos=campos.pop("precio_centavos", 1000),
+        **campos,
+    )
     sesion.add(producto)
     sesion.flush()
     return producto
