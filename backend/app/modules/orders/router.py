@@ -20,11 +20,11 @@ from app.modules.orders.schemas import (
     OrderOut,
     OrderStatusRequest,
 )
-from app.shared.database import get_session
+from app.shared.database import RutaConSesion, get_session
 from app.shared.errores import respuestas
 from app.shared.seguridad import ContextoSeguridad, prohibido, requiere_usuario
 
-router = APIRouter(prefix="/orders", tags=["orders"])
+router = APIRouter(prefix="/orders", tags=["orders"], route_class=RutaConSesion)
 
 Sesion = Annotated[Session, Depends(get_session)]
 Usuario = Annotated[ContextoSeguridad, Depends(requiere_usuario)]
