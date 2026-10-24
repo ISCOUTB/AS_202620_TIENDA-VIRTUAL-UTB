@@ -2,6 +2,9 @@
 
 - **Estado:** Propuesta — pendiente de revisión y ratificación del equipo
 - **Fecha:** 2026-10-22
+- **Ampliada por:** [ADR 0017](0017-admin-general-supervisa.md) (2026-10-24):
+  el `admin_general` ya no administra tiendas, solo las supervisa; se añaden
+  `seg_supervisa_tienda` y el principal `seg_es_sistema` (migración `0004`).
 - **Relacionada:** [ADR 0013](0013-migraciones-alembic-y-esquema.md) (esquema),
   [ADR 0001](0001-monolito-modular.md) (una sola base con dueño por módulo),
   [ADR 0011](0011-sesion-localstorage.md) (sesión del frontend) y el escenario
@@ -65,7 +68,7 @@ el punto de enganche del JWT está marcado como `TODO(identity)`.
 
 Las políticas leen ese contexto con funciones `STABLE`: `seg_usuario_id()`,
 `seg_tiene_rol(text)`, `seg_es_admin_general()`,
-`seg_administra_tienda(int)` (incluye a `admin_general`) y
+`seg_administra_tienda(int)` (incluía a `admin_general`; desde el ADR 0017 solo el admin de la tienda y el sistema) y
 `seg_gestiona_inventario_tienda(int)` (incluye a quien administra la tienda).
 
 ### Funciones SECURITY DEFINER

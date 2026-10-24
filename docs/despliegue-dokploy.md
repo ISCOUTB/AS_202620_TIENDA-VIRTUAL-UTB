@@ -28,12 +28,16 @@ FastAPI y PostgreSQL en una red privada; solo Next.js recibe tráfico público.
    # SEED_ON_DEPLOY=true
    # SEED_ADMIN_CORREO=admin@utb.edu.co
    # SEED_ADMIN_PASSWORD=otra-clave-larga
+   # SEED_TIENDAS_PASSWORD=clave-inicial-de-los-admins-de-tienda
    ```
 
    Con `SEED_ADMIN_CORREO` y `SEED_ADMIN_PASSWORD`, la siembra crea el
    administrador general inicial (solo si `SEED_ON_DEPLOY=true`; volver a
-   sembrar no cambia su contraseña). Cambiar `JWT_SECRET` cierra todas las
-   sesiones abiertas.
+   sembrar no cambia su contraseña). Desde la API 0.5.0 ese administrador
+   **solo supervisa** ([ADR 0017](adr/0017-admin-general-supervisa.md)); con
+   `SEED_TIENDAS_PASSWORD` la siembra crea además un admin por tienda,
+   `admin.<tienda>@utb.edu.co`, que es quien cambia stock, productos y pedidos.
+   Cambiar `JWT_SECRET` cierra todas las sesiones abiertas.
 
    `SEED_ON_DEPLOY=true` hace que el servicio `seed` siembre los datos de
    demostración en **cada** despliegue. La siembra es idempotente, pero
@@ -156,16 +160,127 @@ deliberadamente toda la base.
 - Confirmar que `sitemap.xml` y `robots.txt` responden con el dominio público y
   no con `http://localhost:3000`.
 
-> El catálogo que muestra la web es **estático** y vive en
-> `frontend/lib/catalogo.ts`; la API no interviene en el HTML. La API se usa
-> desde el navegador para el acceso y los pedidos, y por eso necesita un
-> camino público (proxy interno del frontend o dominio propio para `backend`).
+> Desde la API 0.4.0 el catálogo que muestra la web lo sirve la API: Next.js lo
+> lee en el servidor (`API_URL`) y el navegador habla con la API a través del
+> proxy interno `/api/proxy` ([ADR 0012](adr/0012-proxy-interno-api.md)). El
+> backend no necesita dominio público.
 
 Para validar antes de subir cambios:
 
 ```bash
-POSTGRES_PASSWORD=temporal APP_DB_PASSWORD=temporal2 docker compose -f deploy/compose.lab.yaml config
-POSTGRES_PASSWORD=temporal APP_DB_PASSWORD=temporal2 docker compose -f deploy/compose.lab.yaml build
+POSTGRES_PASSWORD=temporal APP_DB_PASSWORD=temporal2 JWT_SECRET=temporal3 docker compose -f deploy/compose.lab.yaml config
+POSTGRES_PASSWORD=temporal APP_DB_PASSWORD=temporal2 JWT_SECRET=temporal3 docker compose -f deploy/compose.lab.yaml build
 python -m pytest -c backend/pytest.ini backend/tests   # requiere DATABASE_URL de pruebas (README)
 pnpm --dir frontend run build                          # requiere pnpm (ADR 0015)
 ```
+
+## Subir 0.5.0
+
+La versión 0.5.0 trae un cambio de **comportamiento** además del código: el
+administrador general deja de editar y cada tienda pasa a tener su propio admin
+([ADR 0017](adr/0017-admin-general-supervisa.md)). Incluye la migración
+`0004_admin_general_supervisa` (funciones y políticas RLS; no cambia tablas ni
+datos) y los arreglos del pool de conexiones y del frontend
+([CHANGELOG](../CHANGELOG.md)). Este runbook se sigue en orden; los comandos se
+ejecutan en la terminal del servidor, desde la carpeta del despliegue.
+
+### 1. Antes de desplegar
+
+1. **Fusionar** las ramas en `main` en el orden del stack (ver
+   [`pendientes.md`](pendientes.md)) y esperar el CI en verde: `ruff`, `pytest`
+   con PostgreSQL, contrato OpenAPI y `pnpm` lint, typecheck, test y build.
+2. **Respaldo** de la base, con el rol dueño:
+
+   ```bash
+   docker compose -f deploy/compose.lab.yaml exec -T database \
+     sh -c 'pg_dump -U "$POSTGRES_USER" -Fc "$POSTGRES_DB"' > respaldo-pre-0.5.0.dump
+   ls -lh respaldo-pre-0.5.0.dump   # no debe estar vacío
+   ```
+
+   Guardar el archivo fuera del servidor. La restauración, si hiciera falta:
+   `pg_restore -U "$POSTGRES_USER" -d "$POSTGRES_DB" --clean --if-exists`.
+3. **Quién gestionará cada tienda.** Tras migrar, solo un `admin_tienda` (o
+   `responsable_inventario`) cambia los datos de su tienda. Revisar los roles
+   actuales:
+
+   ```bash
+   docker compose -f deploy/compose.lab.yaml exec database \
+     sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT u.correo, r.rol_codigo, t.identificador FROM usuario_roles r JOIN usuarios u ON u.id = r.usuario_id LEFT JOIN tiendas t ON t.id = r.tienda_id ORDER BY 2, 3"'
+   ```
+
+   Si una tienda no tiene admin, se crea con el paso 2.2.
+4. **Secreto nuevo** en Dokploy → Environment:
+   `SEED_TIENDAS_PASSWORD=<clave larga, 8+ caracteres>`. Nunca en el
+   repositorio ni en un chat; se comunica a cada tienda por un canal seguro, y
+   cada admin la cambia tras su primer ingreso (cuando exista la pantalla; hoy,
+   el general la reinicia por SQL).
+5. Avisar a quien usa la cuenta del administrador general de que, desde esta
+   versión, solo verá el panel en **modo supervisión**.
+
+### 2. Desplegar
+
+1. **Redeploy** del servicio Compose. El orden lo impone el propio
+   `compose.lab.yaml`:
+   - `database` saludable;
+   - `migrate` ejecuta `alembic upgrade head` y aplica `0004`, y debe terminar
+     con código 0;
+   - `seed`, solo con `SEED_ON_DEPLOY=true`;
+   - `backend`, y después `frontend`, que se reconstruye con el código nuevo.
+2. **Crear los admins de tienda** sin volver a sembrar el catálogo. Así no se
+   reinician precios ni descripciones, como sí pasaría con `SEED_ON_DEPLOY=true`:
+
+   ```bash
+   docker compose -f deploy/compose.lab.yaml run --rm seed python -m app.seed
+   ```
+
+   El servicio `seed` ya recibe `SEED_TIENDAS_PASSWORD` y `SEED_ADMIN_*`. La
+   siembra es idempotente: no duplica cuentas ni cambia contraseñas existentes.
+   Sí vuelve a escribir los productos demo, así que en una base con productos
+   editados a mano conviene crear las cuentas de tienda por SQL o pedir un
+   comando dedicado (pendiente).
+
+### 3. Verificar
+
+1. `http://backend:8000/health/ready` responde 200, desde la terminal del
+   frontend.
+2. `migrate` muestra en su log `Running upgrade 0003_producto_presentacion ->
+   0004_admin_general_supervisa`.
+3. Entrar como `admin.antojos@utb.edu.co`:
+   - el panel dice «Gestionas Antojos.»;
+   - solo aparece Antojos en filtros, inventario y cola;
+   - un ajuste de stock con + se guarda.
+4. Entrar como el administrador general:
+   - aparece el aviso «Modo supervisión» y «Supervisas 5 tiendas.»;
+   - no hay «Producto nuevo» ni «Editar»;
+   - − / + están deshabilitados;
+   - la cola no tiene botones.
+5. Comprobación de la API. Un ajuste del general debe responder **403** con
+   «El administrador general solo supervisa…»; usar un token del general:
+
+   ```bash
+   curl -s -X POST http://backend:8000/inventory/1/adjust \
+     -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+     -d '{"delta":1,"motivo":"conteo"}'
+   ```
+
+6. Schedule `vencer_pedidos`: ejecutarlo a mano una vez
+   (`docker compose -f deploy/compose.lab.yaml exec backend python -m
+   app.tareas.vencer_pedidos`). Debe terminar sin error y dejar la línea
+   `pedidos_vencidos`; ahora actúa como principal **sistema**.
+
+### 4. Volver atrás
+
+La migración se revierte **con la imagen 0.5.0**, antes de redesplegar la
+anterior: la imagen vieja no conoce la revisión `0004` y su `migrate`
+fallaría.
+
+```bash
+docker compose -f deploy/compose.lab.yaml run --rm migrate alembic downgrade 0003_producto_presentacion
+```
+
+Después, en Dokploy, desplegar el commit anterior. El `downgrade` restaura las
+funciones y políticas de `0002` (el general vuelve a editar). Las cuentas
+`admin.<tienda>` quedan creadas, con su rol; si no se quieren, se borran sus
+filas de `usuario_roles`. El respaldo del paso 1.2 solo hace falta si se
+perdieran datos, porque la migración no toca tablas.
+

@@ -1,8 +1,9 @@
 # S7: administrador de la tienda y gestión del catálogo
 
 **Estado:** implementado el 2026-10-24 en la API `0.4.0`: `POST /catalog/products`
-y `PATCH /catalog/products/{productId}` para `admin_tienda` de la tienda (o
-`admin_general`), con `401`/`403`/`404`/`409`/`422` en
+y `PATCH /catalog/products/{productId}` para `admin_tienda` de la tienda
+(desde la API 0.5.0 el `admin_general` ya no edita, solo supervisa:
+[ADR 0017](../adr/0017-admin-general-supervisa.md)), con `401`/`403`/`404`/`409`/`422` en
 [`openapi.json`](openapi.json). El resto del documento conserva el diseño
 original.
 

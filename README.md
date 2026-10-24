@@ -128,12 +128,14 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 - [Administrador de la tienda y flujo de gestión de productos (diseño previsto)](docs/api/administracion-catalogo.md)
 - [Documentación de la API, diagramas y explicación de `/health`](docs/api/contrato-api.md)
 - [Guía de la evidencia y comandos de verificación](docs/api/README.md)
-- [Contrato OpenAPI 3.1.0, versión de API 0.4.0](docs/api/openapi.json)
+- [Contrato OpenAPI 3.1.0, versión de API 0.5.0](docs/api/openapi.json)
+- [Matriz de permisos por rol](docs/api/contrato-api.md#51-matriz-de-permisos-por-rol-api-050-adr-0017)
 - [ADR 0002: integración HTTP y contrato versionado](docs/adr/0002-contrato-integracion-http.md)
 - [ADR 0011: sesión del frontend en almacenamiento local, con migración a cookie httpOnly](docs/adr/0011-sesion-localstorage.md)
 - [ADR 0012: proxy interno same-origin hacia la API, sin publicar el backend](docs/adr/0012-proxy-interno-api.md)
 - [ADR 0015: pnpm como gestor de paquetes del frontend](docs/adr/0015-gestor-paquetes-pnpm.md)
 - [ADR 0016: autenticación con JWT HS256 y contraseñas Argon2id](docs/adr/0016-autenticacion-jwt.md)
+- [ADR 0017: un admin por tienda; el administrador general solo supervisa](docs/adr/0017-admin-general-supervisa.md)
 - [Pruebas de contrato](backend/tests/contract/test_openapi.py) ejecutadas en el
   [pipeline](.github/workflows/tests.yml), con reporte descargable.
 
@@ -212,6 +214,23 @@ defecto `false`: se omite). En Dokploy se usa la misma variable
 `SEED_ADMIN_CORREO` y `SEED_ADMIN_PASSWORD`, la siembra crea el administrador
 general inicial, que después asigna los demás roles
 ([ADR 0016](docs/adr/0016-autenticacion-jwt.md)).
+
+#### Cuentas de administración (API 0.5.0)
+
+Cada tienda la gestiona su propio admin y el administrador general **solo
+supervisa**: ve el inventario, los productos inactivos y las colas de pedidos
+de todas las tiendas, pero no cambia stock, productos ni pedidos
+([ADR 0017](docs/adr/0017-admin-general-supervisa.md)).
+
+| Cuenta | Rol | Qué puede hacer | Cómo se crea |
+|---|---|---|---|
+| `SEED_ADMIN_CORREO` (p. ej. `admin@utb.edu.co`) | `admin_general` | Supervisar todas las tiendas; gestionar cuentas, roles y tiendas | Siembra con `SEED_ADMIN_CORREO` + `SEED_ADMIN_PASSWORD` |
+| `admin.<tienda>@utb.edu.co` (`antojos`, `punto-fit`, `alegria`, `almuerzo-01`, `almuerzo-02`) | `admin_tienda` de esa tienda | Productos, stock y pedidos **solo de su tienda** | Siembra con `SEED_TIENDAS_PASSWORD` (8+ caracteres) |
+| Cualquier registro en `/auth/crear-cuenta` | `comprador` | Apartar y cancelar sus pedidos | Registro público |
+
+Las contraseñas no se versionan: se definen en `.env` (o como secreto en
+Dokploy) y se cambian tras el primer ingreso. La siembra es idempotente y no
+pisa la contraseña de una cuenta que ya existe.
 
 `docker compose up` arranca primero `database`, luego el servicio de una sola
 ejecución `migrate` (`alembic upgrade head`) y solo si termina bien la API. La
