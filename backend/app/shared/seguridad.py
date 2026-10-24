@@ -38,7 +38,7 @@ class ContextoSeguridad:
     def administra_tienda(self, tienda_id: int) -> bool:
         """Misma regla que `seg_administra_tienda` en la base.
 
-        El admin general no escribe en las tiendas, solo las supervisa (ADR 0016).
+        El admin general no escribe en las tiendas, solo las supervisa (ADR 0017).
         """
         return self.sistema or tienda_id in self.tiendas_admin
 

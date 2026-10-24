@@ -47,9 +47,11 @@ services:
       DATABASE_URL: "postgresql://${APP_DB_USER:-tienda_app}:${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
       APP_DB_USER: ${APP_DB_USER:-tienda_app}
       SEED_ON_DEPLOY: ${SEED_ON_DEPLOY:-false}
-      # Opcional: administrador general inicial (ADR 0016).
+      # Opcional: administrador general inicial, solo supervisa (ADR 0016, 0017).
       SEED_ADMIN_CORREO: ${SEED_ADMIN_CORREO:-}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
+      # Opcional: un admin por tienda, admin.<tienda>@utb.edu.co (ADR 0017).
+      SEED_TIENDAS_PASSWORD: ${SEED_TIENDAS_PASSWORD:-}
     depends_on:
       migrate:
         condition: service_completed_successfully

@@ -83,7 +83,7 @@ def asegurar_cuenta_con_rol(
 
 
 def asegurar_admin_general(session: Session, *, nombre: str, correo: str, contrasena: str) -> int:
-    """Cuenta con el rol `admin_general`: supervisa todas las tiendas (ADR 0016)."""
+    """Cuenta con el rol `admin_general`: supervisa todas las tiendas (ADR 0017)."""
     return asegurar_cuenta_con_rol(
         session, nombre=nombre, correo=correo, contrasena=contrasena, rol="admin_general"
     )

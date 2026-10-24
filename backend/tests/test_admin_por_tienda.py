@@ -1,4 +1,4 @@
-"""Cada tienda la gestiona su admin; el admin general solo supervisa (ADR 0016).
+"""Cada tienda la gestiona su admin; el admin general solo supervisa (ADR 0017).
 
 Matriz de permisos por la API (admin de la tienda, admin de otra tienda y
 admin general) y la misma regla en la base con el rol de aplicación (RLS).

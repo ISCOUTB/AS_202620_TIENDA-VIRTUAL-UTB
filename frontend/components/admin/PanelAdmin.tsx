@@ -92,7 +92,7 @@ export function PanelAdmin() {
       filas,
       administrables: tiendas.filter((t) => administraTienda(usuario, t.id)),
       supervisables: tiendas.filter((t) => supervisaTienda(usuario, t.id)),
-      // Admin general: ve todo, no cambia nada (ADR 0016).
+      // Admin general: ve todo, no cambia nada (ADR 0017).
       soloSupervisa: tiendas.length > 0 && !tiendas.some((t) => gestionaInventario(usuario, t.id)),
     };
   }, [carga, usuario]);

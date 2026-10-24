@@ -53,7 +53,7 @@ async def lifespan(_: FastAPI):
     yield
 
 
-app = FastAPI(title="Tienda Virtual UTB", version="0.4.0", lifespan=lifespan)
+app = FastAPI(title="Tienda Virtual UTB", version="0.5.0", lifespan=lifespan)
 app.router.route_class = RutaConSesion
 app.add_middleware(ObservabilityMiddleware)
 # Composition root: Identidad traduce el token Bearer al principal de RLS.
