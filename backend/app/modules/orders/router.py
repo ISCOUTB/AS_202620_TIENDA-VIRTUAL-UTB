@@ -22,7 +22,7 @@ from app.modules.orders.schemas import (
 )
 from app.shared.database import RutaConSesion, get_session
 from app.shared.errores import respuestas
-from app.shared.seguridad import ContextoSeguridad, prohibido, requiere_usuario
+from app.shared.seguridad import ContextoSeguridad, prohibido, prohibido_en_tienda, requiere_usuario
 
 router = APIRouter(prefix="/orders", tags=["orders"], route_class=RutaConSesion)
 
@@ -61,14 +61,14 @@ def _salida(session: Session, pedidos: Sequence[Pedido]) -> list[OrderOut]:
 
 
 def _visible(session: Session, contexto: ContextoSeguridad, pedido_id: int) -> Pedido:
-    """El pedido existe y es del usuario o de una tienda que gestiona.
+    """El pedido existe y es del usuario, de una tienda que gestiona o lo supervisa.
 
     RLS aplica la misma regla en la base; aquí se responde 404 sin revelar si
     el pedido de otra persona existe.
     """
     pedido = repository.obtener(session, pedido_id)
     if pedido is None or not (
-        pedido.usuario_id == contexto.usuario_id or contexto.gestiona_inventario(pedido.tienda_id)
+        pedido.usuario_id == contexto.usuario_id or contexto.supervisa_tienda(pedido.tienda_id)
     ):
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido no encontrado")
     return pedido
@@ -103,7 +103,7 @@ def list_orders(
     ] = None,
 ) -> list[OrderOut]:
     """Pedidos del usuario o, con `tienda_id`, la cola de pedidos de esa tienda."""
-    if tienda_id is not None and not contexto.gestiona_inventario(tienda_id):
+    if tienda_id is not None and not contexto.supervisa_tienda(tienda_id):
         raise prohibido("No gestionas los pedidos de esta tienda")
     pedidos = repository.listar(
         session,
@@ -196,6 +196,9 @@ def cancel_order(
     """
     pedido = _visible(session, contexto, order_id)
     gestiona = contexto.gestiona_inventario(pedido.tienda_id)
+    if not gestiona and pedido.usuario_id != contexto.usuario_id:
+        # Lo ve porque supervisa (admin general), pero no lo puede cancelar.
+        raise prohibido_en_tienda(contexto, "Solo la tienda puede cancelar este pedido")
     por_defecto = "Cancelado por la tienda" if gestiona else "Cancelado por el comprador"
     with _confirmar(session):
         service.cancelar(
@@ -224,7 +227,7 @@ def update_order_status(
     """La tienda avanza el pedido: pago confirmado, en preparación, listo, entregado."""
     pedido = _visible(session, contexto, order_id)
     if not contexto.gestiona_inventario(pedido.tienda_id):
-        raise prohibido("Solo la tienda puede cambiar el estado del pedido")
+        raise prohibido_en_tienda(contexto, "Solo la tienda puede cambiar el estado del pedido")
     with _confirmar(session):
         service.cambiar_estado(
             session,

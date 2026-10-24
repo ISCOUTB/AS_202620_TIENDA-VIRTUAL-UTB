@@ -22,7 +22,14 @@ const ACCION: Record<string, string> = {
  * entregarse. Cancelar repone las unidades. Los pedidos sin pagar vencen
  * solos a las 24 h (`app.tareas.vencer_pedidos`).
  */
-export function ColaPedidos({ tiendas }: Readonly<{ tiendas: TiendaOut[] }>) {
+export function ColaPedidos({
+  tiendas,
+  puedeGestionar,
+}: Readonly<{
+  tiendas: TiendaOut[];
+  /** false = solo lectura (el admin general supervisa; ADR 0016). */
+  puedeGestionar: (tiendaId: number) => boolean;
+}>) {
   const [tiendaId, setTiendaId] = useState<number | null>(tiendas[0]?.id ?? null);
   const [pedidos, setPedidos] = useState<OrderOut[] | null>(null);
   const [verCerrados, setVerCerrados] = useState(false);
@@ -124,6 +131,7 @@ export function ColaPedidos({ tiendas }: Readonly<{ tiendas: TiendaOut[] }>) {
             {visibles.map((pedido) => {
               const siguiente = SIGUIENTE_ESTADO[pedido.estado];
               const abierto = pedido.estado !== "entregado" && pedido.estado !== "cancelado";
+              const gestionable = abierto && puedeGestionar(pedido.tienda_id);
               const enCurso = ocupado === pedido.id;
               return (
                 <li key={pedido.id} aria-busy={enCurso} className="rounded-tarjeta bg-tarjeta p-5 shadow-tarjeta">
@@ -146,7 +154,7 @@ export function ColaPedidos({ tiendas }: Readonly<{ tiendas: TiendaOut[] }>) {
                   <p className="cifra mt-2 border-t border-linea pt-2 text-right font-bold">
                     {formatoPrecio(pedido.total_centavos)}
                   </p>
-                  {abierto ? (
+                  {gestionable ? (
                     <div className="mt-3 flex flex-wrap justify-end gap-2">
                       <Boton
                         variante="contorno"
