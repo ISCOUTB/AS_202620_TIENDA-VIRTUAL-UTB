@@ -97,6 +97,17 @@ def _fijar_contexto(session: Session, _transaction, connection) -> None:
     aplicar_contexto(connection, session.info.get(CLAVE_CONTEXTO, ANONIMO))
 
 
+def cambiar_contexto(session: Session, contexto: ContextoSeguridad) -> None:
+    """Cambia el principal de la sesión, también en la transacción ya abierta.
+
+    Para los casos en que quien actúa cambia a mitad de la petición, como el
+    alta de una cuenta, que después lee su propio perfil.
+    """
+    session.info[CLAVE_CONTEXTO] = contexto
+    if session.in_transaction():
+        aplicar_contexto(session.connection(), contexto)
+
+
 class Base(DeclarativeBase):
     """Base declarativa única para el monolito modular."""
 

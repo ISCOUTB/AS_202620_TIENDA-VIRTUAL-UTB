@@ -128,11 +128,12 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 - [Administrador de la tienda y flujo de gestión de productos (diseño previsto)](docs/api/administracion-catalogo.md)
 - [Documentación de la API, diagramas y explicación de `/health`](docs/api/contrato-api.md)
 - [Guía de la evidencia y comandos de verificación](docs/api/README.md)
-- [Contrato OpenAPI 3.1.0, versión de API 0.3.0](docs/api/openapi.json)
+- [Contrato OpenAPI 3.1.0, versión de API 0.4.0](docs/api/openapi.json)
 - [ADR 0002: integración HTTP y contrato versionado](docs/adr/0002-contrato-integracion-http.md)
 - [ADR 0011: sesión del frontend en almacenamiento local, con migración a cookie httpOnly](docs/adr/0011-sesion-localstorage.md)
 - [ADR 0012: proxy interno same-origin hacia la API, sin publicar el backend](docs/adr/0012-proxy-interno-api.md)
 - [ADR 0015: pnpm como gestor de paquetes del frontend](docs/adr/0015-gestor-paquetes-pnpm.md)
+- [ADR 0016: autenticación con JWT HS256 y contraseñas Argon2id](docs/adr/0016-autenticacion-jwt.md)
 - [Pruebas de contrato](backend/tests/contract/test_openapi.py) ejecutadas en el
   [pipeline](.github/workflows/tests.yml), con reporte descargable.
 
@@ -199,7 +200,7 @@ Desde la raíz del repositorio —la creación de `.env` es una sola vez; despu�
 basta `docker compose up`—:
 
 ```bash
-cp .env.example .env   # completar POSTGRES_PASSWORD y APP_DB_PASSWORD
+cp .env.example .env   # completar POSTGRES_PASSWORD, APP_DB_PASSWORD y JWT_SECRET
 docker compose up --build
 docker compose run --rm migrate python -m app.seed   # datos de demostración (opcional)
 ```
@@ -207,7 +208,10 @@ docker compose run --rm migrate python -m app.seed   # datos de demostración (o
 Alternativa: con `SEED_ON_DEPLOY=true` en `.env`, el servicio de una sola
 ejecución `seed` siembra tras `migrate` en cada `docker compose up` (por
 defecto `false`: se omite). En Dokploy se usa la misma variable
-([despliegue](docs/despliegue-dokploy.md)).
+([despliegue](docs/despliegue-dokploy.md)). Si además se definen
+`SEED_ADMIN_CORREO` y `SEED_ADMIN_PASSWORD`, la siembra crea el administrador
+general inicial, que después asigna los demás roles
+([ADR 0016](docs/adr/0016-autenticacion-jwt.md)).
 
 `docker compose up` arranca primero `database`, luego el servicio de una sola
 ejecución `migrate` (`alembic upgrade head`) y solo si termina bien la API. La
@@ -270,7 +274,7 @@ python -m pytest -c backend/pytest.ini backend/tests
 ```
 
 Las pruebas comprueban la ruta de salud, los límites de módulos del ADR, los
-endpoints de catálogo e inventario, el contrato OpenAPI, la observabilidad, las
+endpoints de identidad, catálogo e inventario, el contrato OpenAPI, la observabilidad, las
 restricciones del esquema, el bloqueo optimista, las políticas RLS y que las
 migraciones son reversibles y coinciden con los modelos. El mismo conjunto
 corre en GitHub Actions con un servicio `postgres:17-alpine`, junto con
@@ -297,10 +301,12 @@ backend/
     modules/
       catalog/                  # tiendas, categorías, productos, imágenes: router, repository, models, schemas, public
       inventory/                # existencias y movimientos: router, repository, models, schemas, public
-      {identity,orders}/        # solo modelos (tablas), sin endpoints todavía
+      identity/                 # registro, login (JWT) y /identity/me: router, repository, tokens, contrasenas, public
+      orders/                   # solo modelos (tablas), sin endpoints todavía
     shared/
       database.py               # engine, sesión y Base (solo acceso a datos)
-      seguridad.py              # contexto de seguridad por transacción para RLS
+      seguridad.py              # principal de la petición (Bearer) y contexto por transacción para RLS
+      errores.py                # cuerpo común de error (ErrorResponse) para OpenAPI
       logging.py                # logs estructurados JSON (S8)
       metrics.py                # middleware de métricas HTTP por ruta (S8)
   alembic.ini, alembic/         # migraciones (0001 esquema, 0002 RLS)

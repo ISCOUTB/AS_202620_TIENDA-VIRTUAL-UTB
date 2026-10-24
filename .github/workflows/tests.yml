@@ -38,6 +38,7 @@ jobs:
         env:
           POSTGRES_PASSWORD: ci-validation-only
           APP_DB_PASSWORD: ci-validation-only
+          JWT_SECRET: ci-validation-only
       # Mismo script que inicializa el volumen en Docker (ADR 0014); aquí psql
       # llega al servicio por TCP gracias a PGHOST.
       - name: Crear el rol de aplicación sujeto a RLS

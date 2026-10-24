@@ -11,10 +11,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.modules.catalog import router as catalog_router
+from app.modules.identity import public as identidad
+from app.modules.identity import router as identity_router
 from app.modules.inventory import router as inventory_router
 from app.shared.database import get_session
 from app.shared.logging import configure_logging
 from app.shared.metrics import ObservabilityMiddleware, snapshot
+from app.shared.seguridad import registrar_resolvedor
 
 _PATH_CONTRATO_DISENO = (
     Path(__file__).resolve().parents[2] / "docs" / "openapi" / "tienda-virtual.yaml"
@@ -39,17 +42,21 @@ def _abrir_contrato_diseno() -> PlainTextResponse:
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    """Configura logs JSON.
+    """Configura logs JSON y comprueba que se pueden firmar tokens.
 
     El esquema lo crea `alembic upgrade head` y los datos de demostración
     `python -m app.seed` (ADR 0013): la API ya no modifica la base al arrancar.
     """
     configure_logging()
+    identidad.verificar_configuracion()
     yield
 
 
-app = FastAPI(title="Tienda Virtual UTB", version="0.3.1", lifespan=lifespan)
+app = FastAPI(title="Tienda Virtual UTB", version="0.4.0", lifespan=lifespan)
 app.add_middleware(ObservabilityMiddleware)
+# Composition root: Identidad traduce el token Bearer al principal de RLS.
+registrar_resolvedor(identidad.principal_desde_token)
+app.include_router(identity_router)
 app.include_router(catalog_router)
 app.include_router(inventory_router)
 

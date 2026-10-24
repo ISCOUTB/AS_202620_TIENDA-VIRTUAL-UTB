@@ -13,7 +13,8 @@ from collections.abc import Iterator
 from pathlib import Path
 
 import pytest
-from sqlalchemy import make_url, text
+from fastapi.testclient import TestClient
+from sqlalchemy import make_url, select, text
 from sqlalchemy.orm import Session
 
 _URL = os.getenv("DATABASE_URL")
@@ -28,6 +29,9 @@ if "test" not in (make_url(_URL).database or ""):
         "las pruebas borran datos y deshacen migraciones."
     )
 
+# Clave solo para pruebas; la API exige JWT_SECRET al arrancar (ADR 0016).
+os.environ.setdefault("JWT_SECRET", "clave-de-pruebas-que-no-se-usa-en-produccion")
+
 from alembic import command  # noqa: E402  (tras validar el entorno)
 from alembic.config import Config  # noqa: E402
 
@@ -35,6 +39,7 @@ from app.modules.catalog import models as _catalogo  # noqa: E402,F401
 from app.modules.identity import models as _identidad  # noqa: E402,F401
 from app.modules.inventory import models as _inventario  # noqa: E402,F401
 from app.modules.orders import models as _pedidos  # noqa: E402,F401
+from app.main import app  # noqa: E402
 from app.shared.database import Base, SessionLocal, engine  # noqa: E402
 
 ALEMBIC_INI = Path(__file__).resolve().parents[1] / "alembic.ini"
@@ -62,6 +67,32 @@ def sesion() -> Iterator[Session]:
     with SessionLocal() as session:
         yield session
         session.rollback()
+
+
+@pytest.fixture
+def cliente() -> Iterator[TestClient]:
+    with TestClient(app) as client:
+        yield client
+
+
+def registrar_y_entrar(
+    client: TestClient, correo: str = "ana@utb.edu.co", password: str = "clave-segura-1"
+) -> dict[str, str]:
+    """Crea una cuenta de comprador y devuelve la cabecera `Authorization`."""
+    client.post(
+        "/identity/register", json={"nombre": "Ana", "email": correo, "password": password}
+    )
+    token = client.post("/identity/login", json={"email": correo, "password": password})
+    return {"Authorization": f"Bearer {token.json()['access_token']}"}
+
+
+def asignar_rol(correo: str, rol: str, tienda_id: int | None = None) -> None:
+    """Asigna un rol como dueño de la base (en la API lo haría un admin general)."""
+    from app.modules.identity.models import Usuario, UsuarioRol
+
+    with SessionLocal() as session, session.begin():
+        usuario_id = session.scalar(select(Usuario.id).where(Usuario.correo == correo))
+        session.add(UsuarioRol(usuario_id=usuario_id, rol_codigo=rol, tienda_id=tienda_id))
 
 
 @pytest.fixture

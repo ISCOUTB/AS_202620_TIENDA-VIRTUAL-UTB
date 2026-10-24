@@ -89,9 +89,14 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   `catalog_products` e `inventory_stock`) y ejecutar la siembra (o
   `SEED_ON_DEPLOY=true`). Pasos en el README.
 - Reforzar mediante pruebas las reglas de dependencia entre módulos.
-- Implementar los endpoints de `identity` y `orders` (ya tienen tablas) y las
-  escrituras de `inventory`. Al implementar el login, completar
-  `contexto_actual` (`app/shared/seguridad.py`) para que RLS reciba el usuario.
+- ~~Implementar los endpoints de `identity`~~ — hecho el 2026-10-24
+  ([ADR 0016](adr/0016-autenticacion-jwt.md)): registro, login con JWT,
+  `/identity/me` y `contexto_actual` entrega el usuario a RLS. En cada entorno
+  hay que definir `JWT_SECRET` (la API no arranca sin ella) y, para el primer
+  administrador, `SEED_ADMIN_CORREO`/`SEED_ADMIN_PASSWORD` con
+  `SEED_ON_DEPLOY=true`.
+- Implementar los endpoints de `orders` (ya tienen tablas) y las escrituras de
+  `inventory`.
 
 ## Datos de la cafetería (frontend)
 

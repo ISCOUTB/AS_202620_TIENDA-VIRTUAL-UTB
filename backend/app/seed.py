@@ -1,8 +1,9 @@
 """Siembra explícita de datos de demostración: `python -m app.seed`.
 
 Composition root: solo usa las operaciones públicas de cada módulo. Es
-idempotente (alta o actualización por clave natural) y no crea usuarios ni
-contraseñas. Se ejecuta con las credenciales del rol dueño
+idempotente (alta o actualización por clave natural). Solo crea una cuenta si
+se definen `SEED_ADMIN_CORREO` y `SEED_ADMIN_PASSWORD`: el administrador
+general inicial, que después asigna los demás roles. Se ejecuta con las credenciales del rol dueño
 (`MIGRATIONS_DATABASE_URL` o `DB_MIGRATIONS_*`), no con el rol de la API, que
 está sujeto a RLS (ADR 0014).
 
@@ -13,11 +14,13 @@ Opcionalmente carga el JSON que produce `scripts/exportar_datos_legado.py`:
 
 import argparse
 import json
+import os
 from pathlib import Path
 
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.modules.catalog.public import asegurar_categoria, asegurar_producto, asegurar_tienda
+from app.modules.identity.public import asegurar_admin_general
 from app.modules.inventory.public import asegurar_existencia_inicial
 from app.shared.database import crear_engine, resolve_database_url
 
@@ -187,6 +190,19 @@ def cargar_legado(session: Session, ruta: Path) -> dict[str, int]:
     return {"legado_cargados": cargados, "legado_omitidos": omitidos}
 
 
+def sembrar_admin(session: Session) -> dict[str, int]:
+    """Crea el administrador general si `SEED_ADMIN_*` están definidas."""
+    correo = os.getenv("SEED_ADMIN_CORREO")
+    contrasena = os.getenv("SEED_ADMIN_PASSWORD")
+    if not (correo and contrasena):
+        return {}
+    if len(contrasena) < 8:
+        raise SystemExit("SEED_ADMIN_PASSWORD debe tener al menos 8 caracteres.")
+    nombre = os.getenv("SEED_ADMIN_NOMBRE", "Administración")
+    asegurar_admin_general(session, nombre=nombre, correo=correo, contrasena=contrasena)
+    return {"admin_general": 1}
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Siembra datos de demostración.")
     parser.add_argument(
@@ -203,6 +219,7 @@ def main(argv: list[str] | None = None) -> None:
         if args.desde_json:
             resumen |= cargar_legado(session, args.desde_json)
         resumen |= sembrar_demo(session)
+        resumen |= sembrar_admin(session)
     engine.dispose()
     print(json.dumps(resumen, ensure_ascii=False))
 
