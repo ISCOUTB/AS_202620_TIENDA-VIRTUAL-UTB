@@ -1,6 +1,6 @@
 # Pendientes
 
-**Última revisión: 2026-10-04.** El despliegue vigente es el stack de Dokploy
+**Última revisión: 2026-10-24.** El despliegue vigente es el stack de Dokploy
 descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
 
 ## Despliegue
@@ -68,16 +68,17 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   |---|---|---|
   | `githubactions:S6505` (vulnerabilidad MAJOR) | `.github/workflows/tests.yml` | `npm ci --ignore-scripts` — **aplicado en este PR**; era el único hallazgo dentro del periodo de fuga y el que bloqueaba el gate. |
   | `docker:S6505` (vulnerabilidad MAJOR) | `frontend/Dockerfile` | `RUN npm ci --ignore-scripts` — **aplicado en este PR**. |
-  | `python:S8409` (code smell MINOR) | `backend/app/modules/inventory/router.py` y `backend/app/modules/catalog/router.py` | Quitar el `response_model=...` de la ruta: FastAPI ya lo infiere de la anotación de retorno. |
-  | `python:S8410` (code smell MINOR) | `backend/app/modules/inventory/router.py`, `backend/app/modules/catalog/router.py` y `backend/app/main.py` | `def f(db: Annotated[Session, Depends(get_session)])` en lugar de `= Depends(...)` como valor por defecto. |
-  | `python:S9073` (code smell MAJOR) | `backend/tests/contract/test_openapi.py` | Partir `assert method == "get" and "{" not in path` en dos `assert`. |
-  | `python:S5778` (code smell MAJOR) | `backend/tests/contract/test_openapi.py` | Sacar la construcción del validador fuera del `with pytest.raises(...)`: dentro debe quedar una sola invocación. |
+  | `python:S8409` (code smell MINOR) | `backend/app/modules/inventory/router.py` y `backend/app/modules/catalog/router.py` | Quitar el `response_model=...` de la ruta: FastAPI ya lo infiere de la anotación de retorno. **Aplicado el 2026-10-24.** En `main.py`, `/health` y `/health/ready` lo conservan porque no es redundante (devuelven `dict` y `JSONResponse`). |
+  | `python:S8410` (code smell MINOR) | `backend/app/modules/inventory/router.py`, `backend/app/modules/catalog/router.py` y `backend/app/main.py` | `def f(db: Annotated[Session, Depends(get_session)])` en lugar de `= Depends(...)` como valor por defecto. **Aplicado el 2026-10-24** (también en los routers nuevos). |
+  | `python:S9073` (code smell MAJOR) | `backend/tests/contract/test_openapi.py` | Partir `assert method == "get" and "{" not in path` en dos `assert`. **Aplicado el 2026-10-24.** |
+  | `python:S5778` (code smell MAJOR) | `backend/tests/contract/test_openapi.py` | Sacar la construcción del validador fuera del `with pytest.raises(...)`: dentro debe quedar una sola invocación. **Aplicado el 2026-10-24.** |
   | `docker:S6505` / `docker:S8541` / `docker:S8544` (vulnerabilidades MAJOR) | `backend/Dockerfile` | `pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.txt` con un archivo de requisitos con hashes. |
   | `githubactions:S8544` (vulnerabilidad MAJOR) | `.github/workflows/tests.yml` (job `backend`) | Igual que lo anterior, pero en el runner: `--require-hashes` sobre un archivo de requisitos con hashes. |
 
-  Los cuatro últimos necesitan tocar el backend (archivos de requisitos con
-  hashes y los routers/tests del backend), así que quedan fuera del alcance del
-  rediseño del frontend.
+  Quedan abiertos los tres de `--require-hashes` (`backend/Dockerfile` y el
+  job `backend` de CI): piden generar un archivo de requisitos con hashes
+  (p. ej. `uv pip compile --generate-hashes`) y mantenerlo al actualizar
+  dependencias.
 
 - Registrar la prueba de carga concurrente de aproximadamente cinco sesiones.
 - ~~Definir migraciones con Alembic~~ — hecho el 2026-10-22
@@ -108,9 +109,10 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
 
 - **Precios de Antojos, Punto Fit y Alegría.** Hoy se publican como
   «precio de referencia» y las tres tiendas quedan con `noindex`. Al
-  confirmarlos hay que actualizar `frontend/lib/catalogo.ts` (poner
-  `esMuestra: false`) y `frontend/lib/tiendas.ts` (`indexable: true`).
-  Mientras sean de referencia, el `sitemap.xml` las excluye.
+  confirmarlos, el administrador de cada tienda marca «Precio confirmado» en
+  `/admin` (`PATCH /catalog/products/{id}`, `precio_confirmado: true`) y se
+  cambia `frontend/lib/tiendas.ts` (`indexable: true`), que sigue siendo
+  estático. Mientras sean de referencia, el `sitemap.xml` las excluye.
 - **Asignación de las 13 fotos.** Viven en `frontend/public/img/` como
   `cafeteria-01.jpg` … `cafeteria-13.jpg` y no están asociadas a tiendas ni a
   productos. El mapa está vacío en `frontend/lib/imagenes.ts`
@@ -140,4 +142,17 @@ Ver [`api/tiendas-catalogo.md`](api/tiendas-catalogo.md). Resumen:
   `httpOnly`); hacer ambas cosas juntas.
 - ~~`OrderCreateRequest` necesita `hora_recogida`~~ — hecho.
 - ~~Faltan `identity/*`, `orders` y los ajustes de inventario~~ — hechos en la
-  API `0.4.0`. Falta conectar el frontend: sigue marcándolos `preview`.
+  API `0.4.0` y conectados en el frontend el 2026-10-24: catálogo real sin
+  caché, «Mis pedidos» con cancelación en `/cuenta` y, en `/admin`,
+  inventario, cola de pedidos y alta/edición de productos.
+
+## Aplazado por decisión
+
+- **`notas` por ítem + sesión en cookie `httpOnly` (reabre el ADR 0011).**
+  Las notas son contenido de usuario que se imprime en el ticket; aceptarlas
+  con el token en `localStorage` amplía el impacto de un XSS. Se hacen juntas:
+  mover el JWT a una cookie `httpOnly` del proxy (ADR 0012) con protección
+  CSRF, y después añadir `notas` (≤ 140 caracteres) a `OrderItemRequest`.
+- **Asignación de roles desde la interfaz.** Hoy un `admin_general` asigna
+  `admin_tienda` y `responsable_inventario` directamente en la base
+  (`usuario_roles`); no hay endpoint ni pantalla para hacerlo.

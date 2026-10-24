@@ -9,27 +9,27 @@ actualización están en la [guía de evidencia](README.md).
 
 | Aspecto | Valor actual |
 |---|---|
-| Versión de la API (`info.version`) | `0.3.0` |
+| Versión de la API (`info.version`) | `0.4.0` |
 | Versión del formato de especificación (`openapi`) | `3.1.0` |
 | Comunicación | HTTP síncrono, respuestas JSON |
 | Dirección local con Docker Compose | `http://localhost:8000` |
 | Dirección usada por Next.js dentro de Compose | `http://backend:8000` |
-| Autenticación | Las operaciones actuales no requieren credenciales. |
+| Autenticación | Las consultas del catálogo, el inventario y la salud son públicas. Identidad, pedidos y escrituras usan `Authorization: Bearer <JWT>` (esquema `bearerAuth`, [ADR 0016](../adr/0016-autenticacion-jwt.md)). |
 | Documentación interactiva con la API encendida | `http://localhost:8000/docs` |
 | Especificación generada por la aplicación encendida | `http://localhost:8000/openapi.json` |
 
-`0.3.0` identifica la versión de nuestra API; `3.1.0` identifica el formato
+`0.4.0` identifica la versión de nuestra API; `3.1.0` identifica el formato
 OpenAPI utilizado para describirla. Las direcciones anteriores corresponden
 al entorno local; el contrato no declara una sección `servers`.
 
 Un **endpoint** es una operación accesible mediante un método HTTP y una ruta.
-`GET` indica una consulta. Ninguna de las cinco operaciones actuales recibe
-parámetros de ruta, parámetros de consulta ni cuerpo de petición.
+`GET` indica una consulta; `POST`, `PUT` y `PATCH`, cambios. La sección 5
+resume las 20 operaciones; esta guía detalla las de consulta y operación.
 
 ## 2. Diagrama de la consulta del catálogo
 
 Este flujo corresponde al comprador que consulta productos. El administrador
-de la tienda tiene un [flujo de gestión propio, documentado como diseño previsto](administracion-catalogo.md),
+de la tienda tiene un [flujo de gestión propio](administracion-catalogo.md)
 para registrar productos nuevos, editar sus datos y habilitar su venta.
 
 > **Ilustración histórica:** [imagen previa a la separación 0.3.0](images/consulta-catalogo-presentacion.png)
@@ -56,14 +56,18 @@ sequenceDiagram
 ```
 
 El diagrama representa el caso exitoso en Docker Compose. Next.js realiza la
-consulta desde el servidor y utiliza los datos para renderizar la página.
-Si la consulta falla, la vista muestra un mensaje de error. Las pruebas del
+consulta desde el servidor, sin caché, en cada petición
+(`frontend/lib/catalogo-servidor.ts`), compone catálogo e inventario
+([ADR 0008](../adr/0008-separar-catalogo-inventario.md)) y renderiza la página. Si la
+consulta falla, la vista muestra la carta guardada en el frontend con un aviso
+visible y deja apartar en pausa. Las pruebas del
 backend usan PostgreSQL con el esquema aplicado por Alembic (ADR 0013).
 
 ## 3. Consultar productos: `GET /catalog/products`
 
-**Propósito:** obtener el catálogo completo. La implementación actual lo ordena
-por `nombre`; no implementa paginación ni filtros.
+**Propósito:** obtener el catálogo a la venta (productos activos de tiendas
+activas), ordenado por `nombre`. Con `?incluir_inactivos=true`, quien gestiona
+una tienda recibe también los inactivos de las suyas. No hay paginación.
 
 Petición de ejemplo desde PowerShell:
 
@@ -81,7 +85,13 @@ producto; los datos y la cantidad de productos pueden variar:
     "id": 1,
     "nombre": "Café americano",
     "descripcion": "Vaso de 8 oz",
-    "precio_centavos": 350000
+    "precio_centavos": 350000,
+    "tienda": "alegria",
+    "imagen_url": null,
+    "categoria": "Bebidas",
+    "presentacion": null,
+    "precio_confirmado": false,
+    "activo": true
   }
 ]
 ```
@@ -94,8 +104,14 @@ producto; los datos y la cantidad de productos pueden variar:
 | `nombre` | `string` | Sí | Nombre mostrado en el catálogo. |
 | `descripcion` | `string` | Sí | Descripción del producto. |
 | `precio_centavos` | `integer` | Sí | Precio en centavos de COP, según la interpretación del frontend. `350000` equivale a 3500 pesos. |
+| `tienda` | `string` o `null` | No | Identificador (slug) de la tienda: `antojos`, `punto-fit`, `alegria`, `almuerzo-01`, `almuerzo-02`. |
+| `imagen_url` | `string` o `null` | No | Imagen del producto, si existe. |
+| `categoria` | `string` o `null` | No | Nombre de la categoría dentro de su tienda. |
+| `presentacion` | `string` o `null` | No | «Entero», «Medio», «Bolsa»… El nombre es único por tienda, así que las variantes lo repiten entre paréntesis. |
+| `precio_confirmado` | `boolean` | No | `false` = precio de referencia que la tienda aún no confirmó. |
+| `activo` | `boolean` | No | Si el producto está a la venta. |
 
-El contrato exige estos campos y tipos, y no admite `null` en ellos. Las
+El contrato exige los cuatro primeros campos y no admite `null` en ellos. Las
 existencias se consultan por separado en `GET /inventory`, cuyo contrato es
 `{product_id, existencias}`. Actualmente
 no fija valores mínimos, longitudes de texto ni una cantidad mínima de productos;
@@ -167,8 +183,8 @@ catálogo falla. Durante el arranque, en cambio, la aplicación sí necesita
 preparar las tablas y los datos antes de atender solicitudes.
 
 Una comprobación de **preparación para atender operaciones** (*readiness*)
-incluiría las dependencias necesarias. Ese endpoint adicional no está implementado.
-El chequeo actual tampoco reinicia automáticamente el backend ni garantiza la
+incluye las dependencias necesarias: es `GET /health/ready` (sección 4.1).
+El chequeo de Compose tampoco reinicia automáticamente el backend ni garantiza la
 disponibilidad permanente del sistema; la dependencia del frontend en Compose
 se usa para ordenar su arranque.
 
@@ -209,24 +225,44 @@ consultas concurrentes); las muestras viven en el proceso y se reinician con
 }
 ```
 
-## 5. Errores y límites del contrato
+## 5. Operaciones, errores y límites del contrato
 
-Las operaciones declaran respuestas `200` y `/health/ready` además `503`.
-Pueden ocurrir fallos de conexión o errores del servidor, pero todavía no existe
-un esquema contractual de errores de negocio. `/health` es solo liveness: no
-declara un estado `error`; la variante que sí puede devolverlo es
-`/health/ready`.
+| Módulo | Operaciones | Acceso |
+|---|---|---|
+| Operación | `GET /health`, `GET /health/ready`, `GET /metrics` | Público |
+| Identidad | `POST /identity/register`, `POST /identity/login`, `GET /identity/me` | Público / `bearerAuth` en `me` |
+| Catálogo | `GET /catalog/products`, `GET /catalog/products/{productId}`, `GET /catalog/tiendas` | Público |
+| Catálogo | `POST /catalog/products`, `PATCH /catalog/products/{productId}` | `admin_tienda` de la tienda o `admin_general` |
+| Inventario | `GET /inventory` | Público |
+| Inventario | `GET`/`PUT /inventory/{productId}`, `POST /inventory/{productId}/adjust` | `responsable_inventario` o `admin_tienda` de la tienda, o `admin_general` |
+| Pedidos | `GET /orders`, `POST /orders`, `GET /orders/{orderId}`, `POST /orders/{orderId}/cancel` | Cuenta propia; con `?tienda_id=` la cola de la tienda para quien la gestiona |
+| Pedidos | `POST /orders/{orderId}/estado` | Quien gestiona la tienda del pedido |
 
-No se incluyen operaciones de creación de pedidos, autenticación ni modificación
-de inventario. La [gestión administrativa del catálogo](administracion-catalogo.md)
-se documenta como diseño previsto y tampoco forma parte del contrato ejecutable.
-Estas operaciones se incorporarán a OpenAPI cuando se implementen y prueben.
+Los errores usan el cuerpo `{"detail": "..."}` (`ErrorResponse`): `401` sin
+credencial válida (con `WWW-Authenticate: Bearer`), `403` si el rol no
+alcanza, `404` si el recurso no existe o no es visible, `409` ante un
+conflicto (correo duplicado, nombre repetido en la tienda o cambio
+concurrente detectado por bloqueo optimista) y `400` por reglas de negocio
+(sin existencias, transición de estado inválida, llave de idempotencia
+vencida). La validación de datos responde `422` con el formato de FastAPI.
+
+`POST /orders` exige la cabecera `Idempotency-Key` (UUID) y responde una lista
+de pedidos, uno por tienda: `201` si los creó y `200` si la llave ya se había
+usado ([diseño e implementación](../idempotencia-saga-s11.md)). Las `notas`
+por ítem no forman parte del contrato (aplazadas con la reapertura del
+[ADR 0011](../adr/0011-sesion-localstorage.md)).
+
+El contrato de diseño del frontend
+([`../openapi/tienda-virtual.yaml`](../openapi/tienda-virtual.yaml)) describe
+las mismas 20 operaciones; de él se generan los tipos de
+`frontend/lib/api/generated/contract.ts`.
 
 ## 6. Cómo se mantiene el acuerdo
 
 El archivo `openapi.json` es la referencia guardada para revisión y control de
 versiones. Las pruebas verifican su validez, su igualdad con la especificación
-generada por FastAPI y las respuestas HTTP de ambas rutas. Dos casos negativos
+generada por FastAPI y las respuestas HTTP de cada operación contra su
+esquema (`backend/tests/contract/test_openapi.py`). Dos casos negativos
 demuestran que el esquema rechaza la ausencia de `nombre` y un precio como texto.
 
 GitHub Actions ejecuta esas pruebas en cada `push` y `pull_request`; un

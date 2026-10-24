@@ -1,7 +1,7 @@
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI
 from fastapi.responses import JSONResponse, PlainTextResponse
@@ -81,10 +81,13 @@ def health() -> dict[str, str]:
 @app.get(
     "/health/ready",
     tags=["operacion"],
+    # Explícito: la anotación incluye JSONResponse (el 503) y no sirve de modelo.
     response_model=ReadinessOut,
     responses={503: {"model": ReadinessOut, "description": "Base de datos no disponible"}},
 )
-def health_ready(session: Session = Depends(get_session)) -> ReadinessOut | JSONResponse:
+def health_ready(
+    session: Annotated[Session, Depends(get_session)],
+) -> ReadinessOut | JSONResponse:
     """Readiness: además del proceso, verifica que la base de datos responde."""
     try:
         session.execute(text("SELECT 1"))
