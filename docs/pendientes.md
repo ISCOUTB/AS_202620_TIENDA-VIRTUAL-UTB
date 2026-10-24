@@ -81,6 +81,10 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   dependencias.
 
 - Registrar la prueba de carga concurrente de aproximadamente cinco sesiones.
+  Avance del 2026-10-24: las E2E de TestSprite (~30 navegadores) agotaban el
+  pool y colgaban la API; corregido con `RutaConSesion`
+  (`backend/app/shared/database.py`, cubierto por `tests/test_concurrencia.py`).
+  Ráfagas locales de 300 peticiones mixtas: 300/300 en 200.
 - ~~Definir migraciones con Alembic~~ — hecho el 2026-10-22
   ([ADR 0013](adr/0013-migraciones-alembic-y-esquema.md)) junto con RLS
   ([ADR 0014](adr/0014-seguridad-rls.md)). Queda por hacer en cada entorno

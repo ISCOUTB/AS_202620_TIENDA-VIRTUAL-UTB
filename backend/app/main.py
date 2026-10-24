@@ -15,7 +15,7 @@ from app.modules.identity import public as identidad
 from app.modules.identity import router as identity_router
 from app.modules.inventory import router as inventory_router
 from app.modules.orders import router as orders_router
-from app.shared.database import get_session
+from app.shared.database import RutaConSesion, get_session
 from app.shared.logging import configure_logging
 from app.shared.metrics import ObservabilityMiddleware, snapshot
 from app.shared.seguridad import registrar_resolvedor
@@ -54,6 +54,7 @@ async def lifespan(_: FastAPI):
 
 
 app = FastAPI(title="Tienda Virtual UTB", version="0.4.0", lifespan=lifespan)
+app.router.route_class = RutaConSesion
 app.add_middleware(ObservabilityMiddleware)
 # Composition root: Identidad traduce el token Bearer al principal de RLS.
 registrar_resolvedor(identidad.principal_desde_token)
