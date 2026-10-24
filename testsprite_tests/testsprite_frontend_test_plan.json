@@ -1,0 +1,2643 @@
+[
+  {
+    "id": "TC001",
+    "title": "Sign in and reserve a cart for one store",
+    "description": "A signed-in student can add a product, choose a pickup time, and create a reserved order for one store.",
+    "category": "Cart and order placement",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open /tiendas/almuerzo-01"
+      },
+      {
+        "type": "action",
+        "description": "Add a product to the cart"
+      },
+      {
+        "type": "action",
+        "description": "Open the order panel"
+      },
+      {
+        "type": "action",
+        "description": "Choose a pickup time"
+      },
+      {
+        "type": "action",
+        "description": "Reserve the order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a reservation confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order was created"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Sign in with valid credentials",
+    "description": "A registered user can sign in with institutional credentials and reach the account area.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the account area is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Log in as a store admin and filter to the assigned store",
+    "description": "A store admin can sign in and see only their assigned store in the admin panel.",
+    "category": "Admin panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open the admin panel"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the admin panel is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify only one store scope is available"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Search from the landing page to the matching store menu",
+    "description": "An anonymous user can search for a product on the landing page and open the matching store menu to review availability and prices.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Search for a product name"
+      },
+      {
+        "type": "action",
+        "description": "Open the matching store menu"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the store menu is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify product availability and prices are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Browse a store menu and review sold-out items",
+    "description": "A visitor can open a store menu, see available products alongside sold-out ones, and review pricing and stock indicators.",
+    "category": "Store catalog",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/antojos"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify product cards are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify sold-out products remain visible with unavailable controls"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Cancel a pending order and restore stock",
+    "description": "A signed-in user can cancel an order waiting for payment and see that the cancellation completes from the account area.",
+    "category": "My orders",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the orders section in the account area"
+      },
+      {
+        "type": "action",
+        "description": "Cancel a pending order waiting for payment"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a cancellation confirmation is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order is no longer cancellable"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Search for a product and open its matching store",
+    "description": "An anonymous shopper can search from the landing page, pick a matching result, and land on the correct store menu.",
+    "category": "Product search",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the search field with a valid product name using at least two letters"
+      },
+      {
+        "type": "action",
+        "description": "Click one of the suggested search results that matches the product"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the matching store menu is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify product cards are shown on the store menu"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC008",
+    "title": "Review order history in the account area",
+    "description": "A signed-in user can open their order history and see order status, pickup details, and totals.",
+    "category": "My orders",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the orders section in the account area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify order history entries are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify pickup details and totals are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC009",
+    "title": "Cancel a pending order from the account page",
+    "description": "A signed-in customer can cancel a pending cash-pending order from their account page and see the cancellation reflected.",
+    "category": "Account page",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open the account page"
+      },
+      {
+        "type": "action",
+        "description": "Cancel a pending order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order is shown as cancelled"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the cancellation is reflected in the order history"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC010",
+    "title": "View all stores in supervision mode without edit controls",
+    "description": "A general admin can review all stores in supervision mode and cannot access inventory or queue edit actions.",
+    "category": "Per-store administration and supervision",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the supervision mode notice is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all stores are available in the store filter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no edit or adjustment controls are available"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC011",
+    "title": "Reserve separate orders for products from multiple stores",
+    "description": "A signed-in student can add items from more than one store and reserve them as separate orders after choosing a pickup time.",
+    "category": "Cart and order placement",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open /tiendas/antojos"
+      },
+      {
+        "type": "action",
+        "description": "Add a product to the cart"
+      },
+      {
+        "type": "action",
+        "description": "Open /tiendas/punto-fit"
+      },
+      {
+        "type": "action",
+        "description": "Add a product to the cart"
+      },
+      {
+        "type": "action",
+        "description": "Open the order panel"
+      },
+      {
+        "type": "action",
+        "description": "Choose a pickup time"
+      },
+      {
+        "type": "action",
+        "description": "Reserve the order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify reservations were created for each store"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the cart was cleared after reserving"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC012",
+    "title": "Restrict a store admin to their assigned store",
+    "description": "A store admin only sees and manages their own store instead of other stores in the admin panel.",
+    "category": "Per-store administration and supervision",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify only one assigned store is available in the store filter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify edit controls are available for the assigned store only"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC013",
+    "title": "Adjust inventory by one unit in the admin panel",
+    "description": "A store admin can locate a product in inventory and increase or decrease its stock by one unit.",
+    "category": "Admin inventory",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Select the assigned store in the inventory area"
+      },
+      {
+        "type": "action",
+        "description": "Search for a product in inventory"
+      },
+      {
+        "type": "action",
+        "description": "Adjust the product stock by one unit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the inventory count updates"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC014",
+    "title": "Advance an order through the admin queue",
+    "description": "A store admin can update an order through the queue and see the new status reflected in the admin panel.",
+    "category": "Admin panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open the admin panel"
+      },
+      {
+        "type": "action",
+        "description": "Update a queue order to the next status"
+      },
+      {
+        "type": "action",
+        "description": "Update the same order again to a later status"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order queue reflects the updated status"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order remains visible in the queue"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC015",
+    "title": "Manage a store order through all fulfillment statuses",
+    "description": "A store admin can move an open order through payment, preparation, readiness, and delivery in the queue.",
+    "category": "Admin order queue",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Select a store in the store filter"
+      },
+      {
+        "type": "action",
+        "description": "Confirm payment for an open order"
+      },
+      {
+        "type": "action",
+        "description": "Mark the same order as being prepared"
+      },
+      {
+        "type": "action",
+        "description": "Mark the same order as ready"
+      },
+      {
+        "type": "action",
+        "description": "Deliver the same order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the order no longer appears in the open queue"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC016",
+    "title": "Switch between single and shared menu tabs",
+    "description": "A visitor can switch store menu tabs and compare the product listings and order summary for each view.",
+    "category": "Store catalog",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/almuerzo-01"
+      },
+      {
+        "type": "action",
+        "description": "Switch to the shared menu tab"
+      },
+      {
+        "type": "action",
+        "description": "Switch back to the single menu tab"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify both menu views are available on the same store page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the menu content updates when switching tabs"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC017",
+    "title": "Enter supervision mode as a general admin",
+    "description": "A general admin can open the admin panel in read-only supervision mode and review all stores.",
+    "category": "Admin inventory",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify supervision mode is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all stores are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC018",
+    "title": "Create a new product in the assigned store",
+    "description": "A store admin can create a product with all required details and see it added to the catalog.",
+    "category": "Admin product management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Open the product creation form"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the product name field with a unique product name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the price field with a valid price in pesos"
+      },
+      {
+        "type": "action",
+        "description": "Select a product category"
+      },
+      {
+        "type": "action",
+        "description": "Select a product presentation"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the product description field with a short description"
+      },
+      {
+        "type": "action",
+        "description": "Set the product as confirmed for sale"
+      },
+      {
+        "type": "action",
+        "description": "Create the product"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new product appears in the product list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the product is active (no \"Inactivo\" badge) and starts with 0 existencias (\"Agotado\") until stock is added with +"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC019",
+    "title": "Update inventory from the admin panel",
+    "description": "A store admin can adjust stock in the inventory table and see the updated availability reflected in the panel.",
+    "category": "Admin panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open the admin panel"
+      },
+      {
+        "type": "action",
+        "description": "Adjust the stock for a product by one unit"
+      },
+      {
+        "type": "action",
+        "description": "Adjust the same stock using a typed value"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the inventory value is updated"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the product availability reflects the change"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC020",
+    "title": "Create a new shopper account",
+    "description": "A new user can register successfully and reach the signed-in account area.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/crear-cuenta"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the name field with a new shopper name"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the email field with a new institutional email"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with a valid password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the registration form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the account area is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC021",
+    "title": "Enter supervision mode and review all stores read-only",
+    "description": "A general admin can open supervision mode, review all stores, and confirm that edit controls are not available.",
+    "category": "Admin panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open the admin panel"
+      },
+      {
+        "type": "action",
+        "description": "Enter supervision mode"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all store scopes are displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify edit and stock adjustment controls are not available"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC022",
+    "title": "Find products with an accent-insensitive search",
+    "description": "An anonymous shopper can find a product even when the search text omits accents and open the related store menu.",
+    "category": "Product search",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the search field with a valid product name without accents"
+      },
+      {
+        "type": "action",
+        "description": "Click one of the suggested search results"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a matching search result is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the corresponding store menu is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC023",
+    "title": "Save a typed inventory count immediately",
+    "description": "A store admin can enter a new numeric stock count and save it from the inventory table.",
+    "category": "Admin inventory",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Select the assigned store in the inventory area"
+      },
+      {
+        "type": "action",
+        "description": "Search for a product in inventory"
+      },
+      {
+        "type": "action",
+        "description": "Fill in a valid stock value in the inventory count field"
+      },
+      {
+        "type": "action",
+        "description": "Press Enter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the inventory count is updated"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC024",
+    "title": "Cancel an open order in the queue",
+    "description": "A store admin can cancel an open order and see it removed from the active queue.",
+    "category": "Admin order queue",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Select a store in the store filter"
+      },
+      {
+        "type": "action",
+        "description": "Cancel an open order in the queue"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the canceled order is removed from the open queue"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the canceled order appears among closed orders when closed orders are visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC025",
+    "title": "Open the account page and review order history",
+    "description": "A signed-in customer can open their account page and review their order history with pickup and status details.",
+    "category": "Account page",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open the account page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the account page is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify order history is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC026",
+    "title": "Browse other stores from a store menu",
+    "description": "An anonymous user can move between store menus and compare menu offerings across stores.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/antojos"
+      },
+      {
+        "type": "action",
+        "description": "Open a different store menu from the store selector"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected store menu is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify menu items for the selected store are displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC027",
+    "title": "Manage a product listing from the admin panel",
+    "description": "A store admin can create or edit a product and see the listing appear in the admin product table.",
+    "category": "Admin panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open the admin panel"
+      },
+      {
+        "type": "action",
+        "description": "Create a new product listing"
+      },
+      {
+        "type": "action",
+        "description": "Save the product changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new product appears in the product table"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the product can be edited from the admin panel"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC028",
+    "title": "Edit an existing product and save the changes",
+    "description": "A store admin can open an existing product, update its details, and save the revised catalog entry.",
+    "category": "Admin product management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing product for editing"
+      },
+      {
+        "type": "action",
+        "description": "Change the product name or description"
+      },
+      {
+        "type": "action",
+        "description": "Save the changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the updated product details are shown in the catalog"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC029",
+    "title": "Use the pickup time reminder before reserving",
+    "description": "A signed-in student sees the pickup time reminder when trying to reserve without selecting a time and can complete the reservation after choosing one.",
+    "category": "Cart and order placement",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open /tiendas/punto-fit"
+      },
+      {
+        "type": "action",
+        "description": "Add a product to the cart"
+      },
+      {
+        "type": "action",
+        "description": "Open the order panel"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a pickup time reminder is visible"
+      },
+      {
+        "type": "action",
+        "description": "Choose a pickup time"
+      },
+      {
+        "type": "action",
+        "description": "Reserve the order"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a reservation confirmation is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC030",
+    "title": "Sign out from the account page",
+    "description": "A signed-in user can close the session and return to the public experience signed out.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the sign out control from the account area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the public experience is displayed"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC031",
+    "title": "Deactivate a product from the public catalog",
+    "description": "A store admin can disable a product for sale so it is no longer available to shoppers.",
+    "category": "Admin product management",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Open an existing product for editing"
+      },
+      {
+        "type": "action",
+        "description": "Uncheck the option to sell the product"
+      },
+      {
+        "type": "action",
+        "description": "Save the changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the product is no longer shown as available for sale"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC032",
+    "title": "Prevent inventory from going below zero",
+    "description": "Repeated stock decreases do not allow an inventory item to drop below zero.",
+    "category": "Admin inventory",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Select the assigned store in the inventory area"
+      },
+      {
+        "type": "action",
+        "description": "Search for a product with low stock in inventory"
+      },
+      {
+        "type": "action",
+        "description": "Reduce the stock repeatedly until it cannot decrease further"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the stock does not go below zero"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC033",
+    "title": "Show an error for invalid sign-in",
+    "description": "Invalid credentials are rejected with an authentication error and the user stays unsigned in.",
+    "category": "Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with an invalid email"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with an invalid password"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an authentication error message is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC034",
+    "title": "Review delivered and canceled orders in the queue",
+    "description": "A store admin can toggle visibility for closed orders and review delivered and canceled entries in the queue.",
+    "category": "Admin order queue",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Select a store in the store filter"
+      },
+      {
+        "type": "action",
+        "description": "Toggle the option to view delivered and canceled orders"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify delivered or canceled orders are displayed in the queue"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC035",
+    "title": "See reference pricing labels where applicable",
+    "description": "A visitor can browse a store menu and see reference pricing information on products that provide it.",
+    "category": "Store catalog",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/antojos"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify product cards show a \"Referencia\" label next to the price (Antojos prices are reference prices)"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/almuerzo-01"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page says \"Precios confirmados\" and no card shows the \"Referencia\" label"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC036",
+    "title": "Prevent cancellation of non-pending orders",
+    "description": "Orders that are not waiting for payment do not expose the cancel action in the account area.",
+    "category": "My orders",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Open the orders section in the account area"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify at least one completed or otherwise non-pending order is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify cancel action is not available for non-pending orders"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC037",
+    "title": "Hide edit controls in supervision mode",
+    "description": "A general admin can review the admin panel without any inventory or product edit controls available.",
+    "category": "Admin inventory",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify supervision mode is displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify edit and adjustment controls are not available"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC038",
+    "title": "Ignore too-short search input",
+    "description": "An anonymous shopper does not see product suggestions until the search input reaches the minimum length.",
+    "category": "Product search",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the search field with a single letter"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no product suggestions are displayed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC039",
+    "title": "Block buyers from accessing the admin panel",
+    "description": "A signed-in buyer is prevented from using the admin panel and sees a forbidden access state.",
+    "category": "Admin panel",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the institutional email field with {{LOGIN_USER}}"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
+      },
+      {
+        "type": "action",
+        "description": "Submit the sign-in form"
+      },
+      {
+        "type": "action",
+        "description": "Open the admin panel"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a forbidden access state is visible"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC040",
+    "title": "Store admin of Antojos only manages Antojos",
+    "description": "Store admin of Antojos only manages Antojos.",
+    "category": "Per-store administration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin.antojos@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Tienda-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the panel says \"Gestionas Antojos.\" and the \"Por tienda\" section lists only Antojos"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the inventory store filter and the order queue \"Tienda\" selector only offer Antojos"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify every inventory row belongs to Antojos and has enabled − / + buttons and an \"Editar\" link"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC041",
+    "title": "Store admin of Punto Fit only manages Punto Fit",
+    "description": "Store admin of Punto Fit only manages Punto Fit.",
+    "category": "Per-store administration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin.punto-fit@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Tienda-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the panel says \"Gestionas Punto Fit.\" and the \"Por tienda\" section lists only Punto Fit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the inventory store filter and the order queue \"Tienda\" selector only offer Punto Fit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify every inventory row belongs to Punto Fit and has enabled − / + buttons and an \"Editar\" link"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC042",
+    "title": "Store admin of Alegría only manages Alegría",
+    "description": "Store admin of Alegría only manages Alegría.",
+    "category": "Per-store administration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin.alegria@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Tienda-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the panel says \"Gestionas Alegría.\" and the \"Por tienda\" section lists only Alegría"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the inventory store filter and the order queue \"Tienda\" selector only offer Alegría"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify every inventory row belongs to Alegría and has enabled − / + buttons and an \"Editar\" link"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC043",
+    "title": "Store admin of Almuerzo 02 only manages Almuerzo 02",
+    "description": "Store admin of Almuerzo 02 only manages Almuerzo 02.",
+    "category": "Per-store administration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin.almuerzo-02@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Tienda-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the panel says \"Gestionas Almuerzo 02.\" and the \"Por tienda\" section lists only Almuerzo 02"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the inventory store filter and the order queue \"Tienda\" selector only offer Almuerzo 02"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify every inventory row belongs to Almuerzo 02 and has enabled − / + buttons and an \"Editar\" link"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC044",
+    "title": "Store admin of Antojos sees the Antojos order queue",
+    "description": "Store admin of Antojos sees the Antojos order queue.",
+    "category": "Per-store administration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin.antojos@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Tienda-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the \"Pedidos\" queue shows open Antojos orders with \"Confirmar pago\" and \"Cancelar\" buttons"
+      },
+      {
+        "type": "action",
+        "description": "Toggle \"Ver entregados y cancelados\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify delivered and cancelled Antojos orders appear"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC045",
+    "title": "Store admin of Almuerzo 01 advances an order to Entregado",
+    "description": "Store admin of Almuerzo 01 advances an order to Entregado.",
+    "category": "Per-store administration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin.almuerzo-01@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Tienda-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "In the queue, on an order \"Por pagar\" click \"Confirmar pago\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Empezar a preparar\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Marcar listo\""
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entregar\""
+      },
+      {
+        "type": "action",
+        "description": "Turn on the \"Ver entregados y cancelados\" toggle (delivered orders leave the open queue)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that order now shows \"Entregado\" and has no action buttons"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC046",
+    "title": "Store admin cannot see products of other stores",
+    "description": "Store admin cannot see products of other stores.",
+    "category": "Per-store administration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin.punto-fit@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Tienda-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Type \"Arroz\" in the inventory search box"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no Almuerzo 01 products (e.g. \"Arroz oriental\") are listed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC047",
+    "title": "Store admin creates a product only in their own store",
+    "description": "Store admin creates a product only in their own store.",
+    "category": "Per-store administration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin.alegria@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Tienda-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Producto nuevo\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the form has no store selector offering other stores (only Alegría)"
+      },
+      {
+        "type": "action",
+        "description": "Fill Nombre with a unique name (append a timestamp), Precio 5000, Descripción \"Prueba\" and click \"Crear producto\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new product appears in the Alegría inventory with 0 existencias"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC048",
+    "title": "General admin supervision mode shows all five stores",
+    "description": "General admin supervision mode shows all five stores.",
+    "category": "Supervision",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Admin-Demo-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the notice starting with \"Modo supervisión\" is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the header says \"Supervisas 5 tiendas.\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the \"Por tienda\" section lists Antojos, Punto Fit, Alegría, Almuerzo 01 and Almuerzo 02"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC049",
+    "title": "General admin has no edit controls anywhere",
+    "description": "General admin has no edit controls anywhere.",
+    "category": "Supervision",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Admin-Demo-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify there is no \"Producto nuevo\" button and no \"Editar\" link in the inventory"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify every \"Sumar una unidad\"/\"Restar una unidad\" button and stock input is disabled"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC050",
+    "title": "General admin sees the queue of any store read-only",
+    "description": "General admin sees the queue of any store read-only.",
+    "category": "Supervision",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Admin-Demo-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "action",
+        "description": "In the \"Pedidos\" queue select \"Almuerzo 01\" in \"Tienda\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify open orders are listed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no \"Confirmar pago\", \"Cancelar\" or other action buttons are shown"
+      },
+      {
+        "type": "action",
+        "description": "Select \"Antojos\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify Antojos orders are listed, also without action buttons"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC051",
+    "title": "General admin sees inactive products in supervision",
+    "description": "General admin sees inactive products in supervision.",
+    "category": "Supervision",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with admin@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Admin-Demo-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the KPI \"Productos a la venta\" shows a count and a note \"N inactivos.\""
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC052",
+    "title": "/login redirects to the sign-in page",
+    "description": "/login redirects to the sign-in page.",
+    "category": "Routes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the URL is /auth/ingresar and the \"Ingresa a tu pase\" form is shown"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC053",
+    "title": "/registro redirects to account creation",
+    "description": "/registro redirects to account creation.",
+    "category": "Routes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /registro"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the URL is /auth/crear-cuenta and the \"Crea tu pase\" form is shown"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC054",
+    "title": "/cuenta without session asks to sign in and returns afterwards",
+    "description": "/cuenta without session asks to sign in and returns afterwards.",
+    "category": "Routes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /cuenta"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the URL is /auth/ingresar with next=/cuenta"
+      },
+      {
+        "type": "action",
+        "description": "Fill ana@utb.edu.co / Comprador-2026 and click \"Entrar\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page /cuenta shows \"Hola, Ana.\""
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC055",
+    "title": "/admin without session asks to sign in and returns to the panel",
+    "description": "/admin without session asks to sign in and returns to the panel.",
+    "category": "Routes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /admin"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the sign-in page shows \"Esa página necesita tu pase\""
+      },
+      {
+        "type": "action",
+        "description": "Fill admin.almuerzo-01@utb.edu.co / Tienda-2026 and click \"Entrar\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the admin panel for Almuerzo 01 opens"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC056",
+    "title": "Session persists after reloading",
+    "description": "Session persists after reloading.",
+    "category": "Routes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with ana@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Comprador-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Reload the page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify /cuenta still shows Ana's pass and the \"Cerrar sesión\" button"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC057",
+    "title": "Expired session asks to sign in again and returns",
+    "description": "Expired session asks to sign in again and returns.",
+    "category": "Routes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar?motivo=expirada&next=/cuenta"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the message \"Tu sesión expiró. Vuelve a entrar.\" is shown"
+      },
+      {
+        "type": "action",
+        "description": "Fill ana@utb.edu.co / Comprador-2026 and click \"Entrar\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify /cuenta opens and shows \"Hola, Ana.\""
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC058",
+    "title": "Terms and privacy pages load",
+    "description": "Terms and privacy pages load.",
+    "category": "Routes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /terminos"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a terms page with a heading is shown"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /privacidad"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a privacy page with a heading is shown"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC059",
+    "title": "Unknown route shows a not-found page",
+    "description": "Unknown route shows a not-found page.",
+    "category": "Routes",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /no-existe-esta-pagina"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a not-found message is shown instead of a blank page"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC060",
+    "title": "Registration validates short password",
+    "description": "Registration validates short password.",
+    "category": "Registration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/crear-cuenta"
+      },
+      {
+        "type": "action",
+        "description": "Fill name \"Prueba\", a unique email, password \"1234\", accept terms, submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the error \"La contraseña necesita al menos 8 caracteres.\""
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC061",
+    "title": "Registration requires accepting terms",
+    "description": "Registration requires accepting terms.",
+    "category": "Registration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/crear-cuenta"
+      },
+      {
+        "type": "action",
+        "description": "Fill valid name, unique email and 8+ char password without accepting terms, submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the error asking to accept the terms"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC062",
+    "title": "Registration rejects an existing email",
+    "description": "Registration rejects an existing email.",
+    "category": "Registration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/crear-cuenta"
+      },
+      {
+        "type": "action",
+        "description": "Fill name \"Ana\", email ana@utb.edu.co, password Comprador-2026, accept terms, submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an error says the email is already registered and no session is created"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC063",
+    "title": "Registration rejects invalid email",
+    "description": "Registration rejects invalid email.",
+    "category": "Registration",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/crear-cuenta"
+      },
+      {
+        "type": "action",
+        "description": "Fill name \"Prueba\", email \"no-es-correo\", password 12345678, accept terms, submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the error \"Escribe un correo válido\""
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC064",
+    "title": "Almuerzo 02 shows an empty menu message",
+    "description": "Almuerzo 02 shows an empty menu message.",
+    "category": "Store catalog",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/almuerzo-02"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the message \"Este punto todavía no publica su carta.\""
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC065",
+    "title": "Sold-out products are shown disabled",
+    "description": "Sold-out products are shown disabled.",
+    "category": "Store catalog",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/antojos"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a sold-out product (e.g. Doritos) shows \"Agotado\" and a disabled \"Sin unidades\" button"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC066",
+    "title": "Prices use Colombian peso format",
+    "description": "Prices use Colombian peso format.",
+    "category": "Store catalog",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/almuerzo-01"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify prices look like \"$18.000\" (dot as thousands separator)"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC067",
+    "title": "Low stock shows the last units warning",
+    "description": "Low stock shows the last units warning.",
+    "category": "Store catalog",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/almuerzo-01"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify products with 3 or fewer units show \"Últimas N unidades\" and others \"Quedan N\""
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC068",
+    "title": "Search with no matches shows no results",
+    "description": "Search with no matches shows no results.",
+    "category": "Product search",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Type \"zzzz\" in \"Arroz, granola, helado…\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify \"Sin resultados.\" is announced"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC069",
+    "title": "Escape clears the search",
+    "description": "Escape clears the search.",
+    "category": "Product search",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Type \"arroz\" in the search box"
+      },
+      {
+        "type": "action",
+        "description": "Press Escape"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the search box is empty and results are closed"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC070",
+    "title": "Cart quantity cannot exceed stock",
+    "description": "Cart quantity cannot exceed stock.",
+    "category": "Cart",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/almuerzo-01"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Agregar\" on a product with low stock (\"Últimas N unidades\")"
+      },
+      {
+        "type": "action",
+        "description": "Click + repeatedly"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the quantity stops at the available stock"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC071",
+    "title": "Removing the last unit removes the item",
+    "description": "Removing the last unit removes the item.",
+    "category": "Cart",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/antojos"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Agregar\" on \"Chicles Trident\""
+      },
+      {
+        "type": "action",
+        "description": "Click − once"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the product shows \"Agregar\" again and the cart is empty"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC072",
+    "title": "Cart persists after reload",
+    "description": "Cart persists after reload.",
+    "category": "Cart",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/antojos"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Agregar\" on \"Chicles Trident\""
+      },
+      {
+        "type": "action",
+        "description": "Reload the page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the cart still contains Chicles Trident"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC073",
+    "title": "Ordering without a pickup time shows an error",
+    "description": "Ordering without a pickup time shows an error.",
+    "category": "Cart",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with ana@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Comprador-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/antojos"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Agregar\" on \"Chicles Trident\""
+      },
+      {
+        "type": "action",
+        "description": "Open the order panel with \"Ver pedido\" or \"Elegir hora y apartar\""
+      },
+      {
+        "type": "action",
+        "description": "Click the confirm button without choosing a time"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify \"Elige la hora a la que vas a pasar por el pedido.\" is shown"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC074",
+    "title": "Reserving reduces the visible stock",
+    "description": "Reserving reduces the visible stock.",
+    "category": "Cart",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/ingresar"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Correo institucional\" with ana@utb.edu.co"
+      },
+      {
+        "type": "action",
+        "description": "Fill in \"Contraseña\" with Comprador-2026"
+      },
+      {
+        "type": "action",
+        "description": "Click \"Entrar\""
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /tiendas/antojos and note the \"Quedan N\" of \"Chicles Trident\""
+      },
+      {
+        "type": "action",
+        "description": "Add 1 unit, choose a pickup time and click \"Apartar para las ...\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify \"Reserva registrada\""
+      },
+      {
+        "type": "action",
+        "description": "Reload /tiendas/antojos"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify Chicles Trident shows one unit less"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC075",
+    "title": "Mobile bottom navigation",
+    "description": "Mobile bottom navigation.",
+    "category": "Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Set the viewport to 390x844 and navigate to /"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a bottom navigation with Inicio, Tiendas, Pedidos and Cuenta is visible"
+      },
+      {
+        "type": "action",
+        "description": "Tap \"Tiendas\""
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a store menu or store list opens"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC076",
+    "title": "Theme toggle switches light and dark",
+    "description": "Theme toggle switches light and dark.",
+    "category": "Navigation",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Click the theme toggle button in the header"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page colors switch between light and dark"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC077",
+    "title": "Buyer only sees their own orders",
+    "description": "Buyer only sees their own orders.",
+    "category": "My orders",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /auth/crear-cuenta and register a new buyer with a unique email"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /cuenta"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the \"Pedidos\" section has no orders (Ana's orders are not visible)"
+      }
+    ],
+    "priority": "High"
+  }
+]
