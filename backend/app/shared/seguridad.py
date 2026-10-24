@@ -7,9 +7,12 @@ políticas leen esos valores con las funciones SQL `seg_*` de la migración
 `0002_politicas_rls`.
 """
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
+from typing import Annotated
 
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import Connection, text
 
 # Clave bajo la que la sesión de SQLAlchemy guarda el contexto (`Session.info`).
@@ -29,6 +32,14 @@ class ContextoSeguridad:
     @property
     def es_admin_general(self) -> bool:
         return "admin_general" in self.roles
+
+    def administra_tienda(self, tienda_id: int) -> bool:
+        """Misma regla que `seg_administra_tienda` en la base."""
+        return self.es_admin_general or tienda_id in self.tiendas_admin
+
+    def gestiona_inventario(self, tienda_id: int) -> bool:
+        """Misma regla que `seg_gestiona_inventario_tienda` en la base."""
+        return self.administra_tienda(tienda_id) or tienda_id in self.tiendas_inventario
 
 
 ANONIMO = ContextoSeguridad()
@@ -60,12 +71,61 @@ def aplicar_contexto(conexion: Connection, contexto: ContextoSeguridad) -> None:
     )
 
 
-def contexto_actual() -> ContextoSeguridad:
+# Traduce un token Bearer al principal, o None si no es válido. Lo registra el
+# composition root (`app.main`) con la función pública de Identidad: así este
+# paquete transversal no importa ningún módulo (ADR 0001).
+ResolvedorToken = Callable[[str], ContextoSeguridad | None]
+_resolvedor: ResolvedorToken | None = None
+
+
+def registrar_resolvedor(resolvedor: ResolvedorToken) -> None:
+    global _resolvedor
+    _resolvedor = resolvedor
+
+
+def _no_autenticado(detalle: str) -> HTTPException:
+    return HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail=detalle,
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+
+
+def contexto_actual(request: Request) -> ContextoSeguridad:
     """Dependencia de FastAPI que construye el principal de la petición.
 
-    TODO(identity): cuando existan `POST /identity/login` y el JWT, leer aquí
-    la cabecera `Authorization`, validar el token y devolver el usuario con sus
-    roles y tiendas (consultando `usuario_roles` con el contexto del propio
-    usuario). Mientras tanto toda petición es anónima.
+    Sin cabecera `Authorization` la petición es anónima. Con cabecera, el
+    token debe ser válido: uno vencido o alterado responde 401 en lugar de
+    degradar a anónimo, para que el cliente cierre la sesión (ADR 0011).
+    Lee la cabecera directamente para no declarar seguridad en las rutas
+    públicas del contrato; las protegidas usan `requiere_usuario`.
     """
-    return ANONIMO
+    cabecera = request.headers.get("Authorization")
+    if not cabecera:
+        return ANONIMO
+    esquema, _, token = cabecera.partition(" ")
+    if esquema.lower() != "bearer" or not token.strip() or _resolvedor is None:
+        raise _no_autenticado("Credenciales inválidas")
+    contexto = _resolvedor(token.strip())
+    if contexto is None:
+        raise _no_autenticado("Sesión inválida o vencida")
+    return contexto
+
+
+# Solo documenta el esquema `bearerAuth` en OpenAPI; la validación es la de
+# `contexto_actual`.
+_esquema_bearer = HTTPBearer(scheme_name="bearerAuth", bearerFormat="JWT", auto_error=False)
+
+
+def requiere_usuario(
+    contexto: Annotated[ContextoSeguridad, Depends(contexto_actual)],
+    _credencial: Annotated[HTTPAuthorizationCredentials | None, Depends(_esquema_bearer)],
+) -> ContextoSeguridad:
+    """Dependencia de las rutas protegidas: exige un usuario autenticado."""
+    if contexto.usuario_id is None:
+        raise _no_autenticado("Se requiere iniciar sesión")
+    return contexto
+
+
+def prohibido(detalle: str = "No tienes permiso para esta operación") -> HTTPException:
+    return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detalle)

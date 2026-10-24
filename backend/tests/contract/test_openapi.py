@@ -1,8 +1,10 @@
 """Verifica el proveedor HTTP contra el contrato guardado en el repositorio."""
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from jsonschema import Draft202012Validator, ValidationError
@@ -21,6 +23,44 @@ OPERATIONS = [
     for method in item
     if method in {"get", "post", "put", "patch", "delete", "head", "options", "trace"}
 ]
+
+
+# Operaciones con cuerpo, parámetros o autenticación: cada una declara cómo se
+# invoca. Las demás deben ser consultas GET sin parámetros.
+Caso = Callable[[TestClient], httpx.Response]
+CASOS: dict[tuple[str, str], Caso] = {}
+
+
+def caso(path: str, method: str) -> Callable[[Caso], Caso]:
+    def registrar(funcion: Caso) -> Caso:
+        CASOS[(path, method)] = funcion
+        return funcion
+
+    return registrar
+
+
+def _cabecera(client: TestClient, correo: str = "contrato@utb.edu.co") -> dict[str, str]:
+    from tests.conftest import registrar_y_entrar
+
+    return registrar_y_entrar(client, correo)
+
+
+@caso("/identity/register", "post")
+def _registro(client: TestClient) -> httpx.Response:
+    datos = {"nombre": "Contrato", "email": "nuevo@utb.edu.co", "password": "clave-segura-1"}
+    return client.post("/identity/register", json=datos)
+
+
+@caso("/identity/login", "post")
+def _login(client: TestClient) -> httpx.Response:
+    _cabecera(client)
+    datos = {"email": "contrato@utb.edu.co", "password": "clave-segura-1"}
+    return client.post("/identity/login", json=datos)
+
+
+@caso("/identity/me", "get")
+def _me(client: TestClient) -> httpx.Response:
+    return client.get("/identity/me", headers=_cabecera(client))
 
 
 def response_validator(path: str, method: str, status: str) -> Draft202012Validator:
@@ -44,12 +84,16 @@ def test_implementation_matches_committed_contract() -> None:
 
 @pytest.mark.parametrize("path,method", OPERATIONS)
 def test_http_response_matches_contract(path: str, method: str) -> None:
-    # El alcance actual son consultas sin parámetros ni cuerpo. Una operación
-    # nueva debe incorporar sus casos de prueba, no quedar omitida silenciosamente.
-    assert method == "get" and "{" not in path
+    # Una operación nueva debe incorporar su caso en CASOS, no quedar omitida
+    # silenciosamente.
     with TestClient(app) as client:
-        response = client.request(method, path)
-    assert response.status_code == 200
+        if (path, method) in CASOS:
+            response = CASOS[(path, method)](client)
+        else:
+            assert method == "get", f"{method.upper()} {path} no tiene caso de contrato"
+            assert "{" not in path, f"{path} tiene parámetros y no tiene caso de contrato"
+            response = client.request(method, path)
+    assert 200 <= response.status_code < 300
     assert response.headers["content-type"].split(";")[0] == "application/json"
     response_validator(path, method, str(response.status_code)).validate(response.json())
 
@@ -63,5 +107,6 @@ def test_contract_rejects_breaking_product_payloads(mutation: str, datos_demo) -
         del payload[0]["nombre"]
     else:
         payload[0]["precio_centavos"] = "10000"
+    validador = response_validator("/catalog/products", "get", "200")
     with pytest.raises(ValidationError):
-        response_validator("/catalog/products", "get", "200").validate(payload)
+        validador.validate(payload)

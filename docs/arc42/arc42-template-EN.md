@@ -566,6 +566,7 @@ diagrams is in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md).
 | [0013](../adr/0013-migraciones-alembic-y-esquema.md) | Alembic migrations and the relational schema of the four modules; tests on PostgreSQL | Proposed (2026-10-22) |
 | [0014](../adr/0014-seguridad-rls.md) | PostgreSQL row-level security and a least-privilege application role | Proposed (2026-10-22) |
 | [0015](../adr/0015-gestor-paquetes-pnpm.md) | pnpm (pinned via `packageManager`, Corepack) as the frontend package manager instead of npm | Proposed (2026-10-22) |
+| [0016](../adr/0016-autenticacion-jwt.md) | JWT (HS256) access tokens carrying only the user id, roles read per request, Argon2id password hashes | Proposed (2026-10-24) |
 
 [0007](../adr/0007-despliegue-dokploy.md) is the current deployment decision.
 ADRs 0003–0006 remain available only as a record of earlier iterations.

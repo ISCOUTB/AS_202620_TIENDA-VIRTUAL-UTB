@@ -47,6 +47,9 @@ services:
       DATABASE_URL: "postgresql://${APP_DB_USER:-tienda_app}:${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
       APP_DB_USER: ${APP_DB_USER:-tienda_app}
       SEED_ON_DEPLOY: ${SEED_ON_DEPLOY:-false}
+      # Opcional: administrador general inicial (ADR 0016).
+      SEED_ADMIN_CORREO: ${SEED_ADMIN_CORREO:-}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -61,6 +64,9 @@ services:
     environment:
       # La API usa el rol de aplicación, sujeto a RLS; nunca el dueño.
       DATABASE_URL: "postgresql://${APP_DB_USER:-tienda_app}:${APP_DB_PASSWORD:?Falta APP_DB_PASSWORD}@database:5432/${POSTGRES_DB:-tienda_utb}"
+      # Clave de firma de los tokens de acceso (ADR 0016).
+      JWT_SECRET: "${JWT_SECRET:?Falta JWT_SECRET - ver .env.example}"
+      JWT_TTL_SEGUNDOS: ${JWT_TTL_SEGUNDOS:-3600}
     depends_on:
       database:
         condition: service_healthy

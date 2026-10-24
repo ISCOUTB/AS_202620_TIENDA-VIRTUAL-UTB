@@ -1,4 +1,4 @@
-"""Operaciones públicas de Catálogo para el composition root (siembra).
+"""Operaciones públicas de Catálogo para otros módulos y el composition root.
 
 Son altas idempotentes: buscan por la clave natural y crean o actualizan.
 Devuelven solo identificadores, nunca modelos internos.
@@ -61,3 +61,8 @@ def asegurar_producto(
     producto.categoria_id = categoria_id
     session.flush()
     return producto.id
+
+
+def ids_de_tiendas(session: Session) -> list[int]:
+    """Identificadores de las tiendas visibles para el principal de la sesión."""
+    return list(session.scalars(select(Tienda.id).order_by(Tienda.id)))
