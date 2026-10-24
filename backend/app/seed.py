@@ -1,9 +1,15 @@
 """Siembra explícita de datos de demostración: `python -m app.seed`.
 
 Composition root: solo usa las operaciones públicas de cada módulo. Es
-idempotente (alta o actualización por clave natural). Solo crea una cuenta si
-se definen `SEED_ADMIN_CORREO` y `SEED_ADMIN_PASSWORD`: el administrador
-general inicial, que después asigna los demás roles. Se ejecuta con las credenciales del rol dueño
+idempotente (alta o actualización por clave natural). Solo crea cuentas si se
+definen sus variables:
+
+- `SEED_ADMIN_CORREO` y `SEED_ADMIN_PASSWORD`: el administrador general, que
+  supervisa todas las tiendas (ADR 0016).
+- `SEED_TIENDAS_PASSWORD`: un admin por tienda, `admin.<tienda>@utb.edu.co`,
+  que gestiona solo la suya (stock, productos y pedidos).
+
+Se ejecuta con las credenciales del rol dueño
 (`MIGRATIONS_DATABASE_URL` o `DB_MIGRATIONS_*`), no con el rol de la API, que
 está sujeto a RLS (ADR 0014).
 
@@ -20,7 +26,7 @@ from pathlib import Path
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.modules.catalog.public import asegurar_categoria, asegurar_producto, asegurar_tienda
-from app.modules.identity.public import asegurar_admin_general
+from app.modules.identity.public import asegurar_admin_general, asegurar_admin_tienda
 from app.modules.inventory.public import asegurar_existencia_inicial
 from app.shared.database import crear_engine, resolve_database_url
 
@@ -227,6 +233,33 @@ def sembrar_admin(session: Session) -> dict[str, int]:
     return {"admin_general": 1}
 
 
+def correo_admin_tienda(identificador: str) -> str:
+    return f"admin.{identificador}@utb.edu.co"
+
+
+def sembrar_admins_tienda(session: Session) -> dict[str, int]:
+    """Crea un admin por tienda si `SEED_TIENDAS_PASSWORD` está definida.
+
+    Misma contraseña inicial para todas (cada admin la cambia después): se
+    entrega por un canal seguro, nunca se versiona.
+    """
+    contrasena = os.getenv("SEED_TIENDAS_PASSWORD")
+    if not contrasena:
+        return {}
+    if len(contrasena) < 8:
+        raise SystemExit("SEED_TIENDAS_PASSWORD debe tener al menos 8 caracteres.")
+    tiendas = _asegurar_tiendas(session)
+    for identificador, nombre, _ in TIENDAS:
+        asegurar_admin_tienda(
+            session,
+            nombre=f"Admin {nombre}",
+            correo=correo_admin_tienda(identificador),
+            contrasena=contrasena,
+            tienda_id=tiendas[identificador],
+        )
+    return {"admins_tienda": len(TIENDAS)}
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Siembra datos de demostración.")
     parser.add_argument(
@@ -244,6 +277,7 @@ def main(argv: list[str] | None = None) -> None:
             resumen |= cargar_legado(session, args.desde_json)
         resumen |= sembrar_demo(session)
         resumen |= sembrar_admin(session)
+        resumen |= sembrar_admins_tienda(session)
     engine.dispose()
     print(json.dumps(resumen, ensure_ascii=False))
 

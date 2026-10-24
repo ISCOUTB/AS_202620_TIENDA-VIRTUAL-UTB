@@ -5,6 +5,7 @@ import {
   esGestor,
   etiquetaRol,
   gestionaInventario,
+  supervisaTienda,
   tiendasGestionadas,
 } from "@/lib/roles";
 import type { RolAsignado } from "@/lib/api/generated/contract";
@@ -21,10 +22,13 @@ describe("roles", () => {
     expect(etiquetaRol(u)).toBe("Estudiante");
   });
 
-  it("el admin general vale en todas las tiendas", () => {
+  it("el admin general ve todas las tiendas pero no escribe en ninguna", () => {
     const u = usuario(comprador, { codigo: "admin_general", tienda_id: null });
     expect(esAdminGeneral(u)).toBe(true);
-    expect(administraTienda(u, 7)).toBe(true);
+    expect(esGestor(u)).toBe(true);
+    expect(supervisaTienda(u, 7)).toBe(true);
+    expect(administraTienda(u, 7)).toBe(false);
+    expect(gestionaInventario(u, 7)).toBe(false);
     expect(tiendasGestionadas(u)).toBe("todas");
     expect(etiquetaRol(u)).toBe("Administración");
   });
@@ -40,6 +44,8 @@ describe("roles", () => {
     expect(gestionaInventario(u, 1)).toBe(true);
     expect(gestionaInventario(u, 2)).toBe(true);
     expect(gestionaInventario(u, 3)).toBe(false);
+    expect(supervisaTienda(u, 2)).toBe(true);
+    expect(supervisaTienda(u, 3)).toBe(false);
     expect(tiendasGestionadas(u)).toEqual([1, 2]);
     expect(etiquetaRol(u)).toBe("Admin. de tienda");
   });

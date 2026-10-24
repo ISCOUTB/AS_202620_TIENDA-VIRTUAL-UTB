@@ -2,8 +2,8 @@
 
 - `principal_desde_token`: lo registra `app.main` como resolvedor de
   `shared.seguridad.contexto_actual`.
-- `asegurar_admin_general`: alta idempotente para la siembra, que corre con el
-  rol dueño (ADR 0013).
+- `asegurar_admin_general` y `asegurar_admin_tienda`: altas idempotentes para
+  la siembra, que corre con el rol dueño (ADR 0013).
 """
 
 from sqlalchemy import func, select
@@ -48,11 +48,19 @@ def principal_desde_token(token: str) -> ContextoSeguridad | None:
     )
 
 
-def asegurar_admin_general(session: Session, *, nombre: str, correo: str, contrasena: str) -> int:
-    """Crea (o reactiva) la cuenta con el rol `admin_general` y devuelve su id.
+def asegurar_cuenta_con_rol(
+    session: Session,
+    *,
+    nombre: str,
+    correo: str,
+    contrasena: str,
+    rol: str,
+    tienda_id: int | None = None,
+) -> int:
+    """Crea (o reactiva) la cuenta con `rol` (en `tienda_id`) y devuelve su id.
 
     No cambia la contraseña de una cuenta existente: volver a sembrar no debe
-    pisar una contraseña que el administrador ya cambió.
+    pisar una contraseña que su dueño ya cambió.
     """
     usuario = session.scalar(select(Usuario).where(func.lower(Usuario.correo) == correo.lower()))
     if usuario is None:
@@ -62,17 +70,37 @@ def asegurar_admin_general(session: Session, *, nombre: str, correo: str, contra
         session.add(usuario)
         session.flush()
     usuario.activo = True
+    tienda = UsuarioRol.tienda_id.is_(None) if tienda_id is None else UsuarioRol.tienda_id == tienda_id
     tiene_rol = session.scalar(
         select(UsuarioRol.id).where(
-            UsuarioRol.usuario_id == usuario.id,
-            UsuarioRol.rol_codigo == "admin_general",
-            UsuarioRol.tienda_id.is_(None),
+            UsuarioRol.usuario_id == usuario.id, UsuarioRol.rol_codigo == rol, tienda
         )
     )
     if tiene_rol is None:
-        session.add(UsuarioRol(usuario_id=usuario.id, rol_codigo="admin_general"))
+        session.add(UsuarioRol(usuario_id=usuario.id, rol_codigo=rol, tienda_id=tienda_id))
     session.flush()
     return usuario.id
+
+
+def asegurar_admin_general(session: Session, *, nombre: str, correo: str, contrasena: str) -> int:
+    """Cuenta con el rol `admin_general`: supervisa todas las tiendas (ADR 0016)."""
+    return asegurar_cuenta_con_rol(
+        session, nombre=nombre, correo=correo, contrasena=contrasena, rol="admin_general"
+    )
+
+
+def asegurar_admin_tienda(
+    session: Session, *, nombre: str, correo: str, contrasena: str, tienda_id: int
+) -> int:
+    """Cuenta con el rol `admin_tienda` de una tienda: la única que gestiona."""
+    return asegurar_cuenta_con_rol(
+        session,
+        nombre=nombre,
+        correo=correo,
+        contrasena=contrasena,
+        rol="admin_tienda",
+        tienda_id=tienda_id,
+    )
 
 
 def verificar_configuracion() -> None:
