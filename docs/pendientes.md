@@ -95,8 +95,11 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   hay que definir `JWT_SECRET` (la API no arranca sin ella) y, para el primer
   administrador, `SEED_ADMIN_CORREO`/`SEED_ADMIN_PASSWORD` con
   `SEED_ON_DEPLOY=true`.
-- Implementar los endpoints de `orders` (ya tienen tablas) y las escrituras de
-  `inventory`.
+- ~~Escrituras de `inventory`~~ — hecho el 2026-10-24: `GET`/`PUT
+  /inventory/{productId}` y `POST /inventory/{productId}/adjust`, para
+  `responsable_inventario` o `admin_tienda` de la tienda (o `admin_general`),
+  con movimiento `ajuste` y bloqueo optimista (409).
+- Implementar los endpoints de `orders` (ya tienen tablas).
 
 ## Datos de la cafetería (frontend)
 
