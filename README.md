@@ -130,6 +130,8 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 - [Guía de la evidencia y comandos de verificación](docs/api/README.md)
 - [Contrato OpenAPI 3.1.0, versión de API 0.5.0](docs/api/openapi.json)
 - [Matriz de permisos por rol](docs/api/contrato-api.md#51-matriz-de-permisos-por-rol-api-050-adr-0017)
+- [Pruebas E2E con TestSprite: proceso, resultados y hallazgos](docs/pruebas-e2e-testsprite.md) (0.5.0: frontend 77/77, API 36/36)
+- [Cambios por versión](CHANGELOG.md)
 - [ADR 0002: integración HTTP y contrato versionado](docs/adr/0002-contrato-integracion-http.md)
 - [ADR 0011: sesión del frontend en almacenamiento local, con migración a cookie httpOnly](docs/adr/0011-sesion-localstorage.md)
 - [ADR 0012: proxy interno same-origin hacia la API, sin publicar el backend](docs/adr/0012-proxy-interno-api.md)
