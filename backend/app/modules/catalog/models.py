@@ -91,6 +91,12 @@ class Producto(Base):
         String(400), nullable=False, server_default=text("''")
     )
     precio_centavos: Mapped[int] = mapped_column(Integer, nullable=False)
+    # false = precio de referencia que la tienda aún no confirmó (migración 0003).
+    precio_confirmado: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
+    # "Grande", "Personal", "Entero"...: distingue variantes en la vitrina.
+    presentacion: Mapped[str | None] = mapped_column(String(40), nullable=True)
     activo: Mapped[bool] = mapped_column(Boolean, nullable=False, server_default=text("true"))
     creado_en: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, server_default=func.now()

@@ -119,6 +119,28 @@ PRODUCTOS = (
     ("almuerzo-01", "Platos", "Pollo agridulce con arroz frito", "Pollo agridulce acompañado de arroz frito.", 1960000, 7),
 )
 
+# Presentación de las variantes (frontend/lib/catalogo.ts), por (tienda, nombre).
+PRESENTACIONES = {
+    ("antojos", "De todito grande"): "Grande",
+    ("antojos", "De todito pequeño"): "Pequeño",
+    ("antojos", "Bombombum bolsa"): "Bolsa",
+    ("antojos", "Bombombum personal"): "Personal",
+    ("antojos", "Choco Break bolsa"): "Bolsa",
+    ("antojos", "Choco Break personal"): "Personal",
+    ("punto-fit", "Fresas con crema"): "Vaso",
+    ("punto-fit", "Granola con yogur griego"): "Vaso",
+    ("almuerzo-01", "Pollo frito con arepitas (entero)"): "Entero",
+    ("almuerzo-01", "Pollo frito con arepitas (medio)"): "Medio",
+    ("almuerzo-01", "Arroz oriental"): "Porción",
+    ("almuerzo-01", "Arroz La Placita (media)"): "Media",
+    ("almuerzo-01", "Arroz La Placita (entero)"): "Entero",
+    ("almuerzo-01", "Arroz La Valenciana"): "Entero",
+}
+
+# Solo Almuerzo 01 publicó su carta; las demás tiendas tienen precios de
+# referencia (docs/pendientes.md, «Datos de la cafetería»).
+TIENDAS_CON_PRECIO_CONFIRMADO = {"almuerzo-01"}
+
 # Tienda que recibe los productos exportados del esquema anterior.
 TIENDA_LEGADO = "alegria"
 
@@ -149,6 +171,8 @@ def sembrar_demo(session: Session) -> dict[str, int]:
             descripcion=descripcion,
             precio_centavos=precio,
             categoria_id=categorias[(tienda, categoria)],
+            presentacion=PRESENTACIONES.get((tienda, nombre)),
+            precio_confirmado=tienda in TIENDAS_CON_PRECIO_CONFIRMADO,
         )
         existencias_creadas += asegurar_existencia_inicial(session, producto_id, cantidad)
     return {

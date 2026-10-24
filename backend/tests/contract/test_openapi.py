@@ -144,6 +144,40 @@ def _avanzar_pedido(client: TestClient) -> httpx.Response:
     )
 
 
+def _admin_antojos(client: TestClient) -> dict[str, str]:
+    from app.seed import sembrar_demo
+    from app.shared.database import SessionLocal
+    from tests.conftest import asignar_rol
+
+    with SessionLocal() as session, session.begin():
+        sembrar_demo(session)
+    cabecera = _cabecera(client, "antojos@utb.edu.co")
+    asignar_rol("antojos@utb.edu.co", "admin_tienda", tienda_id=1)
+    return cabecera
+
+
+@caso("/catalog/products/{productId}", "get")
+def _detalle_producto(client: TestClient) -> httpx.Response:
+    _admin_antojos(client)
+    producto_id = client.get("/catalog/products").json()[0]["id"]
+    return client.get(f"/catalog/products/{producto_id}")
+
+
+@caso("/catalog/products", "post")
+def _registrar_producto(client: TestClient) -> httpx.Response:
+    datos = {"tienda": "antojos", "nombre": "Maní", "precio_centavos": 1000, "categoria": "Snacks"}
+    return client.post("/catalog/products", json=datos, headers=_admin_antojos(client))
+
+
+@caso("/catalog/products/{productId}", "patch")
+def _editar_producto(client: TestClient) -> httpx.Response:
+    cabecera = _admin_antojos(client)
+    producto = next(p for p in client.get("/catalog/products").json() if p["tienda"] == "antojos")
+    return client.patch(
+        f"/catalog/products/{producto['id']}", json={"activo": False}, headers=cabecera
+    )
+
+
 def response_validator(path: str, method: str, status: str) -> Draft202012Validator:
     schema = CONTRACT["paths"][path][method]["responses"][status]["content"][
         "application/json"
