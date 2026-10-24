@@ -1,6 +1,7 @@
 """Verifica el proveedor HTTP contra el contrato guardado en el repositorio."""
 
 import json
+import uuid
 from collections.abc import Callable
 from pathlib import Path
 
@@ -93,6 +94,54 @@ def _ajustar_existencia(client: TestClient) -> httpx.Response:
     producto_id, cabecera = _responsable_de_producto(client)
     datos = {"delta": 2, "motivo": "Reposición"}
     return client.post(f"/inventory/{producto_id}/adjust", json=datos, headers=cabecera)
+
+
+def _pedido(client: TestClient) -> tuple[dict, dict[str, str], dict[str, str]]:
+    """Un pedido en la tienda 1, la cabecera del comprador y la de la tienda."""
+    producto_id, tienda = _responsable_de_producto(client)
+    comprador = _cabecera(client, "comprador@utb.edu.co")
+    respuesta = client.post(
+        "/orders",
+        json={"items": [{"product_id": producto_id, "cantidad": 1}]},
+        headers={**comprador, "Idempotency-Key": str(uuid.uuid4())},
+    )
+    return respuesta.json()[0], comprador, tienda
+
+
+@caso("/orders", "post")
+def _crear_pedido(client: TestClient) -> httpx.Response:
+    producto_id, _ = _responsable_de_producto(client)
+    return client.post(
+        "/orders",
+        json={"items": [{"product_id": producto_id, "cantidad": 1}], "hora_recogida": "12:00"},
+        headers={**_cabecera(client), "Idempotency-Key": str(uuid.uuid4())},
+    )
+
+
+@caso("/orders", "get")
+def _listar_pedidos(client: TestClient) -> httpx.Response:
+    _, comprador, _ = _pedido(client)
+    return client.get("/orders", headers=comprador)
+
+
+@caso("/orders/{orderId}", "get")
+def _ver_pedido(client: TestClient) -> httpx.Response:
+    pedido, comprador, _ = _pedido(client)
+    return client.get(f"/orders/{pedido['id']}", headers=comprador)
+
+
+@caso("/orders/{orderId}/cancel", "post")
+def _cancelar_pedido(client: TestClient) -> httpx.Response:
+    pedido, comprador, _ = _pedido(client)
+    return client.post(f"/orders/{pedido['id']}/cancel", headers=comprador)
+
+
+@caso("/orders/{orderId}/estado", "post")
+def _avanzar_pedido(client: TestClient) -> httpx.Response:
+    pedido, _, tienda = _pedido(client)
+    return client.post(
+        f"/orders/{pedido['id']}/estado", json={"estado": "pagado"}, headers=tienda
+    )
 
 
 def response_validator(path: str, method: str, status: str) -> Draft202012Validator:

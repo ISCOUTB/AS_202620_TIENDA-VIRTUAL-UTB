@@ -274,7 +274,7 @@ python -m pytest -c backend/pytest.ini backend/tests
 ```
 
 Las pruebas comprueban la ruta de salud, los límites de módulos del ADR, los
-endpoints de identidad, catálogo e inventario, el contrato OpenAPI, la observabilidad, las
+endpoints de identidad, catálogo, inventario y pedidos, el contrato OpenAPI, la observabilidad, las
 restricciones del esquema, el bloqueo optimista, las políticas RLS y que las
 migraciones son reversibles y coinciden con los modelos. El mismo conjunto
 corre en GitHub Actions con un servicio `postgres:17-alpine`, junto con
@@ -302,7 +302,8 @@ backend/
       catalog/                  # tiendas, categorías, productos, imágenes: router, repository, models, schemas, public
       inventory/                # existencias y movimientos: router, repository, models, schemas, public
       identity/                 # registro, login (JWT) y /identity/me: router, repository, tokens, contrasenas, public
-      orders/                   # solo modelos (tablas), sin endpoints todavía
+      orders/                   # pedidos idempotentes por tienda, ciclo de vida y cancelación: router, service, repository, public
+    tareas/vencer_pedidos.py    # compensación de la saga: cancela pendientes de pago con más de 24 h
     shared/
       database.py               # engine, sesión y Base (solo acceso a datos)
       seguridad.py              # principal de la petición (Bearer) y contexto por transacción para RLS

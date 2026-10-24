@@ -10,19 +10,30 @@ FastAPI y PostgreSQL en una red privada; solo Next.js recibe tráfico público.
 2. Conectar este repositorio y la rama que se quiera desplegar.
 3. Establecer **Compose Path** en `./deploy/compose.lab.yaml`.
 4. Activar **Isolated Deployments**.
-5. En **Environment**, definir dos contraseñas largas, únicas y distintas: la
-   del rol dueño (migraciones y siembra) y la del rol de la API, sujeto a RLS
-   ([ADR 0014](adr/0014-seguridad-rls.md)):
+5. En **Environment**, definir dos contraseñas largas, únicas y distintas (la
+   del rol dueño, para migraciones y siembra, y la del rol de la API, sujeto a
+   RLS, [ADR 0014](adr/0014-seguridad-rls.md)) y la clave de firma de los
+   tokens ([ADR 0016](adr/0016-autenticacion-jwt.md)); la API no arranca sin
+   ella:
 
    ```dotenv
    POSTGRES_PASSWORD=valor-secreto
    APP_DB_PASSWORD=otro-valor-secreto
+   JWT_SECRET=salida-de-openssl-rand-hex-32
    # Opcionales:
    # POSTGRES_USER=tienda_utb
    # POSTGRES_DB=tienda_utb
    # APP_DB_USER=tienda_app
+   # JWT_TTL_SEGUNDOS=3600
    # SEED_ON_DEPLOY=true
+   # SEED_ADMIN_CORREO=admin@utb.edu.co
+   # SEED_ADMIN_PASSWORD=otra-clave-larga
    ```
+
+   Con `SEED_ADMIN_CORREO` y `SEED_ADMIN_PASSWORD`, la siembra crea el
+   administrador general inicial (solo si `SEED_ON_DEPLOY=true`; volver a
+   sembrar no cambia su contraseña). Cambiar `JWT_SECRET` cierra todas las
+   sesiones abiertas.
 
    `SEED_ON_DEPLOY=true` hace que el servicio `seed` siembre los datos de
    demostración en **cada** despliegue. La siembra es idempotente, pero
@@ -98,6 +109,25 @@ la portada pasa de `Tienda Virtual UTB` a
 > redeployar (y no solo reiniciar) para que `sitemap.xml`, `robots.txt` y las
 > URLs canónicas apunten al sitio nuevo. Se pasa como `build.args` desde
 > `deploy/compose.lab.yaml`.
+
+## Vencimiento de pedidos sin pago
+
+La saga de pedidos ([diseño](idempotencia-saga-s11.md), F-01) cancela los
+pedidos `pendiente_pago` con más de 24 horas y devuelve sus unidades al
+stock. No corre dentro de la API: es un comando idempotente que se programa
+en Dokploy, en el servicio Compose → **Schedules** → *Create Schedule*:
+
+| Campo | Valor |
+|---|---|
+| Service | `backend` |
+| Cron | `*/15 * * * *` (cada 15 minutos) |
+| Command | `python -m app.tareas.vencer_pedidos` |
+
+Usa la misma conexión que la API (rol sujeto a RLS) con el principal del
+sistema; dos ejecuciones simultáneas no procesan el mismo pedido
+(`SKIP LOCKED`). Cada ejecución deja en el log una línea JSON
+`pedidos_vencidos` con el número de pedidos cancelados. Prueba manual:
+`docker compose -f deploy/compose.lab.yaml exec backend python -m app.tareas.vencer_pedidos`.
 
 ## Persistencia y copias de seguridad
 
