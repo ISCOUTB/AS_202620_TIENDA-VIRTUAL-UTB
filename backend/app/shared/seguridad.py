@@ -28,18 +28,27 @@ class ContextoSeguridad:
     # Tiendas donde el usuario es `admin_tienda` / `responsable_inventario`.
     tiendas_admin: frozenset[int] = field(default_factory=frozenset)
     tiendas_inventario: frozenset[int] = field(default_factory=frozenset)
+    # Tareas programadas (`app.tareas`): sin usuario, alcance sobre todas las tiendas.
+    sistema: bool = False
 
     @property
     def es_admin_general(self) -> bool:
         return "admin_general" in self.roles
 
     def administra_tienda(self, tienda_id: int) -> bool:
-        """Misma regla que `seg_administra_tienda` en la base."""
-        return self.es_admin_general or tienda_id in self.tiendas_admin
+        """Misma regla que `seg_administra_tienda` en la base.
+
+        El admin general no escribe en las tiendas, solo las supervisa (ADR 0016).
+        """
+        return self.sistema or tienda_id in self.tiendas_admin
 
     def gestiona_inventario(self, tienda_id: int) -> bool:
         """Misma regla que `seg_gestiona_inventario_tienda` en la base."""
         return self.administra_tienda(tienda_id) or tienda_id in self.tiendas_inventario
+
+    def supervisa_tienda(self, tienda_id: int) -> bool:
+        """Misma regla que `seg_supervisa_tienda`: puede leer lo de la tienda."""
+        return self.es_admin_general or self.gestiona_inventario(tienda_id)
 
 
 ANONIMO = ContextoSeguridad()
@@ -49,7 +58,8 @@ _SQL_CONTEXTO = text(
     " set_config('app.roles', :roles, true),"
     " set_config('app.tiendas_admin', :tiendas_admin, true),"
     " set_config('app.tiendas_inventario', :tiendas_inventario, true),"
-    " set_config('app.es_admin_general', :es_admin_general, true)"
+    " set_config('app.es_admin_general', :es_admin_general, true),"
+    " set_config('app.es_sistema', :es_sistema, true)"
 )
 
 
@@ -67,6 +77,7 @@ def aplicar_contexto(conexion: Connection, contexto: ContextoSeguridad) -> None:
             "tiendas_admin": _lista(contexto.tiendas_admin),
             "tiendas_inventario": _lista(contexto.tiendas_inventario),
             "es_admin_general": "true" if contexto.es_admin_general else "false",
+            "es_sistema": "true" if contexto.sistema else "false",
         },
     )
 
@@ -129,3 +140,11 @@ def requiere_usuario(
 
 def prohibido(detalle: str = "No tienes permiso para esta operación") -> HTTPException:
     return HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detalle)
+
+
+SOLO_SUPERVISA = "El administrador general solo supervisa: los cambios los hace el admin de la tienda"
+
+
+def prohibido_en_tienda(contexto: ContextoSeguridad, detalle: str) -> HTTPException:
+    """403 de una escritura en una tienda ajena; al admin general le explica por qué."""
+    return prohibido(SOLO_SUPERVISA if contexto.es_admin_general else detalle)

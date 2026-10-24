@@ -23,12 +23,22 @@ export function esAdminGeneral(usuario: ConRoles): boolean {
   return tiene(usuario, "admin_general");
 }
 
+/**
+ * Escribir en una tienda (productos, precios): solo su admin. El admin general
+ * supervisa y no escribe (ADR 0016); la API responde 403 con la misma regla.
+ */
 export function administraTienda(usuario: ConRoles, tiendaId: number): boolean {
-  return esAdminGeneral(usuario) || tiene(usuario, "admin_tienda", tiendaId);
+  return tiene(usuario, "admin_tienda", tiendaId);
 }
 
+/** Mover stock y atender la cola de pedidos de la tienda. */
 export function gestionaInventario(usuario: ConRoles, tiendaId: number): boolean {
   return administraTienda(usuario, tiendaId) || tiene(usuario, "responsable_inventario", tiendaId);
+}
+
+/** Ver lo de la tienda en el panel: quien la gestiona o el admin general. */
+export function supervisaTienda(usuario: ConRoles, tiendaId: number): boolean {
+  return esAdminGeneral(usuario) || gestionaInventario(usuario, tiendaId);
 }
 
 /** true si el usuario gestiona alguna tienda: puede entrar a `/admin`. */
