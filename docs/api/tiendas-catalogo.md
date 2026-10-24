@@ -8,6 +8,13 @@ ajustes de inventario (`PUT` y `adjust`, no `PATCH`, como en el contrato de
 diseño). Las `notas` (§2.2) quedan aplazadas: son contenido de usuario y
 reabrirían el [ADR 0011](../adr/0011-sesion-localstorage.md).
 
+El frontend ya consume todo esto: el catálogo sale de la API
+(`frontend/lib/catalogo-servidor.ts` + `catalogo-api.ts`), la hora de
+recogida viaja con el pedido y `/admin` escribe inventario, pedidos y
+productos. `frontend/lib/catalogo.ts` queda como respaldo visible si la API
+cae y como fuente de los `sabores`, que el contrato no tiene. Las tablas de
+§3 y §4 describen el estado de 0.3.0.
+
 **Estado original:** propuesta de diseño. Nada de este documento estaba
 implementado en la API `0.3.0`. Complementa [`administracion-catalogo.md`](administracion-catalogo.md)
 y el contrato de diseño [`../openapi/tienda-virtual.yaml`](../openapi/tienda-virtual.yaml).

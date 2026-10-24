@@ -99,8 +99,8 @@ python -m pytest -c backend/pytest.ini backend/tests/test_catalog.py
 Tras el arranque: <http://localhost:3000> (catálogo) y
 <http://localhost:8000/catalog/products> (JSON).
 
-Los módulos `identity`, `inventory` y `orders` siguen siendo paquetes vacíos,
-reservados para incrementos posteriores.
+En S4 los módulos `identity`, `inventory` y `orders` eran paquetes vacíos;
+desde la API `0.4.0` (2026-10-24) están implementados.
 
 > **Nota (2026-10-22):** esta sección describe el estado de S4. Desde el
 > [ADR 0013](docs/adr/0013-migraciones-alembic-y-esquema.md) el esquema lo crea
@@ -310,13 +310,18 @@ backend/
       errores.py                # cuerpo común de error (ErrorResponse) para OpenAPI
       logging.py                # logs estructurados JSON (S8)
       metrics.py                # middleware de métricas HTTP por ruta (S8)
-  alembic.ini, alembic/         # migraciones (0001 esquema, 0002 RLS)
+  alembic.ini, alembic/         # migraciones (0001 esquema, 0002 RLS, 0003 presentación y precio confirmado)
   scripts/export_openapi.py     # dev: exporta el contrato a docs/api/openapi.json
   scripts/exportar_datos_legado.py  # exporta catalog_products/inventory_stock antes de migrar
   tests/                        # health, módulos (ADR), catálogo, inventario, contrato, esquema, RLS, Alembic
 deploy/postgres/initdb/         # crea el rol de la API al inicializar PostgreSQL
 frontend/
-  app/page.tsx                  # vista del catálogo (componente de servidor)
+  app/(public)/                 # portada, tiendas y /cuenta (catálogo leído en el servidor, sin caché)
+  app/admin/                    # panel: inventario, cola de pedidos y productos según los roles
+  app/api/proxy/                # proxy same-origin hacia la API (ADR 0012)
+  lib/catalogo-servidor.ts      # GET /catalog/products + GET /inventory en paralelo (ADR 0008)
+  lib/catalogo-api.ts           # adaptador del contrato al modelo de la interfaz
+  lib/pedidos.ts, lib/admin.ts  # pedidos (Idempotency-Key) y escrituras de gestión
 compose.yaml                    # frontend + backend + postgres (local; secretos vía .env)
 deploy/compose.lab.yaml         # stack de producción consumido por Dokploy
 .env.example                    # variables locales requeridas; .env no se versiona
