@@ -1,0 +1,221 @@
+version: "2"
+type: backend
+tech_stack:
+  - Python 3.12
+  - FastAPI 0.136
+  - SQLAlchemy 2 + PostgreSQL 17 with Row Level Security
+  - JWT HS256 bearer tokens, Argon2id
+features:
+  - name: "Identity API (register, login JWT, current user)"
+    description: "Identity API (register, login JWT, current user)"
+    files:
+      - backend/app/modules/identity/router.py
+      - backend/app/modules/identity/tokens.py
+    endpoints:
+      - method: POST
+        path: /identity/register
+        description: "Register. Crea una cuenta de comprador. El correo no distingue mayúsculas."
+        auth_required: false
+        response_schema:
+          "201": "Successful Response"
+          "409": "El correo ya está registrado"
+          "422": "Validation Error"
+      - method: POST
+        path: /identity/login
+        description: "Login. Autentica con correo y contraseña y entrega un token de acceso."
+        auth_required: false
+        response_schema:
+          "200": "Successful Response"
+          "401": "Credenciales inválidas"
+          "422": "Validation Error"
+      - method: GET
+        path: /identity/me
+        description: "Me. Perfil y roles del usuario autenticado."
+        auth_required: true
+        response_schema:
+          "200": "Successful Response"
+          "401": "Token ausente, inválido o vencido"
+  - name: "Catalog API (products and stores; per-store admin writes)"
+    description: "Catalog API (products and stores; per-store admin writes)"
+    files:
+      - backend/app/modules/catalog/router.py
+      - backend/app/modules/catalog/schemas.py
+    endpoints:
+      - method: GET
+        path: /catalog/products
+        description: "Get Products. Lista los productos disponibles en el catálogo."
+        auth_required: false
+        response_schema:
+          "200": "Successful Response"
+          "401": "Token inválido"
+          "422": "Validation Error"
+      - method: POST
+        path: /catalog/products
+        description: "Create Product. Registra un producto. Sus existencias se cargan aparte, en Inventario."
+        auth_required: true
+        response_schema:
+          "201": "Successful Response"
+          "401": "Token ausente o inválido"
+          "403": "No administra la tienda"
+          "404": "Tienda no encontrada"
+          "409": "Nombre repetido en la tienda"
+          "422": "Validation Error"
+      - method: GET
+        path: /catalog/products/{productId}
+        description: "Get Product. Detalle de un producto activo (o inactivo, para quien gestiona su tienda)."
+        auth_required: false
+        response_schema:
+          "200": "Successful Response"
+          "401": "Token inválido"
+          "404": "Producto no encontrado"
+          "422": "Validation Error"
+      - method: PATCH
+        path: /catalog/products/{productId}
+        description: "Update Product. Edita un producto o lo habilita/deshabilita para la venta."
+        auth_required: true
+        response_schema:
+          "200": "Successful Response"
+          "401": "Token ausente o inválido"
+          "403": "No administra la tienda"
+          "404": "Producto no encontrado"
+          "409": "Nombre repetido en la tienda"
+          "422": "Validation Error"
+      - method: GET
+        path: /catalog/tiendas
+        description: "Get Stores. Tiendas activas de la cafetería."
+        auth_required: false
+        response_schema:
+          "200": "Successful Response"
+  - name: "inventario"
+    description: "inventario"
+    files:
+    endpoints:
+      - method: GET
+        path: /inventory
+        description: "Get Inventory. Lista la disponibilidad necesaria para presentar el catálogo."
+        auth_required: false
+        response_schema:
+          "200": "Successful Response"
+      - method: GET
+        path: /inventory/{productId}
+        description: "Get Stock. Existencias de un producto, con la fecha del último cambio."
+        auth_required: true
+        response_schema:
+          "200": "Successful Response"
+          "401": "Token ausente o inválido"
+          "404": "Producto sin existencias"
+          "422": "Validation Error"
+      - method: PUT
+        path: /inventory/{productId}
+        description: "Update Stock. Fija la cantidad absoluta (conteo físico). Queda como movimiento `ajuste`."
+        auth_required: true
+        response_schema:
+          "200": "Successful Response"
+          "401": "Token ausente o inválido"
+          "403": "No gestiona el inventario de la tienda"
+          "404": "Producto no encontrado"
+          "409": "Conflicto de concurrencia"
+          "422": "Validation Error"
+      - method: POST
+        path: /inventory/{productId}/adjust
+        description: "Adjust Stock. Suma o resta unidades (reposición, merma) con un motivo obligatorio."
+        auth_required: true
+        response_schema:
+          "200": "Successful Response"
+          "400": "Ajuste inválido: cero o deja el stock en negativo"
+          "401": "Token ausente o inválido"
+          "403": "No gestiona el inventario de la tienda"
+          "404": "Producto sin existencias"
+          "409": "Conflicto de concurrencia"
+          "422": "Validation Error"
+  - name: "Orders API (idempotent checkout, queue, status flow, cancel)"
+    description: "Orders API (idempotent checkout, queue, status flow, cancel)"
+    files:
+      - backend/app/modules/orders/router.py
+      - backend/app/modules/orders/service.py
+    endpoints:
+      - method: GET
+        path: /orders
+        description: "List Orders. Pedidos del usuario o, con `tienda_id`, la cola de pedidos de esa tienda."
+        auth_required: true
+        response_schema:
+          "200": "Successful Response"
+          "401": "Token ausente o inválido"
+          "403": "No gestiona la tienda"
+          "422": "Validation Error"
+      - method: POST
+        path: /orders
+        description: "Create Order. Crea un pedido por cada tienda del carrito y descuenta sus unidades."
+        auth_required: true
+        response_schema:
+          "201": "Successful Response"
+          "200": "Reintento con la misma Idempotency-Key: los pedidos originales"
+          "400": "Producto no disponible, stock insuficiente o llave vencida"
+          "401": "Token ausente o inválido"
+          "422": "Validation Error"
+      - method: GET
+        path: /orders/{orderId}
+        description: "Get Order. Detalle de un pedido propio o de una tienda que el usuario gestiona."
+        auth_required: true
+        response_schema:
+          "200": "Successful Response"
+          "401": "Token ausente o inválido"
+          "404": "Pedido no encontrado"
+          "422": "Validation Error"
+      - method: POST
+        path: /orders/{orderId}/cancel
+        description: "Cancel Order. Cancela el pedido y repone el stock.  El comprador puede hacerlo mientras no haya pagado; la tienda, mientras no se haya entregado."
+        auth_required: true
+        response_schema:
+          "200": "Successful Response"
+          "400": "El pedido no se puede cancelar"
+          "401": "Token ausente o inválido"
+          "404": "Pedido no encontrado"
+          "409": "Conflicto de concurrencia"
+          "422": "Validation Error"
+      - method: POST
+        path: /orders/{orderId}/estado
+        description: "Update Order Status. La tienda avanza el pedido: pago confirmado, en preparación, listo, entregado."
+        auth_required: true
+        response_schema:
+          "200": "Successful Response"
+          "400": "Transición no permitida"
+          "401": "Token ausente o inválido"
+          "403": "No gestiona la tienda"
+          "404": "Pedido no encontrado"
+          "409": "Conflicto de concurrencia"
+          "422": "Validation Error"
+  - name: "Health and metrics API"
+    description: "Health and metrics API"
+    files:
+      - backend/app/main.py
+    endpoints:
+      - method: GET
+        path: /health
+        description: "Health. Liveness: confirma que el proceso de la API está disponible."
+        auth_required: false
+        response_schema:
+          "200": "Successful Response"
+      - method: GET
+        path: /health/ready
+        description: "Health Ready. Readiness: además del proceso, verifica que la base de datos responde."
+        auth_required: false
+        response_schema:
+          "200": "Successful Response"
+          "503": "Base de datos no disponible"
+      - method: GET
+        path: /metrics
+        description: "Metrics. Métricas HTTP del proceso, ligadas al escenario de disponibilidad."
+        auth_required: false
+        response_schema:
+          "200": "Successful Response"
+known_limitations:
+  - issue: "Authorization model (ADR 0017): admin_tienda writes only in its own store; admin_general (admin@utb.edu.co) only supervises and gets 403 on every store write with detail starting 'El administrador general solo supervisa'; a store admin of another store gets 403 on products/stock and 404 on orders it cannot see"
+    location: backend/app/shared/seguridad.py
+    impact: Expected 403/404 responses, not bugs
+  - issue: "POST /orders requires header Idempotency-Key (UUID); repeating it returns 200 with the same orders instead of 201"
+    location: backend/app/modules/orders/router.py
+    impact: Idempotent checkout
+  - issue: "Demo accounts in the E2E database: buyer ana@utb.edu.co / Comprador-2026; store admins admin.<slug>@utb.edu.co / Tienda-2026 for antojos (tienda_id 1), punto-fit, alegria, almuerzo-01, almuerzo-02; general admin admin@utb.edu.co / Admin-Demo-2026. Login is POST /identity/login with JSON {email,password}"
+    location: testsprite_tests/preparar_datos.sh
+    impact: Use these accounts; register new buyers with unique emails
