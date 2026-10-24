@@ -4,6 +4,8 @@ Son altas idempotentes: buscan por la clave natural y crean o actualizan.
 Devuelven solo identificadores, nunca modelos internos.
 """
 
+from typing import NamedTuple
+
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -66,3 +68,28 @@ def asegurar_producto(
 def ids_de_tiendas(session: Session) -> list[int]:
     """Identificadores de las tiendas visibles para el principal de la sesión."""
     return list(session.scalars(select(Tienda.id).order_by(Tienda.id)))
+
+
+class ProductoResumen(NamedTuple):
+    id: int
+    nombre: str
+    tienda_id: int
+    precio_centavos: int
+    activo: bool
+
+
+def producto_resumen(session: Session, producto_id: int) -> ProductoResumen | None:
+    """Datos mínimos de un producto visible para el principal de la sesión.
+
+    Bajo RLS, un producto inactivo solo lo ven quienes gestionan su tienda.
+    """
+    fila = session.execute(
+        select(
+            Producto.id,
+            Producto.nombre,
+            Producto.tienda_id,
+            Producto.precio_centavos,
+            Producto.activo,
+        ).where(Producto.id == producto_id)
+    ).first()
+    return ProductoResumen(*fila) if fila else None
