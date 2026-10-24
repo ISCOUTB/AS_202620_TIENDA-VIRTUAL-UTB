@@ -226,18 +226,32 @@ ejecutan en la terminal del servidor, desde la carpeta del despliegue.
      con código 0;
    - `seed`, solo con `SEED_ON_DEPLOY=true`;
    - `backend`, y después `frontend`, que se reconstruye con el código nuevo.
-2. **Crear los admins de tienda** sin volver a sembrar el catálogo. Así no se
-   reinician precios ni descripciones, como sí pasaría con `SEED_ON_DEPLOY=true`:
+2. **Crear los admins de tienda.** El servicio `seed` es el único que recibe
+   `SEED_TIENDAS_PASSWORD`, `SEED_ADMIN_*` y las credenciales del rol dueño. El
+   `backend` no las tiene: correr `python -m app.seed` en su terminal no crea
+   cuentas, porque RLS bloquea las escrituras. Hay dos caminos:
+   - **Desde el panel de Dokploy** (el que se usó el 2026-10-24):
+     1. En Environment, poner `SEED_ON_DEPLOY=true`.
+     2. Hacer **Deploy**.
+     3. Volver a `SEED_ON_DEPLOY=false`. No hace falta otro deploy.
 
-   ```bash
-   docker compose -f deploy/compose.lab.yaml run --rm seed python -m app.seed
-   ```
+     El log del contenedor `seed` debe terminar con
+     `{"tiendas": 5, "productos": 55, …, "admin_general": 1, "admins_tienda": 5}`.
+   - **Desde la terminal del servidor**:
+     `docker compose -p <proyecto> --env-file deploy/.env -f deploy/compose.lab.yaml run --rm seed python -m app.seed`.
 
-   El servicio `seed` ya recibe `SEED_TIENDAS_PASSWORD` y `SEED_ADMIN_*`. La
-   siembra es idempotente: no duplica cuentas ni cambia contraseñas existentes.
-   Sí vuelve a escribir los productos demo, así que en una base con productos
-   editados a mano conviene crear las cuentas de tienda por SQL o pedir un
-   comando dedicado (pendiente).
+   La siembra es idempotente: no duplica cuentas ni cambia contraseñas
+   existentes. Sí vuelve a escribir los productos demo, así que en una base con
+   productos editados a mano conviene crear las cuentas de tienda por SQL o
+   pedir un comando dedicado (pendiente).
+
+#### Problemas encontrados al subir la 0.5.0 (2026-10-24)
+
+| Síntoma | Causa | Arreglo |
+|---|---|---|
+| El deploy falla con `required variable JWT_SECRET is missing a value` | Desde la 0.4.0 la API exige `JWT_SECRET`, y Compose falla antes de construir; producción sigue en la versión anterior | Definir `JWT_SECRET` (`openssl rand -hex 32`) en Environment y volver a desplegar |
+| `/health` da 200, pero `/health/ready` da «base de datos no disponible» y el catálogo y el login dan 500. El log del backend muestra `password authentication failed for user "tienda_app"` | El volumen de la base es anterior al ADR 0014. El script que crea o actualiza `tienda_app` solo corre con un volumen vacío, así que la contraseña del rol no coincide con `APP_DB_PASSWORD` | En la terminal del contenedor `database` (Containers → ⋯ → Terminal), ejecutar `sh /docker-entrypoint-initdb.d/10-rol-aplicacion.sh`. Es idempotente, iguala la contraseña a `APP_DB_PASSWORD` y no toca datos. La API se reconecta sola |
+| `No module named app.seed` en la terminal del backend | La terminal de Dokploy no abre en `/app` | `cd /app` primero (de todas formas, las cuentas se crean con el servicio `seed`, ver el paso 2) |
 
 ### 3. Verificar
 
