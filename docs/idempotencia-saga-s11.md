@@ -1,8 +1,9 @@
 # Diseño de Idempotencia y Saga
 
 > **Tipo:** evidencia S11 — diseño de idempotencia y saga. **Autor:** Equipo
-> Tienda Virtual UTB. **Fecha:** 2026-10-18. **Estado:** documento de diseño;
-> el endpoint `POST /api/orders` y la mensajería aún no existen en el código.
+> Tienda Virtual UTB. **Fecha:** 2026-10-18. **Estado:** documento de diseño,
+> implementado el 2026-10-24 en el módulo `orders` (ver
+> [§4](#4-implementación-2026-10-24)); la mensajería no existe.
 > **Trazabilidad:** [modos de fallo](modos-fallo-s11.md) (F-01, F-03, F-04),
 > [`ADR 0001`](adr/0001-monolito-modular.md),
 > [`ADR 0010`](adr/0010-no-extraer-modulos.md).
@@ -139,3 +140,24 @@ Ambos patrones se diseñan sobre el monolito modular decidido en el
 [`ADR 0010`](adr/0010-no-extraer-modulos.md): la idempotencia es una regla de
 la API y la saga, una coreografía entre módulos; ninguna exige procesos de red
 independientes.
+
+## 4. Implementación (2026-10-24)
+
+Lo que el código hace hoy, y en qué se aparta del diseño:
+
+| Diseño | Implementación |
+|---|---|
+| `POST /api/orders` con `Idempotency-Key` | `POST /orders` con la cabecera `Idempotency-Key` (UUID, obligatoria; si falta o no es UUID, 422). |
+| Llave asociada a la cuenta | `UNIQUE (usuario_id, clave_idempotencia, tienda_id)`: la misma llave en otra cuenta crea su propio pedido. |
+| Llave repetida → `200 OK` con la respuesta original | Igual: `200` con los mismos pedidos, sin tocar stock. Si dos peticiones con la misma llave llegan a la vez, la segunda choca con la restricción única y devuelve los pedidos de la primera. |
+| Llave vigente 24 horas | Una llave de más de 24 horas responde `400` («genera una nueva»). |
+| Estado `Pendiente_Pago_Manual` | `pendiente_pago`. Los estados son los del esquema (ADR 0013): `pendiente_pago → pagado → en_preparacion → listo → entregado`, más `cancelado`. |
+| Paso 1 (pedido) y paso 2 (reserva) como transacciones locales separadas, unidas por el evento `PedidoCreado` | **Una sola transacción local**: el pedido se crea y las unidades se descuentan (`inventario_descontar`, movimiento `venta`) juntos. Es lo que el [ADR 0010](adr/0010-no-extraer-modulos.md) mantiene mientras Pedidos e Inventario comparten proceso y base, y lo que pide el escenario 3 (sin consistencia eventual). Pedidos llama a Inventario solo por su `public.py`, así que separar los pasos más adelante no cambia la lógica de compensación. |
+| `PagoConfirmado` lo emite el administrador | La tienda (`admin_tienda` o `responsable_inventario`) pasa el pedido a `pagado` con `POST /orders/{id}/estado`. |
+| Cron Job de compensación a las 24 h | `python -m app.tareas.vencer_pedidos`, programado en Dokploy cada 15 minutos ([despliegue](despliegue-dokploy.md#vencimiento-de-pedidos-sin-pago)). Cancela con el comentario «Vencido sin confirmación de pago (24 h)», `usuario_id` NULL (sistema), y repone las unidades (movimiento `devolucion`). Es idempotente y usa `SKIP LOCKED`. |
+| `Cancelado_Por_Inactividad` | `cancelado`; el motivo queda en `pedido_historial.comentario`. |
+| Bloqueo optimista (F-03) | `inventario_aplicar_movimiento` descuenta con un `UPDATE` atómico que no deja stock negativo, así que dos compras de la última unidad no pueden prosperar ambas; `version` sube en cada cambio. Los pedidos usan `version_id_col` (409 ante cambios concurrentes). |
+
+Además, cancelar repone el stock: el comprador puede cancelar mientras el
+pedido esté en `pendiente_pago`; la tienda, mientras no se haya entregado.
+Las pruebas están en `backend/tests/test_orders.py`.

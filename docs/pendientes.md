@@ -99,7 +99,10 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   /inventory/{productId}` y `POST /inventory/{productId}/adjust`, para
   `responsable_inventario` o `admin_tienda` de la tienda (o `admin_general`),
   con movimiento `ajuste` y bloqueo optimista (409).
-- Implementar los endpoints de `orders` (ya tienen tablas).
+- ~~Implementar los endpoints de `orders`~~ — hecho el 2026-10-24
+  ([implementación de la saga](idempotencia-saga-s11.md#4-implementación-2026-10-24)).
+  En Dokploy falta crear el *Schedule* de `python -m app.tareas.vencer_pedidos`
+  ([pasos](despliegue-dokploy.md#vencimiento-de-pedidos-sin-pago)).
 
 ## Datos de la cafetería (frontend)
 

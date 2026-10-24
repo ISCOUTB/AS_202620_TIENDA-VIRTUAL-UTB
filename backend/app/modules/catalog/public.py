@@ -83,13 +83,28 @@ def producto_resumen(session: Session, producto_id: int) -> ProductoResumen | No
 
     Bajo RLS, un producto inactivo solo lo ven quienes gestionan su tienda.
     """
-    fila = session.execute(
+    return productos_para_pedido(session, [producto_id]).get(producto_id)
+
+
+def productos_para_pedido(session: Session, ids: list[int]) -> dict[int, ProductoResumen]:
+    """Resúmenes de los productos visibles entre `ids`, indexados por id."""
+    filas = session.execute(
         select(
             Producto.id,
             Producto.nombre,
             Producto.tienda_id,
             Producto.precio_centavos,
             Producto.activo,
-        ).where(Producto.id == producto_id)
-    ).first()
-    return ProductoResumen(*fila) if fila else None
+        ).where(Producto.id.in_(ids))
+    ).all()
+    return {fila.id: ProductoResumen(*fila) for fila in filas}
+
+
+def identificadores_de_tiendas(session: Session, ids: set[int]) -> dict[int, str]:
+    """Slug de cada tienda visible entre `ids`."""
+    if not ids:
+        return {}
+    filas = session.execute(
+        select(Tienda.id, Tienda.identificador).where(Tienda.id.in_(ids))
+    ).all()
+    return dict(filas)

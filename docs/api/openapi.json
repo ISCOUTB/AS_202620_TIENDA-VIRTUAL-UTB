@@ -476,6 +476,497 @@
         }
       }
     },
+    "/orders": {
+      "get": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "List Orders",
+        "description": "Pedidos del usuario o, con `tienda_id`, la cola de pedidos de esa tienda.",
+        "operationId": "list_orders_orders_get",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "enum": [
+                    "pendiente_pago",
+                    "pagado",
+                    "en_preparacion",
+                    "listo",
+                    "entregado",
+                    "cancelado"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar por estado",
+              "title": "Estado"
+            },
+            "description": "Filtrar por estado"
+          },
+          {
+            "name": "tienda_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Pedidos de una tienda que el usuario gestiona; sin él, los propios.",
+              "title": "Tienda Id"
+            },
+            "description": "Pedidos de una tienda que el usuario gestiona; sin él, los propios."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrderOut"
+                  },
+                  "title": "Response List Orders Orders Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No gestiona la tienda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Create Order",
+        "description": "Crea un pedido por cada tienda del carrito y descuenta sus unidades.",
+        "operationId": "create_order_orders_post",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "description": "UUID por intento de compra; repetirlo no duplica el pedido (F-04).",
+              "title": "Idempotency-Key"
+            },
+            "description": "UUID por intento de compra; repetirlo no duplica el pedido (F-04)."
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrderOut"
+                  },
+                  "title": "Response Create Order Orders Post"
+                }
+              }
+            }
+          },
+          "200": {
+            "description": "Reintento con la misma Idempotency-Key: los pedidos originales",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OrderOut"
+                  },
+                  "title": "Response 200 Create Order Orders Post"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Producto no disponible, stock insuficiente o llave vencida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{orderId}": {
+      "get": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Get Order",
+        "description": "Detalle de un pedido propio o de una tienda que el usuario gestiona.",
+        "operationId": "get_order_orders__orderId__get",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID del pedido",
+              "title": "Orderid"
+            },
+            "description": "ID del pedido"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{orderId}/cancel": {
+      "post": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Cancel Order",
+        "description": "Cancela el pedido y repone el stock.\n\nEl comprador puede hacerlo mientras no haya pagado; la tienda, mientras no\nse haya entregado.",
+        "operationId": "cancel_order_orders__orderId__cancel_post",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID del pedido",
+              "title": "Orderid"
+            },
+            "description": "ID del pedido"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/OrderCancelRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Datos"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "El pedido no se puede cancelar",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de concurrencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orders/{orderId}/estado": {
+      "post": {
+        "tags": [
+          "orders"
+        ],
+        "summary": "Update Order Status",
+        "description": "La tienda avanza el pedido: pago confirmado, en preparación, listo, entregado.",
+        "operationId": "update_order_status_orders__orderId__estado_post",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "orderId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID del pedido",
+              "title": "Orderid"
+            },
+            "description": "ID del pedido"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OrderStatusRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OrderOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Transición no permitida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No gestiona la tienda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Pedido no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de concurrencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -692,6 +1183,226 @@
           "password"
         ],
         "title": "LoginRequest"
+      },
+      "OrderCancelRequest": {
+        "properties": {
+          "motivo": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Motivo"
+          }
+        },
+        "type": "object",
+        "title": "OrderCancelRequest"
+      },
+      "OrderCreateRequest": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemRequest"
+            },
+            "type": "array",
+            "maxItems": 50,
+            "minItems": 1,
+            "title": "Items"
+          },
+          "hora_recogida": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hora Recogida",
+            "description": "Franja acordada con el mostrador (America/Bogota)."
+          }
+        },
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "title": "OrderCreateRequest"
+      },
+      "OrderItemOut": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "product_nombre": {
+            "type": "string",
+            "title": "Product Nombre"
+          },
+          "cantidad": {
+            "type": "integer",
+            "title": "Cantidad"
+          },
+          "precio_unitario_centavos": {
+            "type": "integer",
+            "title": "Precio Unitario Centavos",
+            "description": "Precio al momento de la compra"
+          },
+          "subtotal_centavos": {
+            "type": "integer",
+            "title": "Subtotal Centavos"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "product_nombre",
+          "cantidad",
+          "precio_unitario_centavos",
+          "subtotal_centavos"
+        ],
+        "title": "OrderItemOut"
+      },
+      "OrderItemRequest": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "cantidad": {
+            "type": "integer",
+            "maximum": 50.0,
+            "minimum": 1.0,
+            "title": "Cantidad"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "cantidad"
+        ],
+        "title": "OrderItemRequest"
+      },
+      "OrderOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "usuario_id": {
+            "type": "integer",
+            "title": "Usuario Id"
+          },
+          "tienda_id": {
+            "type": "integer",
+            "title": "Tienda Id"
+          },
+          "tienda": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tienda",
+            "description": "Slug de la tienda del pedido."
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/OrderItemOut"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total_centavos": {
+            "type": "integer",
+            "title": "Total Centavos"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "pendiente_pago",
+              "pagado",
+              "en_preparacion",
+              "listo",
+              "entregado",
+              "cancelado"
+            ],
+            "title": "Estado"
+          },
+          "hora_recogida": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Hora Recogida"
+          },
+          "creado_en": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Creado En"
+          },
+          "actualizado_en": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Actualizado En"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "usuario_id",
+          "tienda_id",
+          "items",
+          "total_centavos",
+          "estado",
+          "creado_en",
+          "actualizado_en"
+        ],
+        "title": "OrderOut"
+      },
+      "OrderStatusRequest": {
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": [
+              "pagado",
+              "en_preparacion",
+              "listo",
+              "entregado"
+            ],
+            "title": "Estado"
+          },
+          "comentario": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 200
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Comentario"
+          }
+        },
+        "type": "object",
+        "required": [
+          "estado"
+        ],
+        "title": "OrderStatusRequest"
       },
       "ProductOut": {
         "properties": {
