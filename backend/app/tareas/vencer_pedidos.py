@@ -6,8 +6,8 @@ Cancela los pedidos `pendiente_pago` con más de 24 horas y repone su stock
 el servicio `backend` (docs/despliegue-dokploy.md).
 
 Corre con la conexión de la API (rol sujeto a RLS) y el principal del
-sistema: `admin_general` sin usuario, de modo que historial y movimientos
-quedan con `usuario_id` NULL.
+sistema (`sistema=True`, sin usuario; ADR 0016), de modo que historial y
+movimientos quedan con `usuario_id` NULL.
 """
 
 import logging
@@ -17,7 +17,7 @@ from app.shared.database import SessionLocal
 from app.shared.logging import configure_logging
 from app.shared.seguridad import CLAVE_CONTEXTO, ContextoSeguridad
 
-SISTEMA = ContextoSeguridad(roles=frozenset({"admin_general"}))
+SISTEMA = ContextoSeguridad(sistema=True)
 
 logger = logging.getLogger("tienda.tareas")
 

@@ -19,7 +19,7 @@ from app.modules.inventory.schemas import (
 )
 from app.shared.database import RutaConSesion, get_session
 from app.shared.errores import respuestas
-from app.shared.seguridad import ContextoSeguridad, prohibido, requiere_usuario
+from app.shared.seguridad import ContextoSeguridad, prohibido_en_tienda, requiere_usuario
 
 router = APIRouter(prefix="/inventory", tags=["inventario"], route_class=RutaConSesion)
 
@@ -55,7 +55,7 @@ def _gestionable(
     """
     producto = _producto(session, producto_id)
     if not contexto.gestiona_inventario(producto.tienda_id):
-        raise prohibido("No gestionas el inventario de esta tienda")
+        raise prohibido_en_tienda(contexto, "No gestionas el inventario de esta tienda")
     return producto
 
 

@@ -17,7 +17,12 @@ from app.modules.catalog.schemas import (
 )
 from app.shared.database import RutaConSesion, get_session
 from app.shared.errores import respuestas
-from app.shared.seguridad import ContextoSeguridad, contexto_actual, prohibido, requiere_usuario
+from app.shared.seguridad import (
+    ContextoSeguridad,
+    contexto_actual,
+    prohibido_en_tienda,
+    requiere_usuario,
+)
 
 router = APIRouter(prefix="/catalog", tags=["catalogo"], route_class=RutaConSesion)
 
@@ -50,13 +55,13 @@ def _producto_out(
     session: Session, producto_id: int, contexto: ContextoSeguridad | None = None
 ) -> ProductOut:
     """Producto por id. Con `contexto`, uno inactivo solo lo ve quien gestiona su tienda
-    (la misma regla que RLS aplica en la base)."""
+    o el admin general (la misma regla que RLS aplica en la base)."""
     fila = repository.product(session, producto_id)
     oculto = (
         fila is not None
         and contexto is not None
         and not (fila.activo and fila.tienda_activa)
-        and not contexto.gestiona_inventario(fila.tienda_id)
+        and not contexto.supervisa_tienda(fila.tienda_id)
     )
     if fila is None or oculto:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado")
@@ -108,7 +113,7 @@ def create_product(datos: ProductCreateRequest, contexto: Usuario, session: Sesi
     if tienda is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Tienda no encontrada")
     if not contexto.administra_tienda(tienda.id):
-        raise prohibido("No administras esta tienda")
+        raise prohibido_en_tienda(contexto, "No administras esta tienda")
     producto = Producto(
         tienda_id=tienda.id,
         nombre=datos.nombre,
@@ -143,7 +148,7 @@ def update_product(
     if producto is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Producto no encontrado")
     if not contexto.administra_tienda(producto.tienda_id):
-        raise prohibido("No administras esta tienda")
+        raise prohibido_en_tienda(contexto, "No administras esta tienda")
     cambios = datos.model_dump(exclude_unset=True)
     if "categoria" in cambios:
         nombre = cambios.pop("categoria")

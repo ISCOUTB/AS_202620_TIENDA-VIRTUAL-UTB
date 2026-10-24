@@ -5,7 +5,7 @@ import type { ProductOut } from "@/lib/api/generated/contract";
 import { ApiError } from "@/lib/api/client";
 import { cargarPanel, type DatosPanel } from "@/lib/admin";
 import { useSesion } from "@/lib/sesion";
-import { administraTienda, gestionaInventario, tiendasGestionadas } from "@/lib/roles";
+import { administraTienda, gestionaInventario, supervisaTienda, tiendasGestionadas } from "@/lib/roles";
 import { SLUGS_TIENDA, paletaTienda, type SlugTienda } from "@/lib/tiendas";
 import { formatoPrecio } from "@/lib/formato";
 import { Boton } from "@/components/ui/Boton";
@@ -91,7 +91,9 @@ export function PanelAdmin() {
       tiendas,
       filas,
       administrables: tiendas.filter((t) => administraTienda(usuario, t.id)),
-      conInventario: tiendas.filter((t) => gestionaInventario(usuario, t.id)),
+      supervisables: tiendas.filter((t) => supervisaTienda(usuario, t.id)),
+      // Admin general: ve todo, no cambia nada (ADR 0016).
+      soloSupervisa: tiendas.length > 0 && !tiendas.some((t) => gestionaInventario(usuario, t.id)),
     };
   }, [carga, usuario]);
 
@@ -131,7 +133,7 @@ export function PanelAdmin() {
     );
   }
 
-  const { tiendas, filas, administrables, conInventario } = vista;
+  const { tiendas, filas, administrables, supervisables, soloSupervisa } = vista;
   const activos = filas.filter((f) => f.producto.activo !== false);
   const agotados = activos.filter((f) => f.existencias === 0);
   const muestras = activos.filter((f) => f.producto.precio_confirmado === false);
@@ -174,11 +176,18 @@ export function PanelAdmin() {
         <p className="rotulo text-tenue">Panel de cafetería</p>
         <h1 className="titulo mt-2">Inventario, pedidos y precios</h1>
         <p className="mt-3 max-w-[62ch] leading-relaxed text-tenue">
-          {tiendas.length === 1
-            ? `Gestionas ${tiendas[0].nombre}.`
-            : `Gestionas ${tiendas.length} tiendas.`}{" "}
-          Los datos salen de la API y cada cambio se guarda al momento.
+          {soloSupervisa ? "Supervisas" : "Gestionas"}{" "}
+          {tiendas.length === 1 ? `${tiendas[0].nombre}.` : `${tiendas.length} tiendas.`}{" "}
+          {soloSupervisa
+            ? "Los datos salen de la API en vivo."
+            : "Los datos salen de la API y cada cambio se guarda al momento."}
         </p>
+        {soloSupervisa ? (
+          <p role="note" className="mt-4 max-w-[62ch] rounded-sm bg-primario-suave px-4 py-3 text-[0.9375rem] text-enlace">
+            Modo supervisión: ves el inventario y los pedidos de todas las tiendas, pero los
+            cambios los hace el admin de cada tienda.
+          </p>
+        ) : null}
       </Revelar>
 
       <Revelar className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -233,13 +242,16 @@ export function PanelAdmin() {
         </ul>
       </Revelar>
 
-      {conInventario.length > 0 ? (
+      {supervisables.length > 0 ? (
         <section aria-labelledby="cola" className="mt-12">
           <h2 id="cola" className="titulo-seccion">
             Pedidos
           </h2>
           <div className="mt-5">
-            <ColaPedidos tiendas={conInventario} />
+            <ColaPedidos
+              tiendas={supervisables}
+              puedeGestionar={(tiendaId) => gestionaInventario(usuario, tiendaId)}
+            />
           </div>
         </section>
       ) : null}
