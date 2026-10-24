@@ -252,6 +252,17 @@ export function cerrarSesion(): void {
   borrarSesion();
 }
 
+/**
+ * Destino tras entrar, tomado de `?next=`. Solo rutas propias: `//otro.com`
+ * o `/\otro.com` el navegador los lee como otro sitio (redirección abierta).
+ */
+export function destinoSeguro(next: string | null): string {
+  if (!next?.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) {
+    return "/cuenta";
+  }
+  return next;
+}
+
 /** Suscripción reactiva a la sesión (client components). */
 export function useSesion(): { sesion: Sesion | null; cargando: boolean } {
   const [sesion, setSesion] = useState<Sesion | null>(null);

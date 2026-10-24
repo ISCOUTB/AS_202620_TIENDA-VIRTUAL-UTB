@@ -2,8 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
-import { buscarProductos } from "@/lib/catalogo";
-import { useCatalogo } from "./CatalogoProvider";
+import { buscarProductos, type Catalogo } from "@/lib/catalogo";
 import { formatoPrecio } from "@/lib/formato";
 import { nombreTienda } from "@/lib/tiendas";
 import { Icono } from "@/components/ui/Icono";
@@ -17,13 +16,22 @@ import { MarcadorFoto } from "./MarcadorFoto";
  * Los resultados son enlaces normales a la carta de cada tienda, anclados al
  * producto. Un texto vivo anuncia cuántos hay. Escape limpia; hacer clic
  * fuera cierra la lista.
+ *
+ * `productos` llega de la página, no de `CatalogoProvider`: el layout público
+ * puede venir de una precarga de hasta 5 min (p. ej. «Ver tienda» desde el
+ * panel) y mostraría productos ya desactivados.
  */
-export function BuscadorProductos({ compacto = false }: { compacto?: boolean }) {
+export function BuscadorProductos({
+  productos,
+  compacto = false,
+}: {
+  productos: Catalogo["productos"];
+  compacto?: boolean;
+}) {
   const id = useId();
   const [consulta, setConsulta] = useState("");
   const [abierto, setAbierto] = useState(false);
   const caja = useRef<HTMLDivElement>(null);
-  const { productos } = useCatalogo();
   const resultados = useMemo(
     () => buscarProductos(productos, consulta, 6),
     [productos, consulta],
