@@ -5,6 +5,13 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
 
 ## Despliegue
 
+- **Subir la 0.5.0** siguiendo [el runbook](despliegue-dokploy.md#subir-050):
+  respaldo, secreto `SEED_TIENDAS_PASSWORD`, migración `0004`, crear admins de
+  tienda y verificar. Las ramas del stack se fusionan en orden:
+  `feat/identidad` → `feat/inventario-escrituras` → `feat/pedidos` →
+  `feat/catalogo-completo` → `feat/frontend-datos-reales` →
+  `feat/cierre-docs` → `fix/pool-concurrencia-e2e` → `feat/admin-por-tienda`.
+
 - Crear el servicio Docker Compose en Dokploy con path
   `./deploy/compose.lab.yaml` y definir `POSTGRES_PASSWORD`.
 - **Asignar el dominio definitivo al servicio `frontend`, puerto 3000, y
@@ -160,4 +167,12 @@ Ver [`api/tiendas-catalogo.md`](api/tiendas-catalogo.md). Resumen:
   CSRF, y después añadir `notas` (≤ 140 caracteres) a `OrderItemRequest`.
 - **Asignación de roles desde la interfaz.** Hoy un `admin_general` asigna
   `admin_tienda` y `responsable_inventario` directamente en la base
-  (`usuario_roles`); no hay endpoint ni pantalla para hacerlo.
+  (`usuario_roles`); no hay endpoint ni pantalla para hacerlo. Desde la 0.5.0 es más
+  urgente: sin admin, una tienda no puede cambiar su stock
+  ([ADR 0017](adr/0017-admin-general-supervisa.md)).
+- **Comando para crear solo las cuentas de tienda.** `python -m app.seed`
+  también reescribe los productos demo. En una base de producción con
+  productos editados a mano conviene un comando que cree solo
+  `admin.<tienda>` ([runbook 0.5.0](despliegue-dokploy.md#subir-050)).
+- **Cambio de contraseña.** Las cuentas sembradas (`SEED_ADMIN_*`,
+  `SEED_TIENDAS_PASSWORD`) no pueden cambiar su clave desde la aplicación.

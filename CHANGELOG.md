@@ -68,6 +68,8 @@ Detalle en [`docs/pruebas-e2e-testsprite.md`](docs/pruebas-e2e-testsprite.md).
   - El buscador de la portada recibe los productos de la página.
   - Los enlaces del panel no se precargan (`prefetch={false}`), así la caché
     del router de Next no sirve datos de hace minutos.
+- **Stock en solo lectura donde no se gestiona.** El admin general veía − / +
+  y el campo de conteo deshabilitados; ahora ve el número con «solo lectura».
 - **Lista de pedidos desactualizada tras un error 400** (por ejemplo, cancelar
   un pedido que ya había cambiado): «Mis pedidos» y la cola del panel recargan
   la lista al fallar.
