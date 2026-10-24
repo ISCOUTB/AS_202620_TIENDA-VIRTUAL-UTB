@@ -102,7 +102,8 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   `SEED_ON_DEPLOY=true`.
 - ~~Escrituras de `inventory`~~ — hecho el 2026-10-24: `GET`/`PUT
   /inventory/{productId}` y `POST /inventory/{productId}/adjust`, para
-  `responsable_inventario` o `admin_tienda` de la tienda (o `admin_general`),
+  `responsable_inventario` o `admin_tienda` de la tienda (el `admin_general`
+  solo supervisa desde la 0.5.0, ADR 0017),
   con movimiento `ajuste` y bloqueo optimista (409).
 - ~~Implementar los endpoints de `orders`~~ — hecho el 2026-10-24
   ([implementación de la saga](idempotencia-saga-s11.md#4-implementación-2026-10-24)).
