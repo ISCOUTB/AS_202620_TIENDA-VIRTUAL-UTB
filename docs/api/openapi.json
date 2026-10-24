@@ -154,6 +154,314 @@
         "summary": "Get Products",
         "description": "Lista los productos disponibles en el catálogo.",
         "operationId": "get_products_catalog_products_get",
+        "parameters": [
+          {
+            "name": "incluir_inactivos",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "boolean",
+              "description": "Incluye los inactivos de las tiendas que el usuario gestiona.",
+              "default": false,
+              "title": "Incluir Inactivos"
+            },
+            "description": "Incluye los inactivos de las tiendas que el usuario gestiona."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProductOut"
+                  },
+                  "title": "Response Get Products Catalog Products Get"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "catalogo"
+        ],
+        "summary": "Create Product",
+        "description": "Registra un producto. Sus existencias se cargan aparte, en Inventario.",
+        "operationId": "create_product_catalog_products_post",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No administra la tienda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tienda no encontrada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Nombre repetido en la tienda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/catalog/products/{productId}": {
+      "get": {
+        "tags": [
+          "catalogo"
+        ],
+        "summary": "Get Product",
+        "description": "Detalle de un producto activo (o inactivo, para quien gestiona su tienda).",
+        "operationId": "get_product_catalog_products__productId__get",
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID del producto",
+              "title": "Productid"
+            },
+            "description": "ID del producto"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "catalogo"
+        ],
+        "summary": "Update Product",
+        "description": "Edita un producto o lo habilita/deshabilita para la venta.",
+        "operationId": "update_product_catalog_products__productId__patch",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID del producto",
+              "title": "Productid"
+            },
+            "description": "ID del producto"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProductUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProductOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No administra la tienda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Nombre repetido en la tienda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/catalog/tiendas": {
+      "get": {
+        "tags": [
+          "catalogo"
+        ],
+        "summary": "Get Stores",
+        "description": "Tiendas activas de la cafetería.",
+        "operationId": "get_stores_catalog_tiendas_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -161,10 +469,10 @@
               "application/json": {
                 "schema": {
                   "items": {
-                    "$ref": "#/components/schemas/ProductOut"
+                    "$ref": "#/components/schemas/TiendaOut"
                   },
                   "type": "array",
-                  "title": "Response Get Products Catalog Products Get"
+                  "title": "Response Get Stores Catalog Tiendas Get"
                 }
               }
             }
@@ -1404,6 +1712,77 @@
         ],
         "title": "OrderStatusRequest"
       },
+      "ProductCreateRequest": {
+        "properties": {
+          "tienda": {
+            "type": "string",
+            "title": "Tienda",
+            "description": "Slug de la tienda donde se registra el producto."
+          },
+          "nombre": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Nombre"
+          },
+          "descripcion": {
+            "type": "string",
+            "maxLength": 400,
+            "title": "Descripcion",
+            "default": ""
+          },
+          "precio_centavos": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Precio Centavos",
+            "description": "Precio en centavos COP."
+          },
+          "categoria": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria"
+          },
+          "presentacion": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Presentacion"
+          },
+          "precio_confirmado": {
+            "type": "boolean",
+            "title": "Precio Confirmado",
+            "default": true
+          },
+          "activo": {
+            "type": "boolean",
+            "title": "Activo",
+            "default": true
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "tienda",
+          "nombre",
+          "precio_centavos"
+        ],
+        "title": "ProductCreateRequest"
+      },
       "ProductOut": {
         "properties": {
           "id": {
@@ -1445,6 +1824,42 @@
             ],
             "title": "Imagen Url",
             "description": "Ruta relativa de la imagen principal, si existe."
+          },
+          "categoria": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria",
+            "description": "Nombre de la categoría."
+          },
+          "presentacion": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Presentacion",
+            "description": "Variante en la vitrina: Grande, Personal, Entero..."
+          },
+          "precio_confirmado": {
+            "type": "boolean",
+            "title": "Precio Confirmado",
+            "description": "false = precio de referencia que la tienda aún no confirmó.",
+            "default": true
+          },
+          "activo": {
+            "type": "boolean",
+            "title": "Activo",
+            "description": "Habilitado para la venta.",
+            "default": true
           }
         },
         "type": "object",
@@ -1455,6 +1870,98 @@
           "precio_centavos"
         ],
         "title": "ProductOut"
+      },
+      "ProductUpdateRequest": {
+        "properties": {
+          "nombre": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Nombre"
+          },
+          "descripcion": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 400
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Descripcion"
+          },
+          "precio_centavos": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precio Centavos"
+          },
+          "categoria": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Categoria"
+          },
+          "presentacion": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 40,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Presentacion"
+          },
+          "precio_confirmado": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Precio Confirmado"
+          },
+          "activo": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Activo"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ProductUpdateRequest"
       },
       "ReadinessOut": {
         "properties": {
@@ -1561,6 +2068,46 @@
           "existencias"
         ],
         "title": "StockOut"
+      },
+      "TiendaOut": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "identificador": {
+            "type": "string",
+            "title": "Identificador",
+            "description": "Slug de la tienda."
+          },
+          "nombre": {
+            "type": "string",
+            "title": "Nombre"
+          },
+          "descripcion": {
+            "type": "string",
+            "title": "Descripcion"
+          },
+          "logo_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logo Url"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "identificador",
+          "nombre",
+          "descripcion"
+        ],
+        "title": "TiendaOut"
       },
       "TokenResponse": {
         "properties": {
