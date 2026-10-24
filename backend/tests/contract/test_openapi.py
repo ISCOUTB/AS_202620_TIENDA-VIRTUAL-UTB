@@ -63,6 +63,38 @@ def _me(client: TestClient) -> httpx.Response:
     return client.get("/identity/me", headers=_cabecera(client))
 
 
+def _responsable_de_producto(client: TestClient) -> tuple[int, dict[str, str]]:
+    """Siembra el catálogo y da a una cuenta el inventario de la tienda 1."""
+    from app.seed import sembrar_demo
+    from app.shared.database import SessionLocal
+    from tests.conftest import asignar_rol
+
+    with SessionLocal() as session, session.begin():
+        sembrar_demo(session)
+    cabecera = _cabecera(client, "inventario@utb.edu.co")
+    asignar_rol("inventario@utb.edu.co", "responsable_inventario", tienda_id=1)
+    return client.get("/inventory").json()[0]["product_id"], cabecera
+
+
+@caso("/inventory/{productId}", "get")
+def _existencia(client: TestClient) -> httpx.Response:
+    producto_id, cabecera = _responsable_de_producto(client)
+    return client.get(f"/inventory/{producto_id}", headers=cabecera)
+
+
+@caso("/inventory/{productId}", "put")
+def _fijar_existencia(client: TestClient) -> httpx.Response:
+    producto_id, cabecera = _responsable_de_producto(client)
+    return client.put(f"/inventory/{producto_id}", json={"cantidad": 7}, headers=cabecera)
+
+
+@caso("/inventory/{productId}/adjust", "post")
+def _ajustar_existencia(client: TestClient) -> httpx.Response:
+    producto_id, cabecera = _responsable_de_producto(client)
+    datos = {"delta": 2, "motivo": "Reposición"}
+    return client.post(f"/inventory/{producto_id}/adjust", json=datos, headers=cabecera)
+
+
 def response_validator(path: str, method: str, status: str) -> Draft202012Validator:
     schema = CONTRACT["paths"][path][method]["responses"][status]["content"][
         "application/json"
