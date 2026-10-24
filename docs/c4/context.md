@@ -15,25 +15,30 @@ C4Context
     UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="1")
 
     Person(comprador, "Comprador", "Estudiante, docente, funcionario o egresado")
-    Person(admin, "Administrador de la tienda", "Personal autorizado para administrar la tienda")
+    Person(admin, "Administrador de la tienda", "Uno por tienda; gestiona solo la suya")
     Person(inventario, "Responsable de inventario", "Personal encargado de las existencias")
+    Person(general, "Administrador general", "Supervisa todas las tiendas; no edita sus datos")
 
     System(espacio_izquierdo, "", "")
     UpdateElementStyle(espacio_izquierdo, $bgColor="transparent", $fontColor="transparent", $borderColor="transparent")
     System(sistema, "Tienda Virtual UTB", "Sistema de comercio electrónico de la universidad")
 
     Rel_D(comprador, sistema, "Realiza compras")
-    Rel_D(admin, sistema, "Registra y edita productos; habilita su venta")
+    Rel_D(admin, sistema, "Registra y edita productos, ajusta stock y atiende pedidos de su tienda")
     Rel_D(inventario, sistema, "Gestiona existencias")
+    Rel_D(general, sistema, "Supervisa inventario y pedidos de todas las tiendas")
 ```
 
 ## Notas
 
 - **Administración del catálogo.** El administrador de la tienda opera mediante
   la aplicación; no necesita acceso directo a la base de datos. Su
-  [flujo de gestión de productos](../api/administracion-catalogo.md) está documentado
-  como diseño previsto para S7. Las capacidades administrativas y de inventario
-  de este contexto representan el alcance objetivo, no funciones implementadas.
+  [flujo de gestión de productos](../api/administracion-catalogo.md) está
+  implementado desde la API 0.4.0.
+- **Un admin por tienda (API 0.5.0).** Cada administrador de tienda gestiona
+  solo los productos, el stock y los pedidos de su tienda. El administrador
+  general supervisa todas en solo lectura y gestiona cuentas y roles
+  ([ADR 0017](../adr/0017-admin-general-supervisa.md)).
 
 - **Leyenda.** `Person` = rol humano (no un cargo). La caja resaltada (*Tienda Virtual UTB*) es el sistema en alcance. Cada flecha es una relación unidireccional etiquetada con su propósito; en el nivel 1 no se especifica protocolo (eso aparece desde el nivel 2, ver `container.md`).
 - **Alcance del diagrama.** Muestra únicamente actores y frontera del sistema; ninguna estructura interna (contenedores, base de datos) aparece aquí; ver `docs/c4/container.md`.
