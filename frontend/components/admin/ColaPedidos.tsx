@@ -27,7 +27,7 @@ export function ColaPedidos({
   puedeGestionar,
 }: Readonly<{
   tiendas: TiendaOut[];
-  /** false = solo lectura (el admin general supervisa; ADR 0016). */
+  /** false = solo lectura (el admin general supervisa; ADR 0017). */
   puedeGestionar: (tiendaId: number) => boolean;
 }>) {
   const [tiendaId, setTiendaId] = useState<number | null>(tiendas[0]?.id ?? null);

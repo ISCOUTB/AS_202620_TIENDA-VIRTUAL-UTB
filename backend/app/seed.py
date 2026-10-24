@@ -5,7 +5,7 @@ idempotente (alta o actualización por clave natural). Solo crea cuentas si se
 definen sus variables:
 
 - `SEED_ADMIN_CORREO` y `SEED_ADMIN_PASSWORD`: el administrador general, que
-  supervisa todas las tiendas (ADR 0016).
+  supervisa todas las tiendas (ADR 0017).
 - `SEED_TIENDAS_PASSWORD`: un admin por tienda, `admin.<tienda>@utb.edu.co`,
   que gestiona solo la suya (stock, productos y pedidos).
 

@@ -1,6 +1,6 @@
 /**
  * ARCHIVO GENERADO — no editar a mano.
- * Fuente: docs/openapi/tienda-virtual.yaml (API v0.4.0, OpenAPI 3.1.0)
+ * Fuente: docs/openapi/tienda-virtual.yaml (API v0.5.0, OpenAPI 3.1.0)
  * Regenerar: pnpm run gen:api (verificado por pnpm run verify)
  */
 
@@ -30,7 +30,7 @@ export const OPERACIONES = {
 
 export type OperationId = keyof typeof OPERACIONES;
 
-/** - **comprador** — Hace pedidos (todo usuario registrado) - **admin_general** — Administra todo el sistema y asigna roles - **admin_tienda** — Administra el catálogo, el inventario y los pedidos de su tienda - **responsable_inventario** — Ajusta existencias y atiende pedidos de su tienda  */
+/** - **comprador** — Hace pedidos (todo usuario registrado) - **admin_general** — Supervisa todas las tiendas en solo lectura, gestiona cuentas, roles y tiendas (ADR 0017) - **admin_tienda** — Administra el catálogo, el inventario y los pedidos de su tienda - **responsable_inventario** — Ajusta existencias y atiende pedidos de su tienda  */
 export type CodigoRol = "comprador" | "admin_general" | "admin_tienda" | "responsable_inventario";
 
 export interface ErrorResponse {
