@@ -1,4 +1,4 @@
-"""El admin general supervisa; cada tienda la gestiona su admin (ADR 0016).
+"""El admin general supervisa; cada tienda la gestiona su admin (ADR 0017).
 
 - `seg_administra_tienda` deja de incluir al `admin_general`: ya no crea ni
   edita productos, no mueve stock ni avanza o cancela pedidos de tienda.

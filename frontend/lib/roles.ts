@@ -25,7 +25,7 @@ export function esAdminGeneral(usuario: ConRoles): boolean {
 
 /**
  * Escribir en una tienda (productos, precios): solo su admin. El admin general
- * supervisa y no escribe (ADR 0016); la API responde 403 con la misma regla.
+ * supervisa y no escribe (ADR 0017); la API responde 403 con la misma regla.
  */
 export function administraTienda(usuario: ConRoles, tiendaId: number): boolean {
   return tiene(usuario, "admin_tienda", tiendaId);
