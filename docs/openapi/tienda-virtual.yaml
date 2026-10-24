@@ -23,7 +23,11 @@ info:
 
     Desde la versión 0.4.0 todas las operaciones de este documento están
     implementadas; el contrato ejecutable es `docs/api/openapi.json`.
-  version: 0.4.0
+
+    Desde la 0.5.0 cada tienda la gestiona su admin y el `admin_general` solo
+    supervisa: lee todo, pero las escrituras sobre una tienda le responden 403
+    (ADR 0017).
+  version: 0.5.0
   contact:
     name: Equipo Tienda Virtual UTB
   license:
@@ -183,7 +187,8 @@ paths:
       description: |
         Retorna los productos activos de tiendas activas, ordenados
         alfabéticamente. Con `incluir_inactivos=true` y un token, añade los
-        inactivos de las tiendas que el usuario gestiona.
+        inactivos de las tiendas que el usuario supervisa (las que gestiona o,
+        para el `admin_general`, todas).
       parameters:
         - name: incluir_inactivos
           in: query
@@ -207,7 +212,9 @@ paths:
       summary: Registrar un producto
       description: |
         Registra un producto en una tienda. Sus existencias se cargan aparte,
-        en Inventario. **Requiere ser administrador de la tienda.**
+        en Inventario. **Requiere ser administrador de la tienda**
+        (`admin_tienda` de esa tienda; el `admin_general` solo supervisa y
+        recibe 403).
       security:
         - bearerAuth: []
       requestBody:
@@ -268,7 +275,8 @@ paths:
       summary: Editar un producto
       description: |
         Edita uno o varios campos, o habilita/deshabilita la venta (`activo`).
-        **Requiere ser administrador de la tienda.**
+        **Requiere ser administrador de la tienda** (`admin_tienda` de esa
+        tienda; el `admin_general` recibe 403).
       security:
         - bearerAuth: []
       parameters:
@@ -371,7 +379,8 @@ paths:
       description: |
         Establece la cantidad de existencias de un producto (conteo físico).
         **Requiere gestionar el inventario de la tienda** (`responsable_inventario`
-        o `admin_tienda` de esa tienda, o `admin_general`).
+        o `admin_tienda` de esa tienda; el `admin_general` solo supervisa y
+        recibe 403).
       security:
         - bearerAuth: []
       parameters:
@@ -453,7 +462,8 @@ paths:
       summary: Listar pedidos del usuario
       description: |
         Retorna los pedidos del usuario autenticado o, con `tienda_id`, la
-        cola de pedidos de una tienda que el usuario gestiona.
+        cola de pedidos de una tienda que el usuario supervisa (la gestiona o
+        es `admin_general`, que la ve en solo lectura).
       security:
         - bearerAuth: []
       parameters:
@@ -574,8 +584,9 @@ paths:
       summary: Cancelar un pedido
       description: |
         Cancela un pedido y repone el stock. El comprador puede hacerlo
-        mientras el pedido esté en `pendiente_pago`; la tienda, mientras no
-        se haya entregado.
+        mientras el pedido esté en `pendiente_pago`; la tienda (su
+        `admin_tienda` o `responsable_inventario`), mientras no se haya
+        entregado. El `admin_general` recibe 403.
       security:
         - bearerAuth: []
       parameters:
@@ -624,7 +635,7 @@ paths:
       description: |
         La tienda confirma el pago y avanza el pedido:
         `pendiente_pago → pagado → en_preparacion → listo → entregado`.
-        **Requiere gestionar la tienda del pedido.**
+        **Requiere gestionar la tienda del pedido**; el `admin_general` recibe 403.
       security:
         - bearerAuth: []
       parameters:
@@ -812,7 +823,7 @@ components:
       enum: [comprador, admin_general, admin_tienda, responsable_inventario]
       description: |
         - **comprador** — Hace pedidos (todo usuario registrado)
-        - **admin_general** — Administra todo el sistema y asigna roles
+        - **admin_general** — Supervisa todas las tiendas en solo lectura, gestiona cuentas, roles y tiendas (ADR 0017)
         - **admin_tienda** — Administra el catálogo, el inventario y los pedidos de su tienda
         - **responsable_inventario** — Ajusta existencias y atiende pedidos de su tienda
       example: "comprador"

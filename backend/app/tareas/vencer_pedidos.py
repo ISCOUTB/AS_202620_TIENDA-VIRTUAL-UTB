@@ -6,7 +6,7 @@ Cancela los pedidos `pendiente_pago` con más de 24 horas y repone su stock
 el servicio `backend` (docs/despliegue-dokploy.md).
 
 Corre con la conexión de la API (rol sujeto a RLS) y el principal del
-sistema (`sistema=True`, sin usuario; ADR 0016), de modo que historial y
+sistema (`sistema=True`, sin usuario; ADR 0017), de modo que historial y
 movimientos quedan con `usuario_id` NULL.
 """
 
