@@ -19,7 +19,11 @@ info:
     - Autenticación via **Bearer JWT** (endpoints protegidos)
     - IDs incrementales enteros
     - Fechas en formato ISO 8601 UTC
-  version: 0.3.0
+    - Estados de pedido y roles: los del esquema de base de datos (ADR 0013)
+
+    Desde la versión 0.4.0 todas las operaciones de este documento están
+    implementadas; el contrato ejecutable es `docs/api/openapi.json`.
+  version: 0.4.0
   contact:
     name: Equipo Tienda Virtual UTB
   license:
@@ -177,8 +181,16 @@ paths:
       tags: [catalogo]
       summary: Listar productos
       description: |
-        Retorna todos los productos del catálogo ordenados alfabéticamente.
-        **Endpoint implementado actualmente.**
+        Retorna los productos activos de tiendas activas, ordenados
+        alfabéticamente. Con `incluir_inactivos=true` y un token, añade los
+        inactivos de las tiendas que el usuario gestiona.
+      parameters:
+        - name: incluir_inactivos
+          in: query
+          schema:
+            type: boolean
+            default: false
+          description: Incluye los inactivos de las tiendas que el usuario gestiona.
       responses:
         "200":
           description: Lista de productos
@@ -188,6 +200,45 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/ProductOut"
+
+    post:
+      operationId: createProduct
+      tags: [catalogo]
+      summary: Registrar un producto
+      description: |
+        Registra un producto en una tienda. Sus existencias se cargan aparte,
+        en Inventario. **Requiere ser administrador de la tienda.**
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductCreateRequest"
+      responses:
+        "201":
+          description: Producto creado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductOut"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Tienda no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Ya existe un producto con ese nombre en la tienda
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /catalog/products/{productId}:
     get:
@@ -211,6 +262,63 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
 
+    patch:
+      operationId: updateProduct
+      tags: [catalogo]
+      summary: Editar un producto
+      description: |
+        Edita uno o varios campos, o habilita/deshabilita la venta (`activo`).
+        **Requiere ser administrador de la tienda.**
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: "#/components/parameters/ProductId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdateRequest"
+      responses:
+        "200":
+          description: Producto actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductOut"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Producto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Ya existe un producto con ese nombre en la tienda
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /catalog/tiendas:
+    get:
+      operationId: listStores
+      tags: [catalogo]
+      summary: Listar tiendas
+      description: Tiendas activas de la cafetería.
+      responses:
+        "200":
+          description: Lista de tiendas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TiendaOut"
+
   # ──────────────────────────────────────────────
   # INVENTORY
   # ──────────────────────────────────────────────
@@ -221,7 +329,7 @@ paths:
       summary: Listar inventario
       description: |
         Retorna la disponibilidad necesaria para presentar el catálogo.
-        La lectura es pública; las futuras operaciones de ajuste requieren rol.
+        La lectura es pública; los ajustes requieren rol.
       responses:
         "200":
           description: Inventario completo
@@ -261,8 +369,9 @@ paths:
       tags: [inventory]
       summary: Actualizar stock de un producto
       description: |
-        Establece la cantidad de existencias de un producto.
-        **Requiere rol administrador.**
+        Establece la cantidad de existencias de un producto (conteo físico).
+        **Requiere gestionar el inventario de la tienda** (`responsable_inventario`
+        o `admin_tienda` de esa tienda, o `admin_general`).
       security:
         - bearerAuth: []
       parameters:
@@ -304,8 +413,8 @@ paths:
       summary: Ajustar stock (incremento/decremento)
       description: |
         Ajusta el stock de un producto de forma relativa (positivo o negativo).
-        Útil para ventas, devoluciones o ajustes por merma.
-        **Requiere rol administrador.**
+        Útil para reposiciones o ajustes por merma.
+        **Requiere gestionar el inventario de la tienda.**
       security:
         - bearerAuth: []
       parameters:
@@ -343,16 +452,21 @@ paths:
       tags: [orders]
       summary: Listar pedidos del usuario
       description: |
-        Retorna los pedidos del usuario autenticado.
-        Los administradores pueden ver todos los pedidos.
+        Retorna los pedidos del usuario autenticado o, con `tienda_id`, la
+        cola de pedidos de una tienda que el usuario gestiona.
       security:
         - bearerAuth: []
       parameters:
-        - name: status
+        - name: estado
           in: query
           schema:
             $ref: "#/components/schemas/OrderStatus"
           description: Filtrar por estado del pedido
+        - name: tienda_id
+          in: query
+          schema:
+            type: integer
+          description: Pedidos de una tienda que el usuario gestiona
       responses:
         "200":
           description: Lista de pedidos
@@ -370,11 +484,20 @@ paths:
       tags: [orders]
       summary: Crear nuevo pedido
       description: |
-        Crea un pedido con uno o más productos.
-        Se valida automáticamente el stock disponible.
+        Crea un pedido por cada tienda del carrito y descuenta sus unidades.
         El total se calcula sumando (precio × cantidad) de cada ítem.
+        Repetir la `Idempotency-Key` devuelve los pedidos originales (200)
+        sin volver a descontar stock (docs/idempotencia-saga-s11.md).
       security:
         - bearerAuth: []
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID por intento de compra
       requestBody:
         required: true
         content:
@@ -383,13 +506,23 @@ paths:
               $ref: "#/components/schemas/OrderCreateRequest"
       responses:
         "201":
-          description: Pedido creado
+          description: Pedidos creados, uno por tienda
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/OrderOut"
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderOut"
+        "200":
+          description: Reintento con la misma Idempotency-Key
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OrderOut"
         "400":
-          description: Stock insuficiente o carrito vacío
+          description: Producto no disponible, stock insuficiente o llave vencida
           content:
             application/json:
               schema:
@@ -440,8 +573,9 @@ paths:
       tags: [orders]
       summary: Cancelar un pedido
       description: |
-        Cancela un pedido pendiente y repone el stock.
-        No se pueden cancelar pedidos ya entregados.
+        Cancela un pedido y repone el stock. El comprador puede hacerlo
+        mientras el pedido esté en `pendiente_pago`; la tienda, mientras no
+        se haya entregado.
       security:
         - bearerAuth: []
       parameters:
@@ -451,6 +585,12 @@ paths:
           schema:
             type: integer
           description: ID del pedido
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderCancelRequest"
       responses:
         "200":
           description: Pedido cancelado
@@ -476,6 +616,54 @@ paths:
 # ════════════════════════════════════════════════
 # COMPONENTS
 # ════════════════════════════════════════════════
+  /orders/{orderId}/estado:
+    post:
+      operationId: updateOrderStatus
+      tags: [orders]
+      summary: Avanzar el estado de un pedido
+      description: |
+        La tienda confirma el pago y avanza el pedido:
+        `pendiente_pago → pagado → en_preparacion → listo → entregado`.
+        **Requiere gestionar la tienda del pedido.**
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del pedido
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OrderStatusRequest"
+      responses:
+        "200":
+          description: Pedido actualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderOut"
+        "400":
+          description: Transición no permitida
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          description: Pedido no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
 components:
   # ── Seguridad ─────────────────────────────────
   securitySchemes:
@@ -587,7 +775,7 @@ components:
 
     UserOut:
       type: object
-      required: [id, nombre, email, rol, creado_en]
+      required: [id, nombre, email, roles, creado_en]
       properties:
         id:
           type: integer
@@ -599,20 +787,35 @@ components:
           type: string
           format: email
           example: "juan@utb.edu.co"
-        rol:
-          $ref: "#/components/schemas/UserRole"
+        roles:
+          type: array
+          items:
+            $ref: "#/components/schemas/RolAsignado"
         creado_en:
           type: string
           format: date-time
           example: "2026-09-15T10:30:00Z"
 
-    UserRole:
+    RolAsignado:
+      type: object
+      required: [codigo]
+      properties:
+        codigo:
+          $ref: "#/components/schemas/CodigoRol"
+        tienda_id:
+          type: integer
+          nullable: true
+          description: Tienda donde vale el rol; null = todas
+
+    CodigoRol:
       type: string
-      enum: [admin, cliente]
+      enum: [comprador, admin_general, admin_tienda, responsable_inventario]
       description: |
-        - **admin** — Acceso total al sistema
-        - **cliente** — Solo puede realizar pedidos
-      example: "cliente"
+        - **comprador** — Hace pedidos (todo usuario registrado)
+        - **admin_general** — Administra todo el sistema y asigna roles
+        - **admin_tienda** — Administra el catálogo, el inventario y los pedidos de su tienda
+        - **responsable_inventario** — Ajusta existencias y atiende pedidos de su tienda
+      example: "comprador"
 
     # --- Catalog ---
     ProductOut:
@@ -635,6 +838,97 @@ components:
           type: integer
           description: Precio en centavos COP (350000 = $3.500)
           example: 350000
+        tienda:
+          type: string
+          nullable: true
+          description: Slug de la tienda dueña del producto
+          example: "alegria"
+        imagen_url:
+          type: string
+          nullable: true
+          description: Ruta relativa de la imagen principal
+        categoria:
+          type: string
+          nullable: true
+          example: "Bebidas"
+        presentacion:
+          type: string
+          nullable: true
+          description: Variante en la vitrina (Grande, Personal, Entero...)
+        precio_confirmado:
+          type: boolean
+          description: false = precio de referencia que la tienda aún no confirmó
+        activo:
+          type: boolean
+          description: Habilitado para la venta
+
+    TiendaOut:
+      type: object
+      required: [id, identificador, nombre, descripcion]
+      properties:
+        id:
+          type: integer
+        identificador:
+          type: string
+          description: Slug de la tienda
+          example: "antojos"
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        logo_url:
+          type: string
+          nullable: true
+
+    ProductCreateRequest:
+      type: object
+      required: [tienda, nombre, precio_centavos]
+      properties:
+        tienda:
+          type: string
+          description: Slug de la tienda
+        nombre:
+          type: string
+          minLength: 1
+          maxLength: 120
+        descripcion:
+          type: string
+          maxLength: 400
+        precio_centavos:
+          type: integer
+          minimum: 0
+        categoria:
+          type: string
+          nullable: true
+        presentacion:
+          type: string
+          nullable: true
+        precio_confirmado:
+          type: boolean
+        activo:
+          type: boolean
+
+    ProductUpdateRequest:
+      type: object
+      properties:
+        nombre:
+          type: string
+        descripcion:
+          type: string
+        precio_centavos:
+          type: integer
+          minimum: 0
+        categoria:
+          type: string
+          nullable: true
+        presentacion:
+          type: string
+          nullable: true
+        precio_confirmado:
+          type: boolean
+        activo:
+          type: boolean
+
     # --- Inventory ---
     StockAvailabilityOut:
       type: object
@@ -678,6 +972,10 @@ components:
           minimum: 0
           description: Nueva cantidad absoluta de stock
           example: 50
+        motivo:
+          type: string
+          maxLength: 200
+          description: Razón del cambio (por defecto "Conteo de existencias")
 
     InventoryAdjustRequest:
       type: object
@@ -698,15 +996,16 @@ components:
     # --- Orders ---
     OrderStatus:
       type: string
-      enum: [pendiente, confirmado, enviado, entregado, cancelado]
+      enum: [pendiente_pago, pagado, en_preparacion, listo, entregado, cancelado]
       description: |
-        Estados del ciclo de vida de un pedido:
-        - **pendiente** — Creado, esperando confirmación
-        - **confirmado** — Stock reservado, preparando envío
-        - **enviado** — En camino al cliente
-        - **entregado** — Recibido por el cliente
+        Estados del ciclo de vida de un pedido (ADR 0013):
+        - **pendiente_pago** — Creado, stock descontado, esperando el pago en el mostrador (vence a las 24 h)
+        - **pagado** — La tienda confirmó el pago
+        - **en_preparacion** — La tienda lo está preparando
+        - **listo** — Listo para recoger
+        - **entregado** — Recogido por el comprador
         - **cancelado** — Anulado (stock repuesto)
-      example: "pendiente"
+      example: "pendiente_pago"
 
     OrderCreateRequest:
       type: object
@@ -718,6 +1017,11 @@ components:
           description: Productos a incluir en el pedido
           items:
             $ref: "#/components/schemas/OrderItemRequest"
+        hora_recogida:
+          type: string
+          format: time
+          nullable: true
+          description: Franja acordada con el mostrador (America/Bogota)
 
     OrderItemRequest:
       type: object
@@ -735,7 +1039,7 @@ components:
 
     OrderOut:
       type: object
-      required: [id, usuario_id, items, total_centavos, estado, creado_en]
+      required: [id, usuario_id, tienda_id, items, total_centavos, estado, creado_en, actualizado_en]
       properties:
         id:
           type: integer
@@ -744,6 +1048,13 @@ components:
           type: integer
           description: ID del usuario que realizó el pedido
           example: 1
+        tienda_id:
+          type: integer
+          description: Un pedido pertenece a una sola tienda
+        tienda:
+          type: string
+          nullable: true
+          description: Slug de la tienda del pedido
         items:
           type: array
           items:
@@ -754,10 +1065,37 @@ components:
           example: 700000
         estado:
           $ref: "#/components/schemas/OrderStatus"
+        hora_recogida:
+          type: string
+          format: time
+          nullable: true
         creado_en:
           type: string
           format: date-time
           example: "2026-09-15T14:30:00Z"
+        actualizado_en:
+          type: string
+          format: date-time
+
+    OrderCancelRequest:
+      type: object
+      properties:
+        motivo:
+          type: string
+          maxLength: 200
+          nullable: true
+
+    OrderStatusRequest:
+      type: object
+      required: [estado]
+      properties:
+        estado:
+          type: string
+          enum: [pagado, en_preparacion, listo, entregado]
+        comentario:
+          type: string
+          maxLength: 200
+          nullable: true
 
     OrderItemOut:
       type: object

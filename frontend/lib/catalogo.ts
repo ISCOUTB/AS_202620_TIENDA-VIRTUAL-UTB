@@ -1,17 +1,20 @@
 /**
- * Catálogo de muestra mientras el backend expone el catálogo real.
+ * Modelo del catálogo en la interfaz y funciones puras sobre él.
+ *
+ * Desde la API 0.4.0 el catálogo real lo sirve el backend
+ * (`GET /catalog/products` + `GET /inventory`, compuestos en el servidor por
+ * lib/catalogo-servidor.ts y adaptados por lib/catalogo-api.ts). Las
+ * funciones de este archivo reciben la lista de productos: no saben de dónde
+ * sale.
+ *
+ * `PRODUCTOS` queda con dos usos, nunca como fuente silenciosa:
+ * 1. Datos de presentación que el contrato no tiene (los `sabores`).
+ * 2. Respaldo cuando la API no responde: la interfaz lo dice y no deja
+ *    apartar, porque sus ids no son los de la base.
  *
  * Convención del contrato: `precioCentavos = pesos × 100`
- * (backend/app/seed.py: 350000 = $3.500).
- *
- * `esMuestra: true` significa que el precio todavía no fue confirmado por
- * la tienda y la UI debe marcarlo. Las tiendas con productos de muestra
- * quedan con `indexable: false` en lib/tiendas.ts (regla G16 del plan).
- *
- * Mapa producto → tienda: el contrato actual (`ProductOut`) no tiene
- * categoría ni tienda, así que la asignación vive aquí. Cuando el backend
- * exponga `categoria` (propuesta en docs/api/tiendas-catalogo.md) este
- * archivo se reduce a un adaptador.
+ * (backend/app/seed.py: 350000 = $3.500). `esMuestra: true` significa que el
+ * precio todavía no fue confirmado por la tienda (`precio_confirmado: false`).
  */
 
 import type { SlugTienda } from "./tiendas";
@@ -570,12 +573,17 @@ export const PRODUCTOS: Producto[] = [
   },
 ];
 
-export function productosDe(slug: SlugTienda): Producto[] {
-  return PRODUCTOS.filter((p) => p.tienda === slug);
+/** De dónde salió el catálogo que se está mostrando. */
+export type OrigenCatalogo = "api" | "respaldo";
+
+export type Catalogo = { productos: Producto[]; origen: OrigenCatalogo };
+
+export function productosDe(productos: Producto[], slug: SlugTienda): Producto[] {
+  return productos.filter((p) => p.tienda === slug);
 }
 
-export function productoPorId(id: number): Producto | undefined {
-  return PRODUCTOS.find((p) => p.id === id);
+export function productoPorId(productos: Producto[], id: number): Producto | undefined {
+  return productos.find((p) => p.id === id);
 }
 
 /**
@@ -590,20 +598,28 @@ export function esParaCompartir(producto: Producto): boolean {
   return producto.presentacion !== undefined && PRESENTACIONES_COMPARTIR.has(producto.presentacion);
 }
 
-/** «Lo más pedido» de la portada: un producto por tienda con carta. */
-const IDS_DESTACADOS = [150, 129, 139, 101];
+/**
+ * «Lo más pedido» de la portada: un producto por tienda con carta. Se busca
+ * por tienda y nombre, porque los ids los asigna la base.
+ */
+const DESTACADOS: Array<[SlugTienda, string]> = [
+  ["almuerzo-01", "Chow mein"],
+  ["punto-fit", "Granola con yogur griego"],
+  ["alegria", "Helado combinado"],
+  ["antojos", "De todito grande"],
+];
 
-export function productosDestacados(): Producto[] {
-  return IDS_DESTACADOS.map((id) => productoPorId(id)).filter(
-    (p): p is Producto => p !== undefined,
-  );
+export function productosDestacados(productos: Producto[]): Producto[] {
+  return DESTACADOS.map(([tienda, nombre]) =>
+    productos.find((p) => p.tienda === tienda && p.nombre === nombre),
+  ).filter((p): p is Producto => p !== undefined);
 }
 
 /** Minúsculas y sin tildes: «Piña» y «pina» deben encontrarse. */
-function normalizar(texto: string): string {
+export function normalizar(texto: string): string {
   return texto
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim();
 }
@@ -613,10 +629,10 @@ function normalizar(texto: string): string {
  * cartas. Coincide por nombre, descripción, presentación o sabor. Primero los
  * que empiezan por el término; los agotados siguen apareciendo (se dicen).
  */
-export function buscarProductos(consulta: string, limite = 6): Producto[] {
+export function buscarProductos(productos: Producto[], consulta: string, limite = 6): Producto[] {
   const q = normalizar(consulta);
   if (q.length < 2) return [];
-  const coincidencias = PRODUCTOS.filter((p) => {
+  const coincidencias = productos.filter((p) => {
     const campos = [p.nombre, p.descripcion, p.presentacion ?? "", ...(p.sabores ?? [])];
     return campos.some((c) => normalizar(c).includes(q));
   });
@@ -627,7 +643,7 @@ export function buscarProductos(consulta: string, limite = 6): Producto[] {
 }
 
 /** true si la tienda ya alcanza el mínimo de contenido indexable (G16). */
-export function tiendaCompleta(slug: SlugTienda): boolean {
-  const productos = productosDe(slug);
-  return productos.length >= 8 && productos.some((p) => !p.esMuestra);
+export function tiendaCompleta(productos: Producto[], slug: SlugTienda): boolean {
+  const deLaTienda = productosDe(productos, slug);
+  return deLaTienda.length >= 8 && deLaTienda.some((p) => !p.esMuestra);
 }

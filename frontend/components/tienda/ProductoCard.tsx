@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import type { Producto } from "@/lib/catalogo";
 import { formatoPrecio } from "@/lib/formato";
 import { agregar, cambiarCantidad, useCarrito } from "@/lib/carrito";
+import { useCatalogo } from "./CatalogoProvider";
 import { nombreTienda, paletaTienda } from "@/lib/tiendas";
 import { gsap, useGSAP, CONDICIONES, MOVIMIENTO } from "@/lib/movimiento";
 import { Icono } from "@/components/ui/Icono";
@@ -37,6 +38,9 @@ export function ProductoCard({
   const { carrito } = useCarrito();
   const cantidad = carrito.lineas.find((l) => l.productoId === producto.id)?.cantidad ?? 0;
   const agotado = producto.existencias <= 0;
+  // Catálogo de respaldo: sin existencias reales no se aparta (AvisoRespaldo).
+  const enPausa = useCatalogo().origen === "respaldo";
+  const bloqueado = agotado || enPausa;
   const ultimas = !agotado && producto.existencias <= 3;
   const paleta = paletaTienda(producto.tienda);
   const nombre = producto.presentacion
@@ -69,14 +73,14 @@ export function ProductoCard({
   );
 
   function sumar() {
-    if (agotado) return;
-    agregar(producto.id, 1);
+    if (bloqueado) return;
+    agregar(producto, 1);
     setPulsos((n) => n + 1);
     setAnuncio(`${nombre}: ${cantidad + 1} en tu pedido`);
   }
 
   function restar() {
-    cambiarCantidad(producto.id, cantidad - 1);
+    cambiarCantidad(producto.id, cantidad - 1, producto.existencias);
     setAnuncio(cantidad - 1 > 0 ? `${nombre}: ${cantidad - 1} en tu pedido` : `${nombre} salió del pedido`);
   }
 
@@ -194,11 +198,17 @@ export function ProductoCard({
               <button
                 type="button"
                 onClick={sumar}
-                disabled={agotado}
-                aria-label={agotado ? `${nombre} está agotado` : `Agregar ${nombre} al pedido`}
+                disabled={bloqueado}
+                aria-label={
+                  agotado
+                    ? `${nombre} está agotado`
+                    : enPausa
+                      ? `Apartar ${nombre} está en pausa: sin conexión con la tienda`
+                      : `Agregar ${nombre} al pedido`
+                }
                 className={[
                   "inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-pill font-bold transition-colors duration-[var(--tk-dur)]",
-                  agotado
+                  bloqueado
                     ? "whitespace-nowrap bg-suave px-3.5 text-[0.8125rem] text-tenue sm:px-4 sm:text-sm"
                     : "bg-primario text-sobre-primario hover:bg-primario-hover sm:px-[1.125rem] sm:text-sm",
                   vertical ? "-m-1.5 sm:m-0" : "",
@@ -206,6 +216,8 @@ export function ProductoCard({
               >
                 {agotado ? (
                   "Sin unidades"
+                ) : enPausa ? (
+                  "En pausa"
                 ) : (
                   <>
                     <Icono nombre="mas" tamano={18} grosor={2.4} className="sm:hidden" />

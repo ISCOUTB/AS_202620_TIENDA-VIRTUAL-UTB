@@ -21,6 +21,7 @@ import { Boton } from "@/components/ui/Boton";
 import { Badge } from "@/components/ui/Badge";
 import { Icono } from "@/components/ui/Icono";
 import { MarcadorFoto } from "./MarcadorFoto";
+import { useCatalogo } from "./CatalogoProvider";
 import { Cantidad } from "./Cantidad";
 
 /**
@@ -41,6 +42,7 @@ import { Cantidad } from "./Cantidad";
 export function PanelPedido() {
   const { carrito } = useCarrito();
   const { sesion } = useSesion();
+  const { productos, origen } = useCatalogo();
   const router = useRouter();
   const ruta = usePathname();
 
@@ -59,13 +61,13 @@ export function PanelPedido() {
   const focoPrevio = useRef<HTMLElement | null>(null);
 
   const n = unidades(carrito);
-  const total = totalCentavos(carrito);
+  const total = totalCentavos(carrito, productos);
   const hora = carrito.horaRecogida;
-  const muestra = carrito.lineas.some((l) => productoPorId(l.productoId)?.esMuestra);
+  const muestra = carrito.lineas.some((l) => productoPorId(productos, l.productoId)?.esMuestra);
   const tiendas = Array.from(
     new Set(
       carrito.lineas
-        .map((l) => productoPorId(l.productoId)?.tienda)
+        .map((l) => productoPorId(productos, l.productoId)?.tienda)
         .filter((t): t is NonNullable<typeof t> => Boolean(t)),
     ),
   ).map(nombreTienda);
@@ -168,6 +170,10 @@ export function PanelPedido() {
 
   async function confirmar() {
     setError(null);
+    if (origen === "respaldo") {
+      setError("No pudimos conectar con la tienda. Intenta apartar en un momento.");
+      return;
+    }
     if (!sesion) {
       router.push(`/auth/ingresar?next=${encodeURIComponent(ruta)}`);
       setAbierto(false);
@@ -250,7 +256,7 @@ export function PanelPedido() {
           <>
             <ul className="mt-4">
               {carrito.lineas.map((linea) => {
-                const p = productoPorId(linea.productoId);
+                const p = productoPorId(productos, linea.productoId);
                 if (!p) return null;
                 const nombre = p.presentacion
                   ? `${p.nombre} · ${p.presentacion.toLowerCase()}`
@@ -274,8 +280,8 @@ export function PanelPedido() {
                       cantidad={linea.cantidad}
                       nombre={nombre}
                       maximo={p.existencias}
-                      alRestar={() => cambiarCantidad(linea.productoId, linea.cantidad - 1)}
-                      alSumar={() => cambiarCantidad(linea.productoId, linea.cantidad + 1)}
+                      alRestar={() => cambiarCantidad(linea.productoId, linea.cantidad - 1, p.existencias)}
+                      alSumar={() => cambiarCantidad(linea.productoId, linea.cantidad + 1, p.existencias)}
                     />
                   </li>
                 );
@@ -361,11 +367,17 @@ function Confirmacion({
           Reserva registrada
         </Badge>
         <p className="mt-4 font-display text-[2rem] font-semibold leading-tight">
-          Pedido #{resultado.pedido.id}
+          {resultado.pedidos.length === 1 ? "Pedido" : "Pedidos"}{" "}
+          {resultado.pedidos.map((p) => `#${p.id}`).join(", ")}
         </p>
         <p className="mt-2 text-tenue">
-          Quedó apartado{hora ? ` para las ${formatoHora(hora)}` : ""}. Pasa por
-          el mostrador, di tu nombre y paga ahí.
+          Quedó apartado{hora ? ` para las ${formatoHora(hora)}` : ""}.
+          {resultado.pedidos.length > 1
+            ? " Cada tienda prepara y cobra el suyo: pasa por cada mostrador, di tu nombre y paga ahí."
+            : " Pasa por el mostrador, di tu nombre y paga ahí."}
+        </p>
+        <p className="mt-2 text-sm text-tenue">
+          Si no lo pagas en 24 horas se cancela solo y las unidades vuelven a la tienda.
         </p>
         <div className="mt-6 flex flex-col gap-2">
           <Boton href="/cuenta" variante="primario" tamano="lg" bloque cuadrado onClick={alCerrar}>
