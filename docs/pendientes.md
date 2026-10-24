@@ -5,13 +5,15 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
 
 ## Despliegue
 
-- **Subir la 0.5.0** siguiendo [el runbook](despliegue-dokploy.md#subir-050):
-  respaldo, secreto `SEED_TIENDAS_PASSWORD`, migración `0004`, crear admins de
-  tienda y verificar. Las ramas del stack se fusionan en orden:
-  `feat/identidad` → `feat/inventario-escrituras` → `feat/pedidos` →
-  `feat/catalogo-completo` → `feat/frontend-datos-reales` →
-  `feat/cierre-docs` → `fix/pool-concurrencia-e2e` → `feat/admin-por-tienda`.
-
+- ~~**Subir la 0.5.0**~~: desplegada el 2026-10-24 en Dokploy, con API 0.5.0, migración `0004`,
+  el rol `tienda_app` reparado y 5 admins de tienda más el general sembrados.
+  Problemas y arreglos en el [runbook](despliegue-dokploy.md#subir-050).
+  Falta comprobar que `SEED_ON_DEPLOY` volvió a `false`.
+- **Cobertura del frontend en SonarCloud.** El secreto `SONAR_TOKEN` era
+  inválido (403) y se borró, así que el job `sonarcloud` se omite. Los PR los
+  sigue analizando el Automatic Analysis de SonarCloud. Para volver a subir
+  cobertura, el admin de la organización `isco-utb` debe desactivar Automatic
+  Analysis y crear un Scoped Organization Token como `SONAR_TOKEN`.
 - Crear el servicio Docker Compose en Dokploy con path
   `./deploy/compose.lab.yaml` y definir `POSTGRES_PASSWORD`.
 - **Asignar el dominio definitivo al servicio `frontend`, puerto 3000, y
