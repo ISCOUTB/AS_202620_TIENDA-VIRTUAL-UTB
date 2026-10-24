@@ -14,6 +14,7 @@ from app.modules.catalog import router as catalog_router
 from app.modules.identity import public as identidad
 from app.modules.identity import router as identity_router
 from app.modules.inventory import router as inventory_router
+from app.modules.orders import router as orders_router
 from app.shared.database import get_session
 from app.shared.logging import configure_logging
 from app.shared.metrics import ObservabilityMiddleware, snapshot
@@ -59,6 +60,7 @@ registrar_resolvedor(identidad.principal_desde_token)
 app.include_router(identity_router)
 app.include_router(catalog_router)
 app.include_router(inventory_router)
+app.include_router(orders_router)
 
 
 class HealthOut(BaseModel):
