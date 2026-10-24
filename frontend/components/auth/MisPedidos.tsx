@@ -47,6 +47,8 @@ export function MisPedidos({ demo }: Readonly<{ demo: boolean }>) {
       await cargar();
     } catch (error) {
       setAviso(error instanceof ApiError ? error.message : "No se pudo cancelar el pedido.");
+      // P. ej. ya estaba cancelado o la tienda lo confirmó: se muestra el estado real.
+      await cargar();
     } finally {
       setCancelando(null);
     }

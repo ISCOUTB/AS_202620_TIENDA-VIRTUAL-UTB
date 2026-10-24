@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Campo } from "@/components/ui/Campo";
 import { Boton } from "@/components/ui/Boton";
 import { Icono } from "@/components/ui/Icono";
 import { Revelar } from "@/components/motion/Revelar";
-import { iniciarSesion, CLAVE_DEMO } from "@/lib/sesion";
+import { iniciarSesion, destinoSeguro, CLAVE_DEMO } from "@/lib/sesion";
 
 /** Aviso: color + ícono + texto + rol, nunca solo color. */
 export function Aviso({
@@ -27,9 +27,8 @@ export function Aviso({
 }
 
 export function FormIngreso() {
-  const router = useRouter();
   const params = useSearchParams();
-  const siguiente = params.get("next") ?? "/cuenta";
+  const siguiente = destinoSeguro(params.get("next"));
   const motivo = params.get("motivo");
 
   const [email, setEmail] = useState("");
@@ -55,8 +54,11 @@ export function FormIngreso() {
     setEnviando(true);
     try {
       await iniciarSesion(email, password);
-      router.replace(siguiente);
-      router.refresh();
+      // Navegación completa, no `router.replace`: el layout de servidor y el
+      // middleware (cookie pista) se vuelven a pintar ya con la sesión, y no
+      // se depende de la navegación RSC, que en las pruebas E2E remotas se
+      // quedaba colgada en «Entrando…».
+      window.location.assign(siguiente);
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo entrar.");
       setEnviando(false);

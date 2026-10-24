@@ -151,7 +151,7 @@ export default async function Landing() {
               mostrador.
             </p>
             <div data-escalon="" className="relative z-20 mt-[22px] flex flex-wrap gap-3 sm:mt-7">
-              <BuscadorProductos />
+              <BuscadorProductos productos={productos} />
               <Boton href="#tiendas" variante="oscuro" tamano="lg" className="hidden px-[26px] sm:inline-flex">
                 Ver las tiendas
               </Boton>

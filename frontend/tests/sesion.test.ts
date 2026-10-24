@@ -5,6 +5,7 @@ import {
   borrarSesion,
   cerrarSesion,
   crearCuenta,
+  destinoSeguro,
   iniciarSesion,
   leerSesion,
 } from "@/lib/sesion";
@@ -221,5 +222,20 @@ describe("ciclo de la sesión local", () => {
     window.localStorage.setItem("tvutb.usuario", "{no json");
     window.localStorage.setItem("tvutb.modo", "real");
     expect(leerSesion()).toBeNull();
+  });
+});
+
+describe("destinoSeguro", () => {
+  it("acepta rutas propias", () => {
+    expect(destinoSeguro("/admin")).toBe("/admin");
+    expect(destinoSeguro("/tiendas/antojos?x=1")).toBe("/tiendas/antojos?x=1");
+  });
+
+  it("manda a /cuenta sin destino o con uno de otro sitio", () => {
+    expect(destinoSeguro(null)).toBe("/cuenta");
+    expect(destinoSeguro("")).toBe("/cuenta");
+    expect(destinoSeguro("https://otro.com")).toBe("/cuenta");
+    expect(destinoSeguro("//otro.com")).toBe("/cuenta");
+    expect(destinoSeguro("/\\otro.com")).toBe("/cuenta");
   });
 });
