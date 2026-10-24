@@ -198,6 +198,284 @@
         }
       }
     },
+    "/inventory/{productId}": {
+      "get": {
+        "tags": [
+          "inventario"
+        ],
+        "summary": "Get Stock",
+        "description": "Existencias de un producto, con la fecha del último cambio.",
+        "operationId": "get_stock_inventory__productId__get",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID del producto",
+              "title": "Productid"
+            },
+            "description": "ID del producto"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto sin existencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "inventario"
+        ],
+        "summary": "Update Stock",
+        "description": "Fija la cantidad absoluta (conteo físico). Queda como movimiento `ajuste`.",
+        "operationId": "update_stock_inventory__productId__put",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID del producto",
+              "title": "Productid"
+            },
+            "description": "ID del producto"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventoryUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemOut"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No gestiona el inventario de la tienda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de concurrencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/inventory/{productId}/adjust": {
+      "post": {
+        "tags": [
+          "inventario"
+        ],
+        "summary": "Adjust Stock",
+        "description": "Suma o resta unidades (reposición, merma) con un motivo obligatorio.",
+        "operationId": "adjust_stock_inventory__productId__adjust_post",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "productId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "description": "ID del producto",
+              "title": "Productid"
+            },
+            "description": "ID del producto"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InventoryAdjustRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InventoryItemOut"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Ajuste inválido: cero o deja el stock en negativo",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No gestiona el inventario de la tienda",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Producto sin existencias",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de concurrencia",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/health": {
       "get": {
         "tags": [
@@ -318,6 +596,82 @@
           "status"
         ],
         "title": "HealthOut"
+      },
+      "InventoryAdjustRequest": {
+        "properties": {
+          "delta": {
+            "type": "integer",
+            "title": "Delta",
+            "description": "Positivo = reposición, negativo = venta o merma."
+          },
+          "motivo": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Motivo",
+            "description": "Razón del ajuste."
+          }
+        },
+        "type": "object",
+        "required": [
+          "delta",
+          "motivo"
+        ],
+        "title": "InventoryAdjustRequest"
+      },
+      "InventoryItemOut": {
+        "properties": {
+          "product_id": {
+            "type": "integer",
+            "title": "Product Id"
+          },
+          "product_nombre": {
+            "type": "string",
+            "title": "Product Nombre"
+          },
+          "cantidad": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cantidad",
+            "description": "Unidades disponibles en stock"
+          },
+          "actualizado_en": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Actualizado En"
+          }
+        },
+        "type": "object",
+        "required": [
+          "product_id",
+          "product_nombre",
+          "cantidad",
+          "actualizado_en"
+        ],
+        "title": "InventoryItemOut"
+      },
+      "InventoryUpdateRequest": {
+        "properties": {
+          "cantidad": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Cantidad",
+            "description": "Nueva cantidad absoluta de stock"
+          },
+          "motivo": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Motivo",
+            "description": "Razón del cambio, para la auditoría de movimientos.",
+            "default": "Conteo de existencias"
+          }
+        },
+        "type": "object",
+        "required": [
+          "cantidad"
+        ],
+        "title": "InventoryUpdateRequest"
       },
       "LoginRequest": {
         "properties": {
