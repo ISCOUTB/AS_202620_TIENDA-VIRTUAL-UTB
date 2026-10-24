@@ -54,6 +54,8 @@ export function ColaPedidos({ tiendas }: Readonly<{ tiendas: TiendaOut[] }>) {
       setPedidos((lista) => lista?.map((p) => (p.id === actualizado.id ? actualizado : p)) ?? null);
     } catch (e) {
       setError(e instanceof ApiError ? e.message : "No se pudo actualizar el pedido.");
+      // Lo más común es que otra persona ya lo movió: se muestra el estado real.
+      if (tiendaId !== null) await cargar(tiendaId);
     } finally {
       setOcupado(null);
     }
