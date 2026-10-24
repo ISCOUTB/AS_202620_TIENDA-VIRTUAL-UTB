@@ -17,11 +17,11 @@ from app.modules.inventory.schemas import (
     InventoryUpdateRequest,
     StockOut,
 )
-from app.shared.database import get_session
+from app.shared.database import RutaConSesion, get_session
 from app.shared.errores import respuestas
 from app.shared.seguridad import ContextoSeguridad, prohibido, requiere_usuario
 
-router = APIRouter(prefix="/inventory", tags=["inventario"])
+router = APIRouter(prefix="/inventory", tags=["inventario"], route_class=RutaConSesion)
 
 ProductId = Annotated[int, Path(alias="productId", description="ID del producto")]
 Sesion = Annotated[Session, Depends(get_session)]

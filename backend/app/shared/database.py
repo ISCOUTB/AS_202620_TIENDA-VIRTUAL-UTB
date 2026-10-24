@@ -7,11 +7,14 @@ Hay dos credenciales (ADR 0014): la API se conecta con un rol sin privilegios
 de dueño y sujeto a RLS; las migraciones y la siembra usan el rol dueño.
 """
 
+import functools
+import inspect
 import os
-from collections.abc import Iterator
-from typing import Annotated
+from collections.abc import Callable, Iterator
+from typing import Annotated, Any
 
 from fastapi import Depends
+from fastapi.routing import APIRoute
 from sqlalchemy import URL, MetaData, create_engine, event
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
@@ -123,3 +126,37 @@ def get_session(
         yield session
     finally:
         session.close()
+
+
+
+def _cerrando_sesiones(endpoint: Callable[..., Any]) -> Callable[..., Any]:
+    @functools.wraps(endpoint)
+    def ruta(*args: Any, **kwargs: Any) -> Any:
+        try:
+            return endpoint(*args, **kwargs)
+        finally:
+            for valor in kwargs.values():
+                if isinstance(valor, Session):
+                    valor.close()
+
+    return ruta
+
+
+class RutaConSesion(APIRoute):
+    """Ruta que devuelve la conexión al pool apenas termina su función.
+
+    FastAPI corre las rutas síncronas en el threadpool de anyio (40 hilos) y,
+    al terminar, valida la respuesta en ese mismo threadpool; el `finally` de
+    `get_session` llega después, aun con `Depends(scope="function")`. En una
+    ráfaga (pruebas E2E en paralelo, prefetch de Next.js) los hilos se
+    quedaban esperando conexiones que retenían peticiones a la espera de un
+    hilo para validar, hasta vencer `pool_timeout` (500) o colgar la API.
+    Cerrar la sesión en el mismo hilo de la ruta rompe ese ciclo; el cierre
+    posterior de la dependencia no hace nada. `tests/test_concurrencia.py` lo
+    cubre.
+    """
+
+    def __init__(self, path: str, endpoint: Callable[..., Any], **kwargs: Any) -> None:
+        if not inspect.iscoroutinefunction(endpoint):
+            endpoint = _cerrando_sesiones(endpoint)
+        super().__init__(path, endpoint, **kwargs)

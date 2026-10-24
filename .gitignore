@@ -42,3 +42,5 @@ coverage/
 # son datos de la base, no código.
 /backend/datos_legado/
 
+testsprite_tests/tmp/
+testsprite_tests/tmp/config.json

@@ -13,11 +13,11 @@ from app.modules.identity.schemas import (
     TokenResponse,
     UserOut,
 )
-from app.shared.database import cambiar_contexto, get_session
+from app.shared.database import RutaConSesion, cambiar_contexto, get_session
 from app.shared.errores import respuestas
 from app.shared.seguridad import ContextoSeguridad, requiere_usuario
 
-router = APIRouter(prefix="/identity", tags=["identity"])
+router = APIRouter(prefix="/identity", tags=["identity"], route_class=RutaConSesion)
 
 def _usuario_out(session: Session, usuario_id: int) -> UserOut:
     perfil = repository.perfil(session, usuario_id)
