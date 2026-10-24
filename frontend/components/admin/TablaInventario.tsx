@@ -179,36 +179,43 @@ export function TablaInventario({
                     {formatoPrecio(p.precio_centavos)}
                   </p>
 
-                  <Conteo
-                    key={`${p.id}-${n}`}
-                    nombre={p.nombre}
-                    existencias={n}
-                    deshabilitado={!puedeStock || enCurso}
-                    alGuardar={(cantidad) =>
-                      guardar(p.id, () => fijarExistencias(p.id, cantidad, MOTIVO_CONTEO))
-                    }
-                  />
+                  {puedeStock ? (
+                    <>
+                      <Conteo
+                        key={`${p.id}-${n}`}
+                        nombre={p.nombre}
+                        existencias={n}
+                        deshabilitado={enCurso}
+                        alGuardar={(cantidad) =>
+                          guardar(p.id, () => fijarExistencias(p.id, cantidad, MOTIVO_CONTEO))
+                        }
+                      />
 
-                  <div className="col-span-2 flex justify-end gap-1.5 md:col-span-1">
-                    <button
-                      type="button"
-                      onClick={() => guardar(p.id, () => ajustarExistencias(p.id, -1, MOTIVO_AJUSTE))}
-                      disabled={n === 0 || !puedeStock || enCurso}
-                      aria-label={`Restar una unidad de ${p.nombre}`}
-                      className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave disabled:opacity-35"
-                    >
-                      <Icono nombre="menos" tamano={18} grosor={2.4} />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => guardar(p.id, () => ajustarExistencias(p.id, 1, MOTIVO_AJUSTE))}
-                      disabled={!puedeStock || enCurso}
-                      aria-label={`Sumar una unidad de ${p.nombre}`}
-                      className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave disabled:opacity-35"
-                    >
-                      <Icono nombre="mas" tamano={18} grosor={2.4} />
-                    </button>
-                  </div>
+                      <div className="col-span-2 flex justify-end gap-1.5 md:col-span-1">
+                        <button
+                          type="button"
+                          onClick={() => guardar(p.id, () => ajustarExistencias(p.id, -1, MOTIVO_AJUSTE))}
+                          disabled={n === 0 || enCurso}
+                          aria-label={`Restar una unidad de ${p.nombre}`}
+                          className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave disabled:opacity-35"
+                        >
+                          <Icono nombre="menos" tamano={18} grosor={2.4} />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => guardar(p.id, () => ajustarExistencias(p.id, 1, MOTIVO_AJUSTE))}
+                          disabled={enCurso}
+                          aria-label={`Sumar una unidad de ${p.nombre}`}
+                          className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave disabled:opacity-35"
+                        >
+                          <Icono nombre="mas" tamano={18} grosor={2.4} />
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    // Sin permiso (otra tienda o supervisión): el número, sin controles.
+                    <SoloLectura nombre={p.nombre} existencias={n} />
+                  )}
                 </li>
               );
             })}
@@ -223,11 +230,32 @@ export function TablaInventario({
       ) : (
         <p className="mt-4 text-[0.8125rem] text-tenue">
           <span className="cifra">{filtrados.length}</span>{" "}
-          {filtrados.length === 1 ? "producto" : "productos"} en pantalla · los cambios se guardan
-          al momento
+          {filtrados.length === 1 ? "producto" : "productos"} en pantalla ·{" "}
+          {filtrados.some(({ producto }) => {
+            const id = idDeTienda.get(producto.tienda ?? "");
+            return id !== undefined && gestionaInventario(usuario, id);
+          })
+            ? "los cambios se guardan al momento"
+            : "solo lectura"}
         </p>
       )}
     </div>
+  );
+}
+
+/** Existencias de una fila que el usuario no gestiona: solo el número. */
+function SoloLectura({ nombre, existencias }: Readonly<{ nombre: string; existencias: number }>) {
+  return (
+    <p className="flex items-center gap-1.5 md:col-span-2">
+      <span className="sr-only">Existencias de {nombre}: </span>
+      <span
+        className={["cifra text-lg font-bold", existencias === 0 ? "text-error" : "text-tinta"].join(" ")}
+      >
+        {existencias}
+      </span>
+      {existencias === 0 ? <span className="text-xs font-bold text-error">Agotado</span> : null}
+      <span className="text-xs text-tenue">· solo lectura</span>
+    </p>
   );
 }
 
