@@ -1,80 +1,83 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { PRODUCTOS, type Producto } from "@/lib/catalogo";
-import { TIENDAS, paletaTienda } from "@/lib/tiendas";
+import { useMemo, useState } from "react";
+import type { ProductOut, TiendaOut, UserOut } from "@/lib/api/generated/contract";
+import { ApiError } from "@/lib/api/client";
+import { ajustarExistencias, fijarExistencias, type FilaAdmin } from "@/lib/admin";
+import { administraTienda, gestionaInventario } from "@/lib/roles";
+import { paletaTienda } from "@/lib/tiendas";
 import { formatoPrecio } from "@/lib/formato";
 import { Badge } from "@/components/ui/Badge";
 import { Icono } from "@/components/ui/Icono";
-import { EsqueletoTabla } from "@/components/ui/Esqueleto";
 
 /**
  * Inventario en tabla (SPEC v4 §3, `/admin`): filtro segmentado por tienda,
  * búsqueda y filas con ajuste ±1. Desde `md` es una rejilla de cuatro
  * columnas con cabecera; en móvil cada fila apila sus datos.
  *
- * Los endpoints de mutación (`PATCH /inventory/{id}`) todavía no existen, así
- * que los ajustes se guardan como BORRADOR LOCAL y la interfaz lo dice. No se
- * finge que el cambio llegó al servidor: cuando la API esté publicada, este
- * componente cambia `escribirBorrador` por la llamada real.
+ * Cada cambio va a la API en el momento: ±1 con `POST /inventory/{id}/adjust`
+ * (un delta atómico, así dos personas ajustando a la vez no se pisan) y el
+ * número escrito tras un conteo con `PUT /inventory/{id}`. La fila muestra lo
+ * que la API devolvió, nunca un valor supuesto.
  */
 
-const CLAVE = "tvutb.inventario-borrador";
+const MOTIVO_AJUSTE = "Ajuste manual desde el panel";
+const MOTIVO_CONTEO = "Conteo de existencias";
 
-type Borrador = Record<number, number>;
-
-function leerBorrador(): Borrador {
-  if (typeof window === "undefined") return {};
-  try {
-    const crudo = window.localStorage.getItem(CLAVE);
-    return crudo ? (JSON.parse(crudo) as Borrador) : {};
-  } catch {
-    return {};
-  }
-}
-
-export function TablaInventario() {
-  const [borrador, setBorrador] = useState<Borrador>({});
-  const [cargando, setCargando] = useState(true);
+export function TablaInventario({
+  filas,
+  tiendas,
+  usuario,
+  alActualizar,
+  alEditar,
+}: Readonly<{
+  filas: FilaAdmin[];
+  tiendas: TiendaOut[];
+  usuario: UserOut;
+  alActualizar: (productoId: number, existencias: number) => void;
+  alEditar: (producto: ProductOut) => void;
+}>) {
   const [busqueda, setBusqueda] = useState("");
   const [tienda, setTienda] = useState<string>("todas");
+  const [ocupado, setOcupado] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    setBorrador(leerBorrador());
-    setCargando(false);
-  }, []);
-
-  function escribirBorrador(siguiente: Borrador) {
-    setBorrador(siguiente);
-    try {
-      window.localStorage.setItem(CLAVE, JSON.stringify(siguiente));
-    } catch {
-      // almacenamiento bloqueado: el borrador dura la pestaña
-    }
-  }
-
-  function ajustar(id: number, delta: number, actual: number) {
-    const base = borrador[id] ?? actual;
-    const nuevo = Math.max(0, Math.min(9999, base + delta));
-    escribirBorrador({ ...borrador, [id]: nuevo });
-  }
+  const idDeTienda = useMemo(
+    () => new Map(tiendas.map((t) => [t.identificador, t.id])),
+    [tiendas],
+  );
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
-    return PRODUCTOS.filter((p) => {
+    return filas.filter(({ producto: p }) => {
       if (tienda !== "todas" && p.tienda !== tienda) return false;
       if (!q) return true;
       return p.nombre.toLowerCase().includes(q) || p.descripcion.toLowerCase().includes(q);
     });
-  }, [busqueda, tienda]);
-
-  const stock = (p: Producto) => borrador[p.id] ?? p.existencias;
-  const cambios = Object.keys(borrador).length;
+  }, [filas, busqueda, tienda]);
 
   const filtros = [
     { clave: "todas", etiqueta: "Todas" },
-    ...TIENDAS.map((t) => ({ clave: t.slug as string, etiqueta: t.nombre })),
+    ...tiendas.map((t) => ({ clave: t.identificador, etiqueta: t.nombre })),
   ];
+
+  async function guardar(
+    productoId: number,
+    accion: () => Promise<{ cantidad: number }>,
+  ): Promise<boolean> {
+    setError(null);
+    setOcupado(productoId);
+    try {
+      const item = await accion();
+      alActualizar(productoId, item.cantidad);
+      return true;
+    } catch (e) {
+      setError(e instanceof ApiError ? e.message : "No se pudo guardar el cambio.");
+      return false;
+    } finally {
+      setOcupado(null);
+    }
+  }
 
   return (
     <div>
@@ -113,124 +116,173 @@ export function TablaInventario() {
         </label>
       </div>
 
-      {cambios > 0 ? (
-        <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-sm bg-aviso-suave px-4 py-2 text-aviso">
-          <p className="text-sm">
-            Hay <strong className="cifra">{cambios}</strong> {cambios === 1 ? "cambio" : "cambios"} en
-            borrador local. No se enviaron a la API porque el endpoint aún no
-            está publicado.
-          </p>
-          <button
-            type="button"
-            onClick={() => escribirBorrador({})}
-            className="min-h-11 text-sm font-bold underline underline-offset-4"
-          >
-            Descartar
-          </button>
-        </div>
+      {error ? (
+        <p role="alert" className="mt-4 rounded-sm bg-error-suave px-4 py-2.5 text-sm text-error">
+          {error}
+        </p>
       ) : null}
 
       <div className="mt-5">
-        {cargando ? (
-          <div aria-busy="true">
-            <span className="sr-only">Cargando el inventario…</span>
-            <EsqueletoTabla filas={6} />
+        <div className="tarjeta overflow-hidden">
+          <div
+            aria-hidden="true"
+            className="hidden grid-cols-[1fr_8rem_7rem_8rem] gap-4 border-b border-linea px-5 py-3.5 md:grid"
+          >
+            <span className="rotulo text-tenue">Producto</span>
+            <span className="rotulo text-tenue">Precio</span>
+            <span className="rotulo text-tenue">Existencias</span>
+            <span className="rotulo text-right text-tenue">Ajuste</span>
           </div>
-        ) : (
-          <div className="tarjeta overflow-hidden">
-            <div
-              aria-hidden="true"
-              className="hidden grid-cols-[1fr_8rem_7rem_8rem] gap-4 border-b border-linea px-5 py-3.5 md:grid"
-            >
-              <span className="rotulo text-tenue">Producto</span>
-              <span className="rotulo text-tenue">Precio</span>
-              <span className="rotulo text-tenue">Existencias</span>
-              <span className="rotulo text-right text-tenue">Ajuste</span>
-            </div>
-            <ul aria-label="Inventario por producto">
-              {filtrados.map((p) => {
-                const t = TIENDAS.find((x) => x.slug === p.tienda);
-                const paleta = paletaTienda(p.tienda);
-                const n = stock(p);
-                const tocado = borrador[p.id] !== undefined;
-                return (
-                  <li
-                    key={p.id}
-                    className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 border-b border-linea px-5 py-4 last:border-b-0 md:grid-cols-[1fr_8rem_7rem_8rem]"
-                  >
-                    <div className="min-w-0">
-                      <p className="flex flex-wrap items-center gap-2 font-semibold">
-                        {p.nombre}
-                        {p.presentacion ? (
-                          <span className="text-sm font-normal text-tenue">· {p.presentacion}</span>
-                        ) : null}
-                        {tocado ? <Badge tono="nuevo">Borrador</Badge> : null}
-                      </p>
-                      <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.8125rem] text-tenue">
-                        <span aria-hidden="true" className={`h-2 w-2 rounded-pill ${paleta.relleno}`} />
-                        {t?.nombre ?? p.tienda}
-                        <span aria-hidden="true">·</span>
-                        <span className="cifra font-mono">id {p.id}</span>
-                        <span className="md:hidden">
-                          · {formatoPrecio(p.precioCentavos)} ·{" "}
-                          <span className={n === 0 ? "font-bold text-error" : "font-bold text-tinta"}>
-                            {n === 0 ? "Agotado" : `${n} u.`}
-                          </span>
-                        </span>
-                      </p>
-                    </div>
-
-                    <p className="cifra hidden font-semibold md:block">
-                      <span className="sr-only">Precio: </span>
-                      {formatoPrecio(p.precioCentavos)}
+          <ul aria-label="Inventario por producto">
+            {filtrados.map(({ producto: p, existencias: n }) => {
+              const slug = p.tienda ?? "";
+              const tiendaId = idDeTienda.get(slug);
+              const t = tiendas.find((x) => x.identificador === slug);
+              const paleta = paletaTienda(slug);
+              const puedeStock = tiendaId !== undefined && gestionaInventario(usuario, tiendaId);
+              const puedeEditar = tiendaId !== undefined && administraTienda(usuario, tiendaId);
+              const enCurso = ocupado === p.id;
+              return (
+                <li
+                  key={p.id}
+                  aria-busy={enCurso}
+                  className="grid grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 border-b border-linea px-5 py-4 last:border-b-0 md:grid-cols-[1fr_8rem_7rem_8rem]"
+                >
+                  <div className="min-w-0">
+                    <p className="flex flex-wrap items-center gap-2 font-semibold">
+                      {p.nombre}
+                      {p.activo === false ? <Badge tono="cerrado">Inactivo</Badge> : null}
+                      {p.precio_confirmado === false ? <Badge tono="muestra">Referencia</Badge> : null}
                     </p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.8125rem] text-tenue">
+                      <span aria-hidden="true" className={`h-2 w-2 rounded-pill ${paleta.relleno}`} />
+                      {t?.nombre ?? slug}
+                      <span aria-hidden="true">·</span>
+                      <span className="cifra font-mono">id {p.id}</span>
+                      <span className="md:hidden">
+                        · {formatoPrecio(p.precio_centavos)}
+                      </span>
+                      {puedeEditar ? (
+                        <button
+                          type="button"
+                          onClick={() => alEditar(p)}
+                          className="min-h-11 font-semibold text-enlace underline underline-offset-4"
+                        >
+                          Editar<span className="sr-only"> {p.nombre}</span>
+                        </button>
+                      ) : null}
+                    </p>
+                  </div>
 
-                    <p
-                      className={[
-                        "cifra hidden text-lg font-bold md:block",
-                        n === 0 ? "text-error" : "text-tinta",
-                      ].join(" ")}
+                  <p className="cifra hidden font-semibold md:block">
+                    <span className="sr-only">Precio: </span>
+                    {formatoPrecio(p.precio_centavos)}
+                  </p>
+
+                  <Conteo
+                    key={`${p.id}-${n}`}
+                    nombre={p.nombre}
+                    existencias={n}
+                    deshabilitado={!puedeStock || enCurso}
+                    alGuardar={(cantidad) =>
+                      guardar(p.id, () => fijarExistencias(p.id, cantidad, MOTIVO_CONTEO))
+                    }
+                  />
+
+                  <div className="col-span-2 flex justify-end gap-1.5 md:col-span-1">
+                    <button
+                      type="button"
+                      onClick={() => guardar(p.id, () => ajustarExistencias(p.id, -1, MOTIVO_AJUSTE))}
+                      disabled={n === 0 || !puedeStock || enCurso}
+                      aria-label={`Restar una unidad de ${p.nombre}`}
+                      className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave disabled:opacity-35"
                     >
-                      <span className="sr-only">Existencias: </span>
-                      {n}
-                      {n === 0 ? <span className="ml-1.5 text-xs font-bold">Agotado</span> : null}
-                    </p>
-
-                    <div className="flex justify-end gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => ajustar(p.id, -1, p.existencias)}
-                        disabled={n === 0}
-                        aria-label={`Restar una unidad de ${p.nombre}`}
-                        className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave disabled:opacity-35"
-                      >
-                        <Icono nombre="menos" tamano={18} grosor={2.4} />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => ajustar(p.id, 1, p.existencias)}
-                        aria-label={`Sumar una unidad de ${p.nombre}`}
-                        className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave"
-                      >
-                        <Icono nombre="mas" tamano={18} grosor={2.4} />
-                      </button>
-                    </div>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
+                      <Icono nombre="menos" tamano={18} grosor={2.4} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => guardar(p.id, () => ajustarExistencias(p.id, 1, MOTIVO_AJUSTE))}
+                      disabled={!puedeStock || enCurso}
+                      aria-label={`Sumar una unidad de ${p.nombre}`}
+                      className="flex h-11 w-11 items-center justify-center rounded-pill border border-borde text-tinta transition-colors hover:bg-suave disabled:opacity-35"
+                    >
+                      <Icono nombre="mas" tamano={18} grosor={2.4} />
+                    </button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
       </div>
 
-      {!cargando && filtrados.length === 0 ? (
-        <p className="mt-6 text-tenue">No hay productos que coincidan con «{busqueda}».</p>
-      ) : !cargando ? (
+      {filtrados.length === 0 ? (
+        <p className="mt-6 text-tenue">
+          {busqueda ? `No hay productos que coincidan con «${busqueda}».` : "No hay productos en esta tienda."}
+        </p>
+      ) : (
         <p className="mt-4 text-[0.8125rem] text-tenue">
           <span className="cifra">{filtrados.length}</span>{" "}
-          {filtrados.length === 1 ? "producto" : "productos"} en pantalla · cambios sin persistir
+          {filtrados.length === 1 ? "producto" : "productos"} en pantalla · los cambios se guardan
+          al momento
         </p>
-      ) : null}
+      )}
     </div>
+  );
+}
+
+/**
+ * Existencias editables: escribir el número contado y pulsar Enter (o salir
+ * del campo) lo fija con `PUT`. Se vuelve a montar con cada valor de la API
+ * (`key`), así que nunca muestra un número que el servidor no confirmó.
+ */
+function Conteo({
+  nombre,
+  existencias,
+  deshabilitado,
+  alGuardar,
+}: Readonly<{
+  nombre: string;
+  existencias: number;
+  deshabilitado: boolean;
+  alGuardar: (cantidad: number) => Promise<boolean>;
+}>) {
+  const [valor, setValor] = useState(String(existencias));
+
+  function confirmar() {
+    const cantidad = Number(valor);
+    if (!Number.isInteger(cantidad) || cantidad < 0) {
+      setValor(String(existencias));
+      return;
+    }
+    if (cantidad === existencias) return;
+    // Si la API lo rechaza, el campo vuelve al último valor confirmado.
+    void alGuardar(cantidad).then((ok) => {
+      if (!ok) setValor(String(existencias));
+    });
+  }
+
+  return (
+    <label className="flex items-center gap-1.5">
+      <span className="sr-only">Existencias de {nombre}</span>
+      <input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={9999}
+        value={valor}
+        disabled={deshabilitado}
+        onChange={(e) => setValor(e.target.value)}
+        onBlur={confirmar}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") e.currentTarget.blur();
+        }}
+        className={[
+          "cifra h-11 w-20 rounded-sm border border-borde bg-tarjeta px-2 text-lg font-bold disabled:opacity-60",
+          existencias === 0 ? "text-error" : "text-tinta",
+        ].join(" ")}
+      />
+      {existencias === 0 ? <span className="text-xs font-bold text-error">Agotado</span> : null}
+    </label>
   );
 }

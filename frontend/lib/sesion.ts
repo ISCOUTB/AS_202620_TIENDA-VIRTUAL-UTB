@@ -235,7 +235,7 @@ export async function crearCuenta(
           id: 9000 + enteroAleatorio(999),
           nombre: cuerpo.nombre,
           email: cuerpo.email,
-          rol: "cliente",
+          roles: [{ codigo: "comprador", tienda_id: null }],
           creado_en: new Date().toISOString(),
         };
         const sesion = sesionDemo(usuario);

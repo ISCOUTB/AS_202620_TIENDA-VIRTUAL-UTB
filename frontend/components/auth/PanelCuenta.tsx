@@ -5,28 +5,32 @@ import { useSesion, cerrarSesion } from "@/lib/sesion";
 import { useCarrito, totalCentavos, unidades, porTienda, abrirPedido } from "@/lib/carrito";
 import { formatoHora, formatoPrecio } from "@/lib/formato";
 import { productoPorId } from "@/lib/catalogo";
+import { esGestor, etiquetaRol } from "@/lib/roles";
 import { nombreTienda, paletaTienda } from "@/lib/tiendas";
 import { Badge } from "@/components/ui/Badge";
 import { Boton } from "@/components/ui/Boton";
 import { Esqueleto } from "@/components/ui/Esqueleto";
 import { Revelar } from "@/components/motion/Revelar";
+import { useCatalogo } from "@/components/tienda/CatalogoProvider";
 import { Carnet } from "./Carnet";
+import { MisPedidos } from "./MisPedidos";
 
 /**
  * La cuenta (SPEC v4 §3, `/cuenta`): el carnet digital de la sección «La
  * cuenta» del artefacto, con los datos reales de la sesión, y dos tarjetas:
- * pedidos y lo que hay en el carrito agrupado por tienda.
+ * los pedidos (`GET /orders`) y lo que hay en el carrito agrupado por tienda.
  */
 export function PanelCuenta() {
   const { sesion } = useSesion();
   const { carrito, cargando } = useCarrito();
+  const { productos } = useCatalogo();
 
   if (!sesion) return null;
   const { usuario, modo } = sesion;
   const n = unidades(carrito);
-  const total = totalCentavos(carrito);
-  const grupos = porTienda(carrito);
-  const rol = usuario.rol === "admin" ? "Administración" : "Estudiante";
+  const total = totalCentavos(carrito, productos);
+  const grupos = porTienda(carrito, productos);
+  const rol = etiquetaRol(usuario);
 
   return (
     <Revelar className="grid gap-6 lg:grid-cols-12">
@@ -42,9 +46,9 @@ export function PanelCuenta() {
 
         {modo === "demo" ? (
           <p className="mt-5 rounded-sm bg-aviso-suave px-4 py-3 text-sm leading-snug text-aviso">
-            <strong className="font-bold">Modo demostración.</strong> El módulo
-            de identidad todavía no está en producción: esta sesión vive solo en
-            tu navegador y no crea pedidos reales.
+            <strong className="font-bold">Modo demostración.</strong> La
+            tienda no respondió al entrar: esta sesión vive solo en tu navegador
+            y no crea pedidos reales.
           </p>
         ) : null}
 
@@ -61,11 +65,11 @@ export function PanelCuenta() {
             {modo === "demo" ? "Demostración" : "Cuenta real"}
           </Badge>
           <Badge tono="abierto">Activo</Badge>
-          <Badge tono="neutro">Rol: {usuario.rol}</Badge>
+          <Badge tono="neutro">Rol: {rol}</Badge>
         </div>
 
         <div className="mt-6 flex flex-col gap-2">
-          {usuario.rol === "admin" ? (
+          {esGestor(usuario) ? (
             <Boton href="/admin" variante="suave" bloque>
               Ir a administración
             </Boton>
@@ -77,30 +81,7 @@ export function PanelCuenta() {
       </section>
 
       <div className="flex flex-col gap-6 lg:col-span-7">
-        <section
-          data-escalon=""
-          aria-labelledby="pedidos"
-          className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8"
-        >
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 id="pedidos" className="font-display text-2xl font-semibold">
-              Pedidos
-            </h2>
-            <span className="cifra text-sm font-semibold text-tenue">0</span>
-          </div>
-          <div className="mt-5 rounded-tarjeta bg-suave px-6 py-9 text-center">
-            <p className="font-semibold">Todavía no tienes pedidos.</p>
-            <p className="mx-auto mt-1.5 max-w-[42ch] text-sm leading-relaxed text-tenue">
-              Cuando apartes algo, aquí verás el estado, la hora de recogida y
-              el total. No se envía nada por correo: todo queda en tu pase.
-            </p>
-            <div className="mt-5 flex justify-center">
-              <Boton href="/#tiendas" variante="primario">
-                Ver las tiendas
-              </Boton>
-            </div>
-          </div>
-        </section>
+        <MisPedidos demo={modo === "demo"} />
 
         <section
           data-escalon=""
@@ -165,7 +146,7 @@ export function PanelCuenta() {
               </div>
 
               <p className="text-[0.8125rem] leading-relaxed text-tenue">
-                {carrito.lineas.some((l) => productoPorId(l.productoId)?.esMuestra)
+                {carrito.lineas.some((l) => productoPorId(productos, l.productoId)?.esMuestra)
                   ? "Incluye precios de referencia: la tienda los confirma en el mostrador. "
                   : ""}
                 El pedido se confirma al recoger; el pago es en el mostrador.

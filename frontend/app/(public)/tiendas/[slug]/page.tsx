@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { TIENDAS, tiendaPorSlug, paletaTienda } from "@/lib/tiendas";
 import { productosDe } from "@/lib/catalogo";
+import { obtenerCatalogo } from "@/lib/catalogo-servidor";
 import { estadoHorario, formatoHora } from "@/lib/formato";
 import { FOTO_CAFETERIA, fotoTienda } from "@/lib/imagenes";
 import { jsonLdMigas, jsonLdListaProductos, urlAbsoluta } from "@/lib/seo";
@@ -12,13 +13,13 @@ import { Boton } from "@/components/ui/Boton";
 import { Icono } from "@/components/ui/Icono";
 import { CartaTienda } from "@/components/tienda/CartaTienda";
 import { ResumenPedido } from "@/components/tienda/ResumenPedido";
+import { AvisoRespaldo } from "@/components/tienda/AvisoRespaldo";
 
-/**
- * El estado "abierto ahora" se calcula en el servidor, así que la página se
- * regenera cada minuto. Sin esto el build congelaría el estado del día de
- * compilación, que es peor que no mostrarlo.
+/*
+ * La página se renderiza en cada petición: el catálogo y las existencias se
+ * leen sin caché (lib/catalogo-servidor.ts, escenario 3), y con ellos el
+ * estado «abierto ahora», que un build congelaría en el día de compilación.
  */
-export const revalidate = 60;
 
 export function generateStaticParams() {
   return TIENDAS.map((t) => ({ slug: t.slug }));
@@ -33,7 +34,8 @@ export async function generateMetadata({
   const tienda = tiendaPorSlug(slug);
   if (!tienda) return { title: "Tienda no encontrada" };
 
-  const productos = productosDe(tienda.slug);
+  const { productos: catalogo } = await obtenerCatalogo();
+  const productos = productosDe(catalogo, tienda.slug);
   const titulo = `${tienda.nombre} — ${tienda.categoria}`;
   const descripcion = tienda.descripcion.slice(0, 155);
 
@@ -67,7 +69,8 @@ export default async function PaginaTienda({
   const tienda = tiendaPorSlug(slug);
   if (!tienda) notFound();
 
-  const productos = productosDe(tienda.slug);
+  const { productos: catalogo, origen } = await obtenerCatalogo();
+  const productos = productosDe(catalogo, tienda.slug);
   const paleta = paletaTienda(tienda.slug);
   const estado = estadoHorario(tienda.horario);
   const indice = TIENDAS.findIndex((t) => t.slug === tienda.slug);
@@ -85,7 +88,7 @@ export default async function PaginaTienda({
           { nombre: tienda.nombre, ruta: `/tiendas/${tienda.slug}` },
         ])}
       />
-      <JsonLd datos={jsonLdListaProductos(tienda)} />
+      <JsonLd datos={jsonLdListaProductos(tienda, productos)} />
 
       {/* Sábana: las cinco tiendas como pastillas; la actual, en blanco. */}
       <div className="sabana bajo-nav">
@@ -165,6 +168,8 @@ export default async function PaginaTienda({
             </ul>
           </div>
         </Revelar>
+
+        {origen === "respaldo" ? <AvisoRespaldo className="mt-4" /> : null}
 
         {tienda.nota ? (
           <p className="mt-4 flex items-start gap-2.5 rounded-sm bg-aviso-suave px-4 py-3 text-sm leading-snug text-aviso">

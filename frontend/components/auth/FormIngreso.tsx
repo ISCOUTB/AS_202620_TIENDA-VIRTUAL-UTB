@@ -121,8 +121,8 @@ export function FormIngreso() {
         </summary>
         <div className="pb-1 text-sm leading-relaxed text-tenue">
           <p>
-            El módulo de identidad todavía no está en producción. Para recorrer
-            la tienda usa:
+            Solo se activa si la tienda no responde (API caída o sin
+            desplegar). En ese caso, para recorrer la tienda usa:
           </p>
           <ul className="mt-2 flex flex-col gap-1">
             <li>

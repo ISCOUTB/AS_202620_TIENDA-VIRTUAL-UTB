@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useCarrito, unidades, totalCentavos, abrirPedido } from "@/lib/carrito";
+import { useCatalogo } from "./CatalogoProvider";
 import { formatoPrecio } from "@/lib/formato";
 import { gsap, useGSAP, CONDICIONES, MOVIMIENTO } from "@/lib/movimiento";
 
@@ -17,6 +18,7 @@ import { gsap, useGSAP, CONDICIONES, MOVIMIENTO } from "@/lib/movimiento";
  */
 export function BarraPedido() {
   const { carrito, cargando } = useCarrito();
+  const { productos } = useCatalogo();
   const ruta = usePathname();
   const ref = useRef<HTMLButtonElement>(null);
   const n = unidades(carrito);
@@ -65,7 +67,7 @@ export function BarraPedido() {
         </span>
       </span>
       <span className="flex-1" />
-      <span className="cifra shrink-0 whitespace-nowrap text-base font-bold">{formatoPrecio(totalCentavos(carrito))}</span>
+      <span className="cifra shrink-0 whitespace-nowrap text-base font-bold">{formatoPrecio(totalCentavos(carrito, productos))}</span>
     </button>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useCarrito, totalCentavos, abrirPedido } from "@/lib/carrito";
 import { productoPorId } from "@/lib/catalogo";
+import { useCatalogo } from "./CatalogoProvider";
 import { formatoPrecio } from "@/lib/formato";
 import { Boton } from "@/components/ui/Boton";
 import { Esqueleto } from "@/components/ui/Esqueleto";
@@ -14,7 +15,8 @@ import { Esqueleto } from "@/components/ui/Esqueleto";
  */
 export function ResumenPedido() {
   const { carrito, cargando } = useCarrito();
-  const total = totalCentavos(carrito);
+  const { productos } = useCatalogo();
+  const total = totalCentavos(carrito, productos);
   const vacio = carrito.lineas.length === 0;
 
   return (
@@ -39,7 +41,7 @@ export function ResumenPedido() {
       ) : (
         <ul className="mt-3">
           {carrito.lineas.map((l) => {
-            const p = productoPorId(l.productoId);
+            const p = productoPorId(productos, l.productoId);
             if (!p) return null;
             return (
               <li
