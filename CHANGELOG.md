@@ -5,7 +5,7 @@ La versión es la de la API (`info.version` en
 [`docs/api/openapi.json`](docs/api/openapi.json)); el frontend se despliega con
 ella.
 
-## [0.5.0] — 2026-10-24 (sin desplegar)
+## [0.5.0] — 2026-10-24 (desplegada en Dokploy el mismo día)
 
 Runbook de subida: [`docs/despliegue-dokploy.md#subir-050`](docs/despliegue-dokploy.md#subir-050).
 
