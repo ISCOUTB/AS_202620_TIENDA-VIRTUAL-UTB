@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Campo } from "@/components/ui/Campo";
 import { Boton } from "@/components/ui/Boton";
@@ -17,7 +16,6 @@ const BENEFICIOS = [
 ];
 
 export function FormRegistro() {
-  const router = useRouter();
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -49,8 +47,8 @@ export function FormRegistro() {
     setEnviando(true);
     try {
       await crearCuenta(nombre, email, password);
-      router.replace("/cuenta");
-      router.refresh();
+      // Navegación completa, como en FormIngreso.
+      window.location.assign("/cuenta");
     } catch (err) {
       setError(err instanceof Error ? err.message : "No se pudo crear la cuenta.");
       setEnviando(false);

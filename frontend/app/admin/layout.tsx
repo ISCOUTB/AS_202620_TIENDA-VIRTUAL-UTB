@@ -34,10 +34,10 @@ export default function LayoutAdmin({
           <span className="hidden text-sm font-semibold opacity-90 sm:inline">/ administración</span>
           <span className="flex-1" />
           <nav aria-label="Administración" className="flex items-center gap-1 text-sm font-semibold">
-            <Link href="/cuenta" className="inline-flex min-h-11 items-center px-2 underline-offset-4 hover:underline">
+            <Link href="/cuenta" prefetch={false} className="inline-flex min-h-11 items-center px-2 underline-offset-4 hover:underline">
               Mi pase
             </Link>
-            <Link href="/" className="inline-flex min-h-11 items-center px-2 underline-offset-4 hover:underline">
+            <Link href="/" prefetch={false} className="inline-flex min-h-11 items-center px-2 underline-offset-4 hover:underline">
               Ver tienda
             </Link>
           </nav>
