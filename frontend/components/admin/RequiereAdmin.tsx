@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSesion } from "@/lib/sesion";
+import { esGestor } from "@/lib/roles";
 import { Boton } from "@/components/ui/Boton";
 import { Esqueleto, EsqueletoTabla, ZonaCargando } from "@/components/ui/Esqueleto";
 
@@ -43,7 +44,7 @@ export function RequiereAdmin({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (sesion.usuario.rol !== "admin") {
+  if (!esGestor(sesion.usuario)) {
     return (
       <div className="contenedor pb-12">
         <div className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-10">

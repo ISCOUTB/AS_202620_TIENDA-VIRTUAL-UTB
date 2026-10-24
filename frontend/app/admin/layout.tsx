@@ -51,11 +51,8 @@ export default function LayoutAdmin({
 
       <footer className="mt-6 border-t border-linea bg-tarjeta">
         <div className="contenedor flex flex-wrap items-center justify-between gap-3 py-6 text-[0.8125rem] text-tenue">
-          <span className="rotulo">Panel de cafetería · versión de diseño</span>
-          <p>
-            Las mutaciones de inventario se publican cuando exista{" "}
-            <span className="font-mono">PATCH /inventory/:id</span>.
-          </p>
+          <span className="rotulo">Panel de cafetería</span>
+          <p>Cada cambio queda registrado como movimiento de inventario o en el historial del pedido.</p>
         </div>
       </footer>
     </div>

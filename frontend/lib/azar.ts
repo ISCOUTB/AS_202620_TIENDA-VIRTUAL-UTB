@@ -43,7 +43,11 @@ export function identificador(): string {
 
 /**
  * Llave de idempotencia para `POST /orders`: un intento = una llave.
- * Usa `crypto.randomUUID` cuando existe; si no, cae al identificador local.
+ *
+ * La API exige un UUID (422 si no lo es). Usa `crypto.randomUUID` cuando
+ * existe —solo está en contextos seguros: un despliegue por HTTP plano no lo
+ * tiene— y si no arma un UUID v4 con `bytesAleatorios`, mezclando la marca de
+ * tiempo para que siga siendo único aunque el entorno no tenga `crypto`.
  */
 export function llaveIdempotencia(): string {
   if (
@@ -52,5 +56,17 @@ export function llaveIdempotencia(): string {
   ) {
     return globalThis.crypto.randomUUID();
   }
-  return `${Date.now()}-${identificador()}`;
+  const b = bytesAleatorios(16);
+  let ahora = Date.now() + secuencia++;
+  for (let i = 5; i >= 0; i--) {
+    b[i] ^= ahora % 256;
+    ahora = Math.floor(ahora / 256);
+  }
+  b[6] = (b[6] & 0x0f) | 0x40; // versión 4
+  b[8] = (b[8] & 0x3f) | 0x80; // variante RFC 4122
+  const hex = Array.from(b, (x) => x.toString(16).padStart(2, "0")).join("");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
 }
+
+/** Desempata llaves generadas en el mismo milisegundo sin `crypto`. */
+let secuencia = 0;

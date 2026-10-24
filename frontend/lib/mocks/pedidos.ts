@@ -3,7 +3,7 @@ import { PRODUCTOS_MOCK } from "./catalogo";
 
 /**
  * Pedidos de muestra para diseñar "mis pedidos", el detalle y el panel
- * administrativo (endpoint `preview`). Cubren los cinco estados del ciclo de
+ * administrativo (endpoint `preview`). Cubren varios estados del ciclo de
  * vida; los subtotales se calculan desde los precios para que las cifras
  * sumen de verdad.
  */
@@ -38,19 +38,23 @@ function pedido(
   return {
     id,
     usuario_id,
+    tienda_id: 3,
+    tienda: "alegria",
     items,
     total_centavos: items.reduce((suma, i) => suma + i.subtotal_centavos, 0),
     estado,
+    hora_recogida: null,
     creado_en,
+    actualizado_en: creado_en,
   };
 }
 
 export const PEDIDOS_MOCK: OrderOut[] = [
-  pedido(1, 1, "pendiente", "2026-10-14T14:30:00Z", [
+  pedido(1, 1, "pendiente_pago", "2026-10-14T14:30:00Z", [
     { product_id: 1, cantidad: 2 },
     { product_id: 3, cantidad: 1 },
   ]),
-  pedido(2, 1, "confirmado", "2026-10-13T15:10:00Z", [
+  pedido(2, 1, "pagado", "2026-10-13T15:10:00Z", [
     { product_id: 4, cantidad: 1 },
     { product_id: 2, cantidad: 2 },
   ]),

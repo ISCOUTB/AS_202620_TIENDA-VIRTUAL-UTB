@@ -8,6 +8,7 @@ import {
   iniciarSesion,
   leerSesion,
 } from "@/lib/sesion";
+import { esAdminGeneral } from "@/lib/roles";
 
 const TOKEN = {
   access_token: "tok-123",
@@ -93,7 +94,7 @@ describe("iniciarSesion — modo demostración", () => {
     fetchSimulado.mockRejectedValue(new TypeError("Failed to fetch"));
     const sesion = await iniciarSesion("admin@utb.edu.co", CLAVE_DEMO);
     expect(sesion.modo).toBe("demo");
-    expect(sesion.usuario.rol).toBe("admin");
+    expect(esAdminGeneral(sesion.usuario)).toBe(true);
   });
 
   it("exige la contraseña de demostración", async () => {
@@ -153,7 +154,7 @@ describe("crearCuenta", () => {
     fetchSimulado.mockResolvedValue(respuesta({}, 404));
     const sesion = await crearCuenta("Nuevo Cliente", "nuevo@utb.edu.co", "x");
     expect(sesion.modo).toBe("demo");
-    expect(sesion.usuario.rol).toBe("cliente");
+    expect(sesion.usuario.roles).toEqual([{ codigo: "comprador", tienda_id: null }]);
     expect(sesion.usuario.email).toBe("nuevo@utb.edu.co");
     expect(sesion.usuario.id).toBeGreaterThanOrEqual(9000);
   });

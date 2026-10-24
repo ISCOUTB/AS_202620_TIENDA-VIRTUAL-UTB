@@ -12,6 +12,7 @@ import {
   urlAbsoluta,
 } from "@/lib/seo";
 import { tiendaPorSlug } from "@/lib/tiendas";
+import { PRODUCTOS, productosDe } from "@/lib/catalogo";
 
 describe("urlAbsoluta", () => {
   it("antepone el origen una sola vez", () => {
@@ -33,14 +34,14 @@ describe("jsonLdSitio", () => {
 
 describe("jsonLdCafeteria", () => {
   it("solo incluye las tiendas indexables en el menú", () => {
-    const datos = jsonLdCafeteria();
+    const datos = jsonLdCafeteria(PRODUCTOS);
     expect(datos["@type"]).toBe("CafeOrCoffeeShop");
     const menu = datos.hasMenu as { hasMenuSection: Array<{ name: string }> };
     expect(menu.hasMenuSection.map((s) => s.name)).toEqual(["Almuerzo 01"]);
   });
 
   it("publica el horario de lunes a viernes", () => {
-    const datos = jsonLdCafeteria();
+    const datos = jsonLdCafeteria(PRODUCTOS);
     const horas = datos.openingHoursSpecification as Array<{
       dayOfWeek: string[];
       opens: string;
@@ -53,7 +54,7 @@ describe("jsonLdCafeteria", () => {
   });
 
   it("marca los agotados como SoldOut", () => {
-    const menu = jsonLdCafeteria().hasMenu as {
+    const menu = jsonLdCafeteria(PRODUCTOS).hasMenu as {
       hasMenuSection: Array<{
         hasMenuItem: Array<{
           offers: { availability: string; price: string; priceCurrency: string };
@@ -97,7 +98,7 @@ describe("jsonLdListaProductos", () => {
   it("enumera la carta de la tienda", () => {
     const tienda = tiendaPorSlug("almuerzo-01");
     if (!tienda) throw new Error("falta la tienda almuerzo-01");
-    const datos = jsonLdListaProductos(tienda);
+    const datos = jsonLdListaProductos(tienda, productosDe(PRODUCTOS, "almuerzo-01"));
     expect(datos["@type"]).toBe("ItemList");
     expect(datos.numberOfItems).toBe(8);
     const items = datos.itemListElement as Array<{ url: string }>;

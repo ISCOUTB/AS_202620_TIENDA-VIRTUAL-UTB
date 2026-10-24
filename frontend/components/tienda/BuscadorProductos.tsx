@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { buscarProductos } from "@/lib/catalogo";
+import { useCatalogo } from "./CatalogoProvider";
 import { formatoPrecio } from "@/lib/formato";
 import { nombreTienda } from "@/lib/tiendas";
 import { Icono } from "@/components/ui/Icono";
@@ -22,7 +23,11 @@ export function BuscadorProductos({ compacto = false }: { compacto?: boolean }) 
   const [consulta, setConsulta] = useState("");
   const [abierto, setAbierto] = useState(false);
   const caja = useRef<HTMLDivElement>(null);
-  const resultados = useMemo(() => buscarProductos(consulta, 6), [consulta]);
+  const { productos } = useCatalogo();
+  const resultados = useMemo(
+    () => buscarProductos(productos, consulta, 6),
+    [productos, consulta],
+  );
   const activa = consulta.trim().length >= 2;
 
   useEffect(() => {

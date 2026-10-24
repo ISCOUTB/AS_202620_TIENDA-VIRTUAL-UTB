@@ -9,10 +9,15 @@
  *
  * Persistencia en `localStorage` con TTL de 24 h, el mismo vencimiento que
  * la saga de pedidos (docs/idempotencia-saga-s11.md).
+ *
+ * Las líneas guardan solo `productoId` y cantidad; precio, nombre y tope
+ * salen del catálogo vigente, que las funciones reciben como parámetro
+ * (components/tienda/CatalogoProvider.tsx). `depurar` quita las líneas que
+ * el catálogo real ya no tiene.
  */
 
 import { useEffect, useState } from "react";
-import { PRODUCTOS, productoPorId } from "@/lib/catalogo";
+import { productoPorId, type Producto } from "@/lib/catalogo";
 
 const CLAVE = "tvutb.carrito";
 const TTL_MS = 24 * 60 * 60 * 1000;
@@ -75,16 +80,16 @@ function escribir(carrito: Carrito): void {
   emitir();
 }
 
-export function agregar(productoId: number, cantidad = 1): Carrito {
+export function agregar(producto: Producto, cantidad = 1): Carrito {
   const carrito = leerCarrito();
-  const producto = productoPorId(productoId);
-  if (!producto || producto.existencias <= 0) return carrito;
+  if (producto.existencias <= 0) return carrito;
 
   const base: Carrito =
     carrito.creadoEn === 0
       ? { lineas: [], creadoEn: Date.now(), horaRecogida: carrito.horaRecogida }
       : carrito;
 
+  const productoId = producto.id;
   const existente = base.lineas.find((l) => l.productoId === productoId);
   const tope = producto.existencias;
 
@@ -101,10 +106,9 @@ export function agregar(productoId: number, cantidad = 1): Carrito {
   return actualizado;
 }
 
-export function cambiarCantidad(productoId: number, cantidad: number): Carrito {
+/** Cambia la cantidad de una línea sin pasar de `tope` (las existencias). */
+export function cambiarCantidad(productoId: number, cantidad: number, tope: number): Carrito {
   const carrito = leerCarrito();
-  const producto = productoPorId(productoId);
-  const tope = producto?.existencias ?? 0;
   const lineas =
     cantidad <= 0
       ? carrito.lineas.filter((l) => l.productoId !== productoId)
@@ -118,8 +122,30 @@ export function cambiarCantidad(productoId: number, cantidad: number): Carrito {
   return actualizado;
 }
 
+/**
+ * Ajusta el carrito al catálogo real: quita las líneas de productos que ya no
+ * se venden (o de ids que nunca existieron en la base, como los del
+ * respaldo) y recorta las cantidades a las existencias. Solo escribe si algo
+ * cambió, para no disparar eventos en bucle.
+ */
+export function depurar(productos: Producto[]): Carrito {
+  const carrito = leerCarrito();
+  const lineas = carrito.lineas.flatMap((l) => {
+    const producto = productoPorId(productos, l.productoId);
+    const cantidad = Math.min(l.cantidad, producto?.existencias ?? 0);
+    return cantidad > 0 ? [{ ...l, cantidad }] : [];
+  });
+  const cambio =
+    lineas.length !== carrito.lineas.length ||
+    lineas.some((l, i) => l.cantidad !== carrito.lineas[i].cantidad);
+  if (!cambio) return carrito;
+  const actualizado = { ...carrito, lineas };
+  escribir(actualizado);
+  return actualizado;
+}
+
 export function quitar(productoId: number): Carrito {
-  return cambiarCantidad(productoId, 0);
+  return cambiarCantidad(productoId, 0, 0);
 }
 
 export function vaciar(): void {
@@ -133,9 +159,9 @@ export function elegirHora(hora: string | null): Carrito {
   return actualizado;
 }
 
-export function totalCentavos(carrito: Carrito): number {
+export function totalCentavos(carrito: Carrito, productos: Producto[]): number {
   return carrito.lineas.reduce((total, linea) => {
-    const producto = productoPorId(linea.productoId);
+    const producto = productoPorId(productos, linea.productoId);
     return total + (producto ? producto.precioCentavos * linea.cantidad : 0);
   }, 0);
 }
@@ -147,10 +173,11 @@ export function unidades(carrito: Carrito): number {
 /** Agrupa las líneas por tienda para mostrarlas como en el mostrador. */
 export function porTienda(
   carrito: Carrito,
+  productos: Producto[],
 ): Array<{ tienda: string; items: Array<{ nombre: string; cantidad: number }> }> {
   const mapa = new Map<string, Array<{ nombre: string; cantidad: number }>>();
   for (const linea of carrito.lineas) {
-    const producto = PRODUCTOS.find((p) => p.id === linea.productoId);
+    const producto = productoPorId(productos, linea.productoId);
     if (!producto) continue;
     const lista = mapa.get(producto.tienda) ?? [];
     lista.push({ nombre: producto.nombre, cantidad: linea.cantidad });

@@ -43,23 +43,42 @@ describe("crearPedido", () => {
     expect(fetchSimulado).not.toHaveBeenCalled();
   });
 
-  it("envía los ítems con llave de idempotencia", async () => {
-    fetchSimulado.mockResolvedValue(
-      respuesta({ id: 1, estado: "pendiente", total: 0, items: [] }, 201),
-    );
+  it("envía los ítems y la hora con llave de idempotencia", async () => {
+    const pedidos = [{ id: 1, estado: "pendiente_pago", total_centavos: 0, items: [] }];
+    fetchSimulado.mockResolvedValue(respuesta(pedidos, 201));
     const resultado = await crearPedido(CARRITO, "10:40");
 
-    expect(resultado.estado).toBe("real");
+    expect(resultado).toEqual({ estado: "real", pedidos });
     const [url, opciones] = fetchSimulado.mock.calls[0];
     expect(url).toContain("/orders");
     expect(opciones.method).toBe("POST");
-    expect(opciones.headers["Idempotency-Key"]).toBeTruthy();
+    expect(opciones.headers["Idempotency-Key"]).toMatch(/^[0-9a-f-]{36}$/);
     expect(JSON.parse(opciones.body)).toEqual({
       items: [
         { product_id: 101, cantidad: 2 },
         { product_id: 144, cantidad: 1 },
       ],
+      hora_recogida: "10:40",
     });
+  });
+
+  it("sin hora no envía hora_recogida", async () => {
+    fetchSimulado.mockResolvedValue(respuesta([], 201));
+    await crearPedido(CARRITO, null);
+    expect(JSON.parse(fetchSimulado.mock.calls[0][1].body)).not.toHaveProperty("hora_recogida");
+  });
+
+  it("reutiliza la llave al reintentar tras un fallo de red", async () => {
+    fetchSimulado.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+    fetchSimulado.mockResolvedValueOnce(respuesta([], 201));
+    fetchSimulado.mockResolvedValueOnce(respuesta([], 201));
+    await crearPedido(CARRITO, "11:00");
+    await crearPedido(CARRITO, "11:00");
+    await crearPedido(CARRITO, "11:00");
+    const llaves = fetchSimulado.mock.calls.map(([, o]) => o.headers["Idempotency-Key"]);
+    // El reintento usa la misma llave; tras el éxito, un pedido nuevo usa otra.
+    expect(llaves[1]).toBe(llaves[0]);
+    expect(llaves[2]).not.toBe(llaves[1]);
   });
 
   it("degrada a demostración si el endpoint no existe", async () => {

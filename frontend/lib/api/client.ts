@@ -144,3 +144,11 @@ export const apiPost = <T>(
   cuerpo: unknown,
   idempotencyKey?: string,
 ) => pedir<T>(ruta, { metodo: "POST", cuerpo, idempotencyKey });
+
+/** PUT tipado (reemplazo de un recurso, p. ej. las existencias absolutas). */
+export const apiPut = <T>(ruta: string, cuerpo: unknown) =>
+  pedir<T>(ruta, { metodo: "PUT", cuerpo });
+
+/** PATCH tipado (edición parcial, p. ej. un producto). */
+export const apiPatch = <T>(ruta: string, cuerpo: unknown) =>
+  pedir<T>(ruta, { metodo: "PATCH", cuerpo });
