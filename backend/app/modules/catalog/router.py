@@ -15,11 +15,11 @@ from app.modules.catalog.schemas import (
     ProductUpdateRequest,
     TiendaOut,
 )
-from app.shared.database import get_session
+from app.shared.database import RutaConSesion, get_session
 from app.shared.errores import respuestas
 from app.shared.seguridad import ContextoSeguridad, contexto_actual, prohibido, requiere_usuario
 
-router = APIRouter(prefix="/catalog", tags=["catalogo"])
+router = APIRouter(prefix="/catalog", tags=["catalogo"], route_class=RutaConSesion)
 
 Sesion = Annotated[Session, Depends(get_session)]
 Usuario = Annotated[ContextoSeguridad, Depends(requiere_usuario)]
