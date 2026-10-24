@@ -1,0 +1,119 @@
+import asyncio
+import re
+from playwright import async_api
+from playwright.async_api import expect
+
+async def run_test():
+    pw = None
+    browser = None
+    context = None
+
+    try:
+        # Start a Playwright session in asynchronous mode
+        pw = await async_api.async_playwright().start()
+
+        # Launch a Chromium browser in headless mode with custom arguments
+        browser = await pw.chromium.launch(
+            headless=True,
+            args=[
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process"
+            ],
+        )
+
+        # Create a new browser context (like an incognito window)
+        context = await browser.new_context()
+        # Wider default timeout to match the agent's DOM-stability budget;
+        # auto-waiting Playwright APIs (expect, locator.wait_for) inherit this.
+        context.set_default_timeout(15000)
+
+        # Open a new page in the browser context
+        page = await context.new_page()
+
+        # Interact with the page elements to simulate user flow
+        # -> navigate
+        await page.goto("http://localhost:3000")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+        
+        # -> Open the sign-in page using the visible “Ingresar” link.
+        # Ingresar link
+        elem = page.get_by_role("link", name="Ingresar")
+        await elem.click(timeout=10000)
+        
+        # -> Sign in using the Antojos store admin account and confirm the account’s landing page.
+        # email email field
+        elem = page.get_by_role("textbox", name="Correo institucional")
+        await elem.wait_for(state="visible", timeout=10000)
+        await elem.fill("admin.antojos@utb.edu.co")
+        
+        # -> Sign in using the Antojos store admin account and confirm the account’s landing page.
+        # password password field
+        elem = page.get_by_role("textbox", name="Contraseña")
+        await elem.wait_for(state="visible", timeout=10000)
+        await elem.fill("Tienda-2026")
+        
+        # -> Sign in using the Antojos store admin account and confirm the account’s landing page.
+        # Entrar button
+        elem = page.get_by_role("button", name="Entrar")
+        await elem.click(timeout=10000)
+        
+        # -> Open the Antojos store administration using “Ir a administración”.
+        # Ir a administración link
+        elem = page.get_by_role("link", name="Ir a administración")
+        await elem.click(timeout=10000)
+        
+        # -> Scroll down to the Antojos inventory list and inspect the available product actions.
+        await page.mouse.wheel(0, 300)
+        
+        # -> Open the “Chicles Trident” product using its “Editar” control.
+        # Editar Chicles Trident button
+        elem = page.get_by_role("button", name="Editar Chicles Trident")
+        await elem.click(timeout=10000)
+        
+        # -> Uncheck “A la venta” for Chicles Trident, save the product, and verify the updated sale availability.
+        # checkbox
+        elem = page.get_by_role("checkbox", name="A la venta")
+        await elem.click(timeout=10000)
+        
+        # -> Uncheck “A la venta” for Chicles Trident, save the product, and verify the updated sale availability.
+        # Guardar cambios button
+        elem = page.get_by_role("button", name="Guardar cambios")
+        await elem.click(timeout=10000)
+        
+        # -> Inspect the admin page header for a visible link back to the shopper storefront.
+        await page.mouse.wheel(0, 300)
+        
+        # -> Open the shopper storefront with “Ver tienda” and check whether Chicles Trident is unavailable for sale.
+        # Ver tienda link
+        elem = page.get_by_role("link", name="Ver tienda")
+        await elem.click(timeout=10000)
+        
+        # -> Search the shopper storefront for “Chicles Trident” and check the product’s visible availability.
+        # Arroz, granola, helado… search field
+        elem = page.get_by_role("searchbox", name="Buscar en las tiendas")
+        await elem.wait_for(state="visible", timeout=10000)
+        await elem.fill("Chicles Trident")
+        
+        # --> Assertions to verify final state
+        
+        # --> Chicles Trident is not available in the shopper storefront.
+        # Assert-outcome: not verified — the export-time check could not be evaluated
+        # Assert: The shopper storefront does not show Chicles Trident as available for sale.
+        await expect(page.get_by_role("search").nth(0)).to_contain_text("No encontramos \u00ab Chicles Trident \u00bb en las cinco tiendas.", timeout=15000), "The shopper storefront does not show Chicles Trident as available for sale."
+        await asyncio.sleep(5)
+
+    finally:
+        if context:
+            await context.close()
+        if browser:
+            await browser.close()
+        if pw:
+            await pw.stop()
+
+asyncio.run(run_test())
+    

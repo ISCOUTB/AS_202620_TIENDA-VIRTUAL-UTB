@@ -1,0 +1,182 @@
+[
+  {
+    "id": "TC001",
+    "title": "verify_get_catalog_products_endpoint_returns_correct_product_data",
+    "description": "Test the GET /catalog/products endpoint to ensure it returns the correct list of products with accurate price, stock status, and reference pricing information for the store catalog."
+  },
+  {
+    "id": "TC002",
+    "title": "verify_get_inventory_endpoint_returns_current_stock_levels",
+    "description": "Test the GET /inventory endpoint to verify it returns up-to-date stock levels for products, including correct handling of sold-out and low-stock statuses."
+  },
+  {
+    "id": "TC003",
+    "title": "verify_post_orders_endpoint_creates_orders_with_idempotency",
+    "description": "Test the POST /orders endpoint to confirm it creates orders correctly for one or multiple stores, respects the Idempotency-Key header to prevent duplicate orders, and requires user authentication."
+  },
+  {
+    "id": "TC004",
+    "title": "verify_post_identity_login_endpoint_authenticates_users",
+    "description": "Test the POST /identity/login endpoint to ensure users can authenticate with valid institutional credentials and receive appropriate error messages for invalid credentials."
+  },
+  {
+    "id": "TC005",
+    "title": "verify_post_identity_register_endpoint_creates_new_user_accounts",
+    "description": "Test the POST /identity/register endpoint to confirm new user accounts can be created with valid registration data including name, email, and password."
+  },
+  {
+    "id": "TC006",
+    "title": "verify_get_orders_endpoint_returns_user_order_history",
+    "description": "Test the GET /orders endpoint to verify it returns the authenticated user's order history with correct status, items, pickup time, and total information."
+  },
+  {
+    "id": "TC007",
+    "title": "verify_post_orders_orderid_cancel_endpoint_cancels_pending_orders",
+    "description": "Test the POST /orders/{orderId}/cancel endpoint to ensure users can cancel orders that are still pending payment and that stock is restored accordingly."
+  },
+  {
+    "id": "TC008",
+    "title": "verify_post_inventory_productid_adjust_endpoint_updates_stock_correctly",
+    "description": "Test the POST /inventory/{productId}/adjust endpoint to confirm authorized staff can adjust product stock by increments or decrements, and stock does not go below zero."
+  },
+  {
+    "id": "TC009",
+    "title": "verify_post_orders_orderid_estado_endpoint_advances_order_status",
+    "description": "Test the POST /orders/{orderId}/estado endpoint to verify authorized staff can advance order statuses through payment confirmation, preparation, ready, and delivery stages."
+  },
+  {
+    "id": "TC010",
+    "title": "verify_post_catalog_products_endpoint_creates_new_product",
+    "description": "Test the POST /catalog/products endpoint to ensure authorized staff can create new products with all required fields and that the product appears in the store catalog."
+  },
+  {
+    "id": "TC011",
+    "title": "general_admin_cannot_adjust_stock_and_gets_supervision_403",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Store ids: antojos=1, punto-fit=2, alegria=3, almuerzo-01=4, almuerzo-02=5. Antojos products: 14,15,4,18; Punto Fit: 25,27,28,29; Almuerzo 01: 50,51,52,53. Login as admin@utb.edu.co / Admin-Demo-2026 (admin_general). POST /inventory/27/adjust {delta:1,motivo:'conteo'} must return 403 with detail starting 'El administrador general solo supervisa'. PUT /inventory/27 {cantidad:5} must also be 403. GET /inventory/27 before and after must show the same cantidad."
+  },
+  {
+    "id": "TC012",
+    "title": "general_admin_cannot_create_or_edit_products",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Store ids: antojos=1, punto-fit=2, alegria=3, almuerzo-01=4, almuerzo-02=5. Antojos products: 14,15,4,18; Punto Fit: 25,27,28,29; Almuerzo 01: 50,51,52,53. As admin@utb.edu.co / Admin-Demo-2026: POST /catalog/products {tienda:'punto-fit',nombre:<unique>,descripcion:'x',precio_centavos:100000} -> 403; PATCH /catalog/products/28 {descripcion:'x'} -> 403. Detail starts with 'El administrador general solo supervisa'."
+  },
+  {
+    "id": "TC013",
+    "title": "general_admin_cannot_advance_or_cancel_store_orders",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Create an order as ana@utb.edu.co / Comprador-2026 (POST /orders with Idempotency-Key uuid, items [{product_id:29,cantidad:1}]). As admin@utb.edu.co / Admin-Demo-2026: POST /orders/{id}/estado {estado:'pagado'} -> 403 and POST /orders/{id}/cancel -> 403. GET /orders/{id} as the general admin -> 200 (read access)."
+  },
+  {
+    "id": "TC014",
+    "title": "general_admin_reads_any_store_queue_and_inactive_products",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As admin@utb.edu.co / Admin-Demo-2026: GET /orders?tienda_id=1 and GET /orders?tienda_id=4 -> 200 with lists of orders of those stores; GET /catalog/products?incluir_inactivos=true -> 200."
+  },
+  {
+    "id": "TC015",
+    "title": "store_admin_manages_only_own_store_stock",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Store ids: antojos=1, punto-fit=2, alegria=3, almuerzo-01=4, almuerzo-02=5. Antojos products: 14,15,4,18; Punto Fit: 25,27,28,29; Almuerzo 01: 50,51,52,53. As admin.punto-fit@utb.edu.co / Tienda-2026: POST /inventory/25/adjust {delta:1,motivo:'conteo'} -> 200 and cantidad increases by 1. POST /inventory/14/adjust (Antojos product) -> 403. PUT /inventory/50 {cantidad:3} (Almuerzo 01) -> 403."
+  },
+  {
+    "id": "TC016",
+    "title": "store_admin_creates_and_edits_only_in_own_store",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Store ids: antojos=1, punto-fit=2, alegria=3, almuerzo-01=4, almuerzo-02=5. Antojos products: 14,15,4,18; Punto Fit: 25,27,28,29; Almuerzo 01: 50,51,52,53. As admin.alegria@utb.edu.co / Tienda-2026: POST /catalog/products {tienda:'alegria',nombre:<unique>,descripcion:'x',precio_centavos:250000} -> 201; POST same body with tienda:'antojos' -> 403; PATCH /catalog/products/25 (Punto Fit) {descripcion:'x'} -> 403."
+  },
+  {
+    "id": "TC017",
+    "title": "store_admin_cannot_see_other_store_orders",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As admin.punto-fit@utb.edu.co / Tienda-2026: GET /orders?tienda_id=4 -> 403. Create an order of ana in Almuerzo 01 (product 51); as admin.punto-fit GET /orders/{id} -> 404, POST /orders/{id}/estado {estado:'pagado'} -> 404, POST /orders/{id}/cancel -> 404."
+  },
+  {
+    "id": "TC018",
+    "title": "store_admin_queue_lists_only_own_store",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As admin.antojos@utb.edu.co / Tienda-2026: GET /orders?tienda_id=1 -> 200 and every order has tienda_id 1; GET /orders?tienda_id=2 -> 403."
+  },
+  {
+    "id": "TC019",
+    "title": "buyer_cannot_use_admin_endpoints",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Store ids: antojos=1, punto-fit=2, alegria=3, almuerzo-01=4, almuerzo-02=5. Antojos products: 14,15,4,18; Punto Fit: 25,27,28,29; Almuerzo 01: 50,51,52,53. As ana@utb.edu.co / Comprador-2026: POST /inventory/25/adjust -> 403; POST /catalog/products -> 403; GET /orders?tienda_id=1 -> 403; POST /orders/{own order id}/estado {estado:'pagado'} -> 403."
+  },
+  {
+    "id": "TC020",
+    "title": "anonymous_requests_to_protected_endpoints_get_401",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Without Authorization header: GET /identity/me, GET /orders, POST /orders, GET /inventory/25, POST /inventory/25/adjust, POST /catalog/products all return 401 with header WWW-Authenticate: Bearer. Public: GET /catalog/products, GET /catalog/tiendas, GET /inventory, GET /health -> 200."
+  },
+  {
+    "id": "TC021",
+    "title": "invalid_token_gets_401",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. GET /identity/me with Authorization: Bearer not-a-token -> 401; with a token signed with another secret -> 401."
+  },
+  {
+    "id": "TC022",
+    "title": "order_status_transitions_follow_the_lifecycle",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Create an order of ana in Almuerzo 01 (product 52). As admin.almuerzo-01@utb.edu.co / Tienda-2026 advance pagado -> en_preparacion -> listo -> entregado, each 200. Then estado 'pagado' on the delivered order -> 400. On a new order, jumping directly from pendiente_pago to 'entregado' -> 400."
+  },
+  {
+    "id": "TC023",
+    "title": "buyer_cannot_cancel_after_payment",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Create order of ana (product 53). Admin admin.almuerzo-01@utb.edu.co / Tienda-2026 sets estado 'pagado'. ana POST /orders/{id}/cancel -> 400 (only pendiente_pago can be cancelled by the buyer). The store admin can still cancel it -> 200 and stock is restored."
+  },
+  {
+    "id": "TC024",
+    "title": "cancel_restores_stock",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Read GET /inventory existencias of product 15. ana creates order with 2 units of 15 -> stock decreases by 2. ana cancels -> stock back to the original value."
+  },
+  {
+    "id": "TC025",
+    "title": "order_without_idempotency_key_is_rejected",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As ana POST /orders without Idempotency-Key header -> 422 (or 400). With a non-UUID value -> 422."
+  },
+  {
+    "id": "TC026",
+    "title": "same_idempotency_key_returns_same_orders",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As ana POST /orders twice with the same Idempotency-Key and body {items:[{product_id:18,cantidad:1}]}: first 201, second 200 with the same order ids; stock decreases only once."
+  },
+  {
+    "id": "TC027",
+    "title": "multi_store_order_splits_by_store",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As ana POST /orders with items from Antojos (product 4) and Punto Fit (product 27): 201 with two orders, one per tienda_id, each with its items and total."
+  },
+  {
+    "id": "TC028",
+    "title": "order_more_than_stock_is_rejected",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As ana POST /orders with product 5 (0 stock) -> 400 and no order is created; with cantidad 0 or negative -> 422."
+  },
+  {
+    "id": "TC029",
+    "title": "stock_cannot_go_negative",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As admin.antojos@utb.edu.co / Tienda-2026 read cantidad of product 14 then POST /inventory/14/adjust {delta: -(cantidad+1), motivo:'merma'} -> 400 and cantidad unchanged. PUT /inventory/14 {cantidad:-1} -> 422. delta 0 -> 400 or 422."
+  },
+  {
+    "id": "TC030",
+    "title": "product_validation_errors",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As admin.antojos@utb.edu.co / Tienda-2026 POST /catalog/products with negative precio_centavos -> 422; empty nombre -> 422; nombre repeated in the same store (e.g. 'Cheetos') -> 409; unknown tienda 'no-existe' -> 404 or 403."
+  },
+  {
+    "id": "TC031",
+    "title": "register_validation",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. POST /identity/register with password shorter than 8 -> 422; invalid email -> 422; an already registered email ana@utb.edu.co -> 409. A unique valid email -> 201 with roles [{codigo:'comprador'}]."
+  },
+  {
+    "id": "TC032",
+    "title": "login_wrong_password_401",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. POST /identity/login with ana@utb.edu.co and a wrong password -> 401; unknown email -> 401 with the same detail (no user enumeration)."
+  },
+  {
+    "id": "TC033",
+    "title": "me_returns_roles_per_store",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. GET /identity/me as admin.almuerzo-01@utb.edu.co / Tienda-2026 -> roles [{codigo:'admin_tienda', tienda_id:4}]; as admin@utb.edu.co -> roles include admin_general."
+  },
+  {
+    "id": "TC034",
+    "title": "health_ready_and_metrics",
+    "description": "Base URL http://localhost:8000. GET /health -> 200; GET /health/ready -> 200 (database reachable); GET /metrics -> 200 JSON with uptime_segundos and a 'rutas' object whose entries (e.g. 'get /health') have peticiones, errores_5xx and latencia_ms."
+  },
+  {
+    "id": "TC035",
+    "title": "product_detail_and_stores",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. GET /catalog/products/25 -> 200 with tienda 'punto-fit'; GET /catalog/products/999999 -> 404; GET /catalog/tiendas -> 5 stores."
+  },
+  {
+    "id": "TC036",
+    "title": "buyer_order_list_only_own",
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Register a new buyer with a unique email, login, GET /orders -> [] even though ana has orders. GET /orders/{an order id of ana} as the new buyer -> 404."
+  }
+]

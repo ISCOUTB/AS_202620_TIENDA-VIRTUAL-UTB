@@ -1,0 +1,93 @@
+import asyncio
+import re
+from playwright import async_api
+from playwright.async_api import expect
+
+async def run_test():
+    pw = None
+    browser = None
+    context = None
+
+    try:
+        # Start a Playwright session in asynchronous mode
+        pw = await async_api.async_playwright().start()
+
+        # Launch a Chromium browser in headless mode with custom arguments
+        browser = await pw.chromium.launch(
+            headless=True,
+            args=[
+                "--window-size=1280,720",
+                "--disable-dev-shm-usage",
+                "--ipc=host",
+                "--single-process"
+            ],
+        )
+
+        # Create a new browser context (like an incognito window)
+        context = await browser.new_context()
+        # Wider default timeout to match the agent's DOM-stability budget;
+        # auto-waiting Playwright APIs (expect, locator.wait_for) inherit this.
+        context.set_default_timeout(15000)
+
+        # Open a new page in the browser context
+        page = await context.new_page()
+
+        # Interact with the page elements to simulate user flow
+        # -> navigate
+        await page.goto("http://localhost:3000")
+        try:
+            await page.wait_for_load_state("domcontentloaded", timeout=5000)
+        except Exception:
+            pass
+        
+        # -> Open the sign-in page using the visible “Ingresar” link.
+        # Ingresar link
+        elem = page.get_by_role("link", name="Ingresar")
+        await elem.click(timeout=10000)
+        
+        # -> Enter the provided buyer email and password, then submit the “Entrar” form.
+        # email email field
+        elem = page.get_by_role("textbox", name="Correo institucional")
+        await elem.wait_for(state="visible", timeout=10000)
+        await elem.fill("ana@utb.edu.co")
+        
+        # -> Enter the provided buyer email and password, then submit the “Entrar” form.
+        # password password field
+        elem = page.get_by_role("textbox", name="Contraseña")
+        await elem.wait_for(state="visible", timeout=10000)
+        await elem.fill("Comprador-2026")
+        
+        # -> Enter the provided buyer email and password, then submit the “Entrar” form.
+        # Entrar button
+        elem = page.get_by_role("button", name="Entrar")
+        await elem.click(timeout=10000)
+        
+        # -> Cancel the unpaid order #12 using its “Cancelar pedido” control and verify the account reflects the cancellation.
+        # Cancelar pedido button
+        elem = page.get_by_role("listitem").filter(has_text="Almuerzo 01 · #12Por").get_by_role("button")
+        await elem.click(timeout=10000)
+        
+        # --> Assertions to verify final state
+        
+        # --> The account displays an order’s store, canceled status, item, pickup time, and total.
+        await page.locator("#contenido").nth(0).scroll_into_view_if_needed()
+        # Assert-outcome: not verified — the export-time check could not be evaluated
+        # Assert: The account page displays the personal order details.
+        await expect(page.locator("#contenido").nth(0)).to_be_visible(timeout=15000), "The account page displays the personal order details."
+        
+        # --> The unpaid order was successfully canceled.
+        # Assert-outcome: not verified — the export-time check could not be evaluated
+        # Assert: The account confirms the canceled order’s units returned to the store.
+        await expect(page.locator("#contenido").nth(0)).to_contain_text("Las unidades volvieron a la tienda.", timeout=15000), "The account confirms the canceled order\u2019s units returned to the store."
+        await asyncio.sleep(5)
+
+    finally:
+        if context:
+            await context.close()
+        if browser:
+            await browser.close()
+        if pw:
+            await pw.stop()
+
+asyncio.run(run_test())
+    
