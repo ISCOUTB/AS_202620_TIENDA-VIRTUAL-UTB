@@ -3,16 +3,18 @@ import { OPERACIONES, type OperationId } from "./generated/contract";
 /**
  * Manifiesto único de los endpoints que el frontend conoce.
  *
- * - `live`      — implementado en la API 0.3.0 (docs/api/openapi.json): las
- *                 vistas usan datos reales.
+ * - `live`      — implementado en la API (docs/api/openapi.json): las vistas
+ *                 usan datos reales.
  * - `preview`   — en el contrato de diseño (docs/openapi/tienda-virtual.yaml)
- *                 pero aún no implementado: la vista se construye completa y
- *                 degrada elegante (datos mock marcados / aviso "próximamente")
- *                 hasta que el backend lo sirva.
+ *                 pero aún no implementado: la vista degrada con datos mock
+ *                 marcados o un aviso "próximamente".
  *
+ * Desde la API 0.4.0 todas las operaciones del contrato están implementadas.
  * La cobertura de TODOS los operationId la valida TypeScript: el `Record`
- * exige una entrada por operación del contrato generado. Las operaciones
- * propuestas que aún no están ni en el YAML se declaran como extras abajo.
+ * exige una entrada por operación del contrato generado.
+ *
+ * Aunque una operación sea `live`, si la API no responde (red caída o 502 del
+ * proxy) las vistas siguen degradando a modo demostración visible (ADR 0011).
  */
 export type EstadoEndpoint = "live" | "preview";
 
@@ -22,46 +24,35 @@ export type EntradaEndpoint = {
   nota?: string;
 };
 
-/** Operaciones propuestas fuera del YAML de diseño (diseño documentado). */
-type OperacionExtra = "crearProducto" | "actualizarProducto";
-
-export const ENDPOINTS: Record<OperationId | OperacionExtra, EntradaEndpoint> = {
-  // — Implementados (API 0.3.0) —
+export const ENDPOINTS: Record<OperationId, EntradaEndpoint> = {
   healthCheck: { estado: "live" },
   readinessCheck: { estado: "live" },
   getMetrics: { estado: "live" },
+  // Identidad (ADR 0016)
+  registerUser: { estado: "live" },
+  loginUser: { estado: "live" },
+  getCurrentUser: { estado: "live" },
+  // Catálogo
   listProducts: { estado: "live" },
+  getProductById: { estado: "live" },
+  listStores: { estado: "live" },
+  createProduct: { estado: "live" },
+  updateProduct: { estado: "live" },
+  // Inventario
   listInventory: { estado: "live" },
-
-  // — Contrato de diseño, aún no implementados —
-  getProductById: {
-    estado: "preview",
-    nota: "Detalle de producto en docs/openapi/tienda-virtual.yaml",
-  },
-  getInventoryByProduct: { estado: "preview" },
-  updateInventory: { estado: "preview" },
-  adjustInventory: { estado: "preview" },
-  registerUser: { estado: "preview" },
-  loginUser: { estado: "preview" },
-  getCurrentUser: { estado: "preview" },
-  listOrders: { estado: "preview" },
-  createOrder: { estado: "preview", nota: "Idempotency-Key: ver docs/idempotencia-saga-s11.md" },
-  getOrderById: { estado: "preview" },
-  cancelOrder: { estado: "preview" },
-
-  // — Propuestas de diseño, fuera del YAML (docs/api/administracion-catalogo.md) —
-  crearProducto: {
-    estado: "preview",
-    nota: "POST /catalog/products propuesto en docs/api/administracion-catalogo.md",
-  },
-  actualizarProducto: {
-    estado: "preview",
-    nota: "PATCH /catalog/products/{id} propuesto en docs/api/administracion-catalogo.md",
-  },
+  getInventoryByProduct: { estado: "live" },
+  updateInventory: { estado: "live" },
+  adjustInventory: { estado: "live" },
+  // Pedidos (docs/idempotencia-saga-s11.md)
+  listOrders: { estado: "live" },
+  createOrder: { estado: "live", nota: "Idempotency-Key obligatoria" },
+  getOrderById: { estado: "live" },
+  cancelOrder: { estado: "live" },
+  updateOrderStatus: { estado: "live" },
 };
 
 /** true si el frontend puede esperar datos reales de esa operación. */
-export function esLive(id: OperationId | OperacionExtra): boolean {
+export function esLive(id: OperationId): boolean {
   return ENDPOINTS[id].estado === "live";
 }
 

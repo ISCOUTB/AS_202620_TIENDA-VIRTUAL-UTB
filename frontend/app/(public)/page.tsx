@@ -4,6 +4,7 @@ import { TIENDAS, paletaTienda } from "@/lib/tiendas";
 import { FOTOS_LUGAR } from "@/lib/imagenes";
 import { estadoHorario, formatoHora } from "@/lib/formato";
 import { productosDestacados } from "@/lib/catalogo";
+import { obtenerCatalogo } from "@/lib/catalogo-servidor";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { jsonLdCafeteria, jsonLdFaq, DESCRIPCION_SITIO } from "@/lib/seo";
 import { Revelar } from "@/components/motion/Revelar";
@@ -20,8 +21,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-/** «Abierto ahora» se calcula en el servidor: la portada se regenera cada minuto. */
-export const revalidate = 60;
+/*
+ * Se renderiza en cada petición: «Lo más pedido» lleva existencias reales
+ * (lib/catalogo-servidor.ts) y «Abierto ahora» se calcula en el servidor.
+ */
 
 const PASOS = [
   {
@@ -114,16 +117,17 @@ const PREGUNTAS = [
   },
 ];
 
-export default function Landing() {
+export default async function Landing() {
+  const { productos } = await obtenerCatalogo();
   const horario = TIENDAS[0].horario;
   const estado = estadoHorario(horario);
   const franja = `Lun a vie, ${formatoHora(horario.abre)} – ${formatoHora(horario.cierra)}`;
-  const destacados = productosDestacados();
+  const destacados = productosDestacados(productos);
   const [fotoHero, fotoPromo] = FOTOS_LUGAR;
 
   return (
     <>
-      <JsonLd datos={jsonLdCafeteria()} />
+      <JsonLd datos={jsonLdCafeteria(productos)} />
       <JsonLd datos={jsonLdFaq(PREGUNTAS)} />
 
       {/* ───────────── Sábana: titular, buscador y foto ───────────── */}

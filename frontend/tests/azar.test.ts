@@ -57,3 +57,20 @@ describe("llaveIdempotencia", () => {
     expect(a).not.toBe(b);
   });
 });
+
+describe("llaveIdempotencia sin crypto.randomUUID", () => {
+  it("arma un UUID v4 válido y distinto cada vez", () => {
+    const original = globalThis.crypto.randomUUID;
+    Object.defineProperty(globalThis.crypto, "randomUUID", { value: undefined, configurable: true });
+    try {
+      const a = llaveIdempotencia();
+      const b = llaveIdempotencia();
+      const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
+      expect(a).toMatch(uuid);
+      expect(b).toMatch(uuid);
+      expect(a).not.toBe(b);
+    } finally {
+      Object.defineProperty(globalThis.crypto, "randomUUID", { value: original, configurable: true });
+    }
+  });
+});

@@ -2,18 +2,11 @@ import { describe, expect, it } from "vitest";
 import { ENDPOINTS, esLive, rutaDe } from "@/lib/api/endpoints";
 
 describe("ENDPOINTS", () => {
-  it("marca como live solo lo que la API 0.3.0 ya sirve", () => {
-    const live = Object.entries(ENDPOINTS)
-      .filter(([, e]) => e.estado === "live")
-      .map(([id]) => id)
-      .sort();
-    expect(live).toEqual([
-      "getMetrics",
-      "healthCheck",
-      "listInventory",
-      "listProducts",
-      "readinessCheck",
-    ]);
+  it("marca como live todo el contrato desde la API 0.4.0", () => {
+    const pendientes = Object.entries(ENDPOINTS)
+      .filter(([, e]) => e.estado !== "live")
+      .map(([id]) => id);
+    expect(pendientes).toEqual([]);
   });
 
   it("explica por qué cada preview lo es", () => {
@@ -26,10 +19,10 @@ describe("ENDPOINTS", () => {
 });
 
 describe("esLive", () => {
-  it("distingue implementado de pendiente", () => {
+  it("reconoce las operaciones implementadas", () => {
     expect(esLive("listProducts")).toBe(true);
-    expect(esLive("loginUser")).toBe(false);
-    expect(esLive("crearProducto")).toBe(false);
+    expect(esLive("loginUser")).toBe(true);
+    expect(esLive("createProduct")).toBe(true);
   });
 });
 

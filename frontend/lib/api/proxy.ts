@@ -20,7 +20,7 @@
 
 /** Base de la API; se lee en cada petición para que un redeploy con otra
  * variable la respete sin recompilar nada. */
-function baseDeLaApi(): string {
+export function baseDeLaApi(): string {
   return (process.env.API_URL ?? "http://localhost:8000").replace(/\/+$/, "");
 }
 

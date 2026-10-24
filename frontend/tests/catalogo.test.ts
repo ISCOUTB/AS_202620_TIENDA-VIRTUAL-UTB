@@ -24,42 +24,42 @@ describe("PRODUCTOS", () => {
 
 describe("productosDe", () => {
   it("filtra por tienda", () => {
-    const oriental = productosDe("almuerzo-01");
+    const oriental = productosDe(PRODUCTOS, "almuerzo-01");
     expect(oriental).toHaveLength(8);
     expect(oriental.every((p) => p.tienda === "almuerzo-01")).toBe(true);
   });
 
   it("devuelve vacío para Almuerzo 02, que no tiene carta", () => {
-    expect(productosDe("almuerzo-02")).toEqual([]);
+    expect(productosDe(PRODUCTOS, "almuerzo-02")).toEqual([]);
   });
 });
 
 describe("productoPorId", () => {
   it("encuentra y describe el pollo frito entero", () => {
-    const p = productoPorId(144);
+    const p = productoPorId(PRODUCTOS, 144);
     expect(p?.nombre).toBe("Pollo frito con arepitas");
     expect(p?.presentacion).toBe("Entero");
     expect(p?.esMuestra).toBe(false);
   });
 
   it("devuelve undefined si no existe", () => {
-    expect(productoPorId(999999)).toBeUndefined();
+    expect(productoPorId(PRODUCTOS, 999999)).toBeUndefined();
   });
 });
 
 describe("tiendaCompleta (regla de indexación)", () => {
   it("la línea oriental cumple el mínimo", () => {
-    expect(tiendaCompleta("almuerzo-01")).toBe(true);
+    expect(tiendaCompleta(PRODUCTOS, "almuerzo-01")).toBe(true);
   });
 
   it("las tiendas con precios de referencia no cumplen", () => {
-    expect(tiendaCompleta("antojos")).toBe(false);
-    expect(tiendaCompleta("punto-fit")).toBe(false);
-    expect(tiendaCompleta("alegria")).toBe(false);
+    expect(tiendaCompleta(PRODUCTOS, "antojos")).toBe(false);
+    expect(tiendaCompleta(PRODUCTOS, "punto-fit")).toBe(false);
+    expect(tiendaCompleta(PRODUCTOS, "alegria")).toBe(false);
   });
 
   it("una tienda sin carta no cumple", () => {
-    expect(tiendaCompleta("almuerzo-02")).toBe(false);
+    expect(tiendaCompleta(PRODUCTOS, "almuerzo-02")).toBe(false);
   });
 });
 

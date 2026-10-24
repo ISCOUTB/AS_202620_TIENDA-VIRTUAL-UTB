@@ -8,7 +8,7 @@
  */
 
 import { TIENDAS, type Tienda } from "./tiendas";
-import { PRODUCTOS } from "./catalogo";
+import type { Producto } from "./catalogo";
 import { formatoPrecio } from "./formato";
 
 export const SITIO_URL = (
@@ -69,8 +69,11 @@ const DIAS = [
   "https://schema.org/Saturday",
 ];
 
-/** La cafetería como lugar: un solo CafeOrCoffeeShop con su menú completo. */
-export function jsonLdCafeteria(): JsonLd {
+/**
+ * La cafetería como lugar: un solo CafeOrCoffeeShop con su menú completo.
+ * Recibe el catálogo de la petición: el JSON-LD dice lo mismo que la página.
+ */
+export function jsonLdCafeteria(productos: Producto[]): JsonLd {
   return {
     "@context": "https://schema.org",
     "@type": "CafeOrCoffeeShop",
@@ -92,7 +95,7 @@ export function jsonLdCafeteria(): JsonLd {
       "@id": urlAbsoluta("/#menu"),
       name: "Menú de la cafetería UTB",
       hasMenuSection: TIENDAS.filter((t) => t.indexable).map((tienda) =>
-        menuSeccion(tienda),
+        menuSeccion(tienda, productos),
       ),
     },
     openingHoursSpecification: [
@@ -106,8 +109,8 @@ export function jsonLdCafeteria(): JsonLd {
   };
 }
 
-function menuSeccion(tienda: Tienda): JsonLd {
-  const productos = PRODUCTOS.filter((p) => p.tienda === tienda.slug);
+function menuSeccion(tienda: Tienda, catalogo: Producto[]): JsonLd {
+  const productos = catalogo.filter((p) => p.tienda === tienda.slug);
   return {
     "@type": "MenuSection",
     name: tienda.nombre,
@@ -160,9 +163,8 @@ export function jsonLdFaq(
   };
 }
 
-/** ItemList del catálogo de una tienda. */
-export function jsonLdListaProductos(tienda: Tienda): JsonLd {
-  const productos = PRODUCTOS.filter((p) => p.tienda === tienda.slug);
+/** ItemList del catálogo de una tienda (`productos`: los de esa tienda). */
+export function jsonLdListaProductos(tienda: Tienda, productos: Producto[]): JsonLd {
   return {
     "@context": "https://schema.org",
     "@type": "ItemList",

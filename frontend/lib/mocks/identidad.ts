@@ -10,14 +10,17 @@ export const USUARIOS_MOCK: UserOut[] = [
     id: 1,
     nombre: "Estudiante Demo",
     email: "demo@utb.edu.co",
-    rol: "cliente",
+    roles: [{ codigo: "comprador", tienda_id: null }],
     creado_en: "2026-09-15T10:30:00Z",
   },
   {
     id: 2,
     nombre: "Administración Cafetería",
     email: "admin@utb.edu.co",
-    rol: "admin",
+    roles: [
+      { codigo: "comprador", tienda_id: null },
+      { codigo: "admin_general", tienda_id: null },
+    ],
     creado_en: "2026-09-10T08:00:00Z",
   },
 ];
