@@ -1,7 +1,15 @@
 # Tiendas y catálogo: lo que el frontend necesita del contrato
 
-**Estado:** propuesta de diseño. Nada de este documento está implementado en la
-API `0.3.0`. Complementa [`administracion-catalogo.md`](administracion-catalogo.md)
+**Estado (2026-10-24, API `0.4.0`):** implementado salvo `notas` por ítem.
+`ProductOut` expone `tienda`, `categoria`, `presentacion`, `precio_confirmado`
+y `activo` (migración `0003`); `OrderCreateRequest` acepta `hora_recogida`;
+`POST /orders` exige `Idempotency-Key`; existen `identity/*`, `orders` y los
+ajustes de inventario (`PUT` y `adjust`, no `PATCH`, como en el contrato de
+diseño). Las `notas` (§2.2) quedan aplazadas: son contenido de usuario y
+reabrirían el [ADR 0011](../adr/0011-sesion-localstorage.md).
+
+**Estado original:** propuesta de diseño. Nada de este documento estaba
+implementado en la API `0.3.0`. Complementa [`administracion-catalogo.md`](administracion-catalogo.md)
 y el contrato de diseño [`../openapi/tienda-virtual.yaml`](../openapi/tienda-virtual.yaml).
 
 ## 1. El problema

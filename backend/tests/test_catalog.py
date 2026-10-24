@@ -12,7 +12,7 @@ def test_products_endpoint_returns_seeded_catalog(datos_demo) -> None:
     productos = response.json()
     assert len(productos) == datos_demo["productos"]
 
-    # Los campos del contrato 0.3.0 se conservan; tienda e imagen son opcionales.
+    # Los campos del contrato 0.3.0 se conservan; los añadidos son opcionales.
     assert set(productos[0]) == {
         "id",
         "nombre",
@@ -20,6 +20,10 @@ def test_products_endpoint_returns_seeded_catalog(datos_demo) -> None:
         "precio_centavos",
         "tienda",
         "imagen_url",
+        "categoria",
+        "presentacion",
+        "precio_confirmado",
+        "activo",
     }
     cafe = next(p for p in productos if p["nombre"] == "Café americano")
     assert cafe["precio_centavos"] == 350000

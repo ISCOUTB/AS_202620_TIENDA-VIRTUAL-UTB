@@ -133,11 +133,11 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
 
 Ver [`api/tiendas-catalogo.md`](api/tiendas-catalogo.md). Resumen:
 
-- `ProductOut` necesita `tienda`, `categoria`, `presentacion` y
-  `precio_confirmado`. Desde la API `0.3.1` ya expone `tienda` (slug) e
-  `imagen_url`, ambos opcionales.
-- `OrderItemRequest` necesita `notas` para los sabores.
-- `OrderCreateRequest` necesita `hora_recogida`.
-- Faltan `identity/*` (login, registro, me), `orders` y el `PATCH` de
-  inventario. Mientras no existan, el frontend los marca como `preview` o los
-  resuelve en modo demostración visible (ADR 0011).
+- ~~`ProductOut` necesita `tienda`, `categoria`, `presentacion` y
+  `precio_confirmado`~~ — hecho en la API `0.4.0` (migración `0003`).
+- `OrderItemRequest` necesita `notas` para los sabores. **Aplazado:** son
+  contenido de usuario y reabren el ADR 0011 (pasar la sesión a cookie
+  `httpOnly`); hacer ambas cosas juntas.
+- ~~`OrderCreateRequest` necesita `hora_recogida`~~ — hecho.
+- ~~Faltan `identity/*`, `orders` y los ajustes de inventario~~ — hechos en la
+  API `0.4.0`. Falta conectar el frontend: sigue marcándolos `preview`.

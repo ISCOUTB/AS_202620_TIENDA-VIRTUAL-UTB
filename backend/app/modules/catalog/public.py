@@ -47,6 +47,8 @@ def asegurar_producto(
     descripcion: str,
     precio_centavos: int,
     categoria_id: int | None = None,
+    presentacion: str | None = None,
+    precio_confirmado: bool = True,
 ) -> int:
     """Crea o actualiza el producto por (tienda, nombre sin distinguir mayúsculas)."""
     producto = session.scalar(
@@ -61,6 +63,8 @@ def asegurar_producto(
     producto.descripcion = descripcion
     producto.precio_centavos = precio_centavos
     producto.categoria_id = categoria_id
+    producto.presentacion = presentacion
+    producto.precio_confirmado = precio_confirmado
     session.flush()
     return producto.id
 
