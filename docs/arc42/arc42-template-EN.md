@@ -521,6 +521,26 @@ are the API's (non-owner) credentials; migrations and the seed use
 Next.js uses the internal `API_URL`. There is no implicit database: missing
 configuration is a startup error.
 
+## Authorization: one admin per store, supervising general admin {#_concept_authz}
+
+Roles come from `usuario_roles` and are read on every request (ADR 0016). Three
+predicates decide what a principal may do, implemented twice with the same
+meaning: in `ContextoSeguridad` (`app/shared/seguridad.py`) for the API's
+403/404 answers, and as SQL functions used by the RLS policies (ADR 0014,
+migration `0004`):
+
+| Predicate | Who | Used for |
+| --- | --- | --- |
+| `administra_tienda(t)` | the `admin_tienda` of store `t`, or the **system** principal | create/edit products, advance or cancel store orders |
+| `gestiona_inventario(t)` | the above, or the `responsable_inventario` of `t` | set or adjust stock |
+| `supervisa_tienda(t)` | `admin_general`, or whoever manages `t` | reads: inactive products, store order queue, stock movements |
+
+The general admin is deliberately **read-only** on store data (ADR 0017). It
+keeps managing accounts, roles and stores. Scheduled jobs
+(`app.tareas.vencer_pedidos`) run as a `sistema` principal that cannot be
+obtained through the API. The full role × endpoint matrix is in
+`docs/api/contrato-api.md` §5.1.
+
 ## Mocked data {#_concept_3}
 
 Per the constraints, there is no real data source. Demo data (the five stores
@@ -567,6 +587,7 @@ diagrams is in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md).
 | [0014](../adr/0014-seguridad-rls.md) | PostgreSQL row-level security and a least-privilege application role | Proposed (2026-10-22) |
 | [0015](../adr/0015-gestor-paquetes-pnpm.md) | pnpm (pinned via `packageManager`, Corepack) as the frontend package manager instead of npm | Proposed (2026-10-22) |
 | [0016](../adr/0016-autenticacion-jwt.md) | JWT (HS256) access tokens carrying only the user id, roles read per request, Argon2id password hashes | Proposed (2026-10-24) |
+| [0017](../adr/0017-admin-general-supervisa.md) | One admin per store; the general admin only supervises (read-only on store data); `sistema` principal for scheduled jobs | Proposed (2026-10-24) |
 
 [0007](../adr/0007-despliegue-dokploy.md) is the current deployment decision.
 ADRs 0003–0006 remain available only as a record of earlier iterations.
@@ -591,7 +612,7 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 
 | # | Quality goal | Scenario | Response measure | Covered in this increment |
 | --- | --- | --- | --- | --- |
-| 1 | Security | An inventory manager tries to change a product's price | 100% of the defined out-of-role operations are rejected (403) | No; requires the `identity` module |
+| 1 | Security | An inventory manager tries to change a product's price | 100% of the defined out-of-role operations are rejected (403) | Yes since API 0.4.0; since 0.5.0 also cross-store and general-admin writes (`backend/tests/test_admin_por_tienda.py`) |
 | 2 | Usability | A buyer completes a purchase | Flow completed in at most 4 screens or steps | Partially; the catalog view exists, cart and confirmation are missing |
 | 3 | Performance | An order reduces a product's stock | Change visible to another session in under 2 s on reload | Enabler in place: dynamic catalog read (`no-store`); order flow pending |
 | 4 | Availability | About 5 buyers browse the catalog at the same time | All get correct catalog and stock responses and the local server remains healthy | Measured locally with 5 concurrent simulated buyers; evidence in `docs/entrega-cadena-ia.md` |

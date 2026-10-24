@@ -9,7 +9,7 @@ actualización están en la [guía de evidencia](README.md).
 
 | Aspecto | Valor actual |
 |---|---|
-| Versión de la API (`info.version`) | `0.4.0` |
+| Versión de la API (`info.version`) | `0.5.0` |
 | Versión del formato de especificación (`openapi`) | `3.1.0` |
 | Comunicación | HTTP síncrono, respuestas JSON |
 | Dirección local con Docker Compose | `http://localhost:8000` |
@@ -18,7 +18,7 @@ actualización están en la [guía de evidencia](README.md).
 | Documentación interactiva con la API encendida | `http://localhost:8000/docs` |
 | Especificación generada por la aplicación encendida | `http://localhost:8000/openapi.json` |
 
-`0.4.0` identifica la versión de nuestra API; `3.1.0` identifica el formato
+`0.5.0` identifica la versión de nuestra API; `3.1.0` identifica el formato
 OpenAPI utilizado para describirla. Las direcciones anteriores corresponden
 al entorno local; el contrato no declara una sección `servers`.
 
@@ -232,11 +232,42 @@ consultas concurrentes); las muestras viven en el proceso y se reinician con
 | Operación | `GET /health`, `GET /health/ready`, `GET /metrics` | Público |
 | Identidad | `POST /identity/register`, `POST /identity/login`, `GET /identity/me` | Público / `bearerAuth` en `me` |
 | Catálogo | `GET /catalog/products`, `GET /catalog/products/{productId}`, `GET /catalog/tiendas` | Público |
-| Catálogo | `POST /catalog/products`, `PATCH /catalog/products/{productId}` | `admin_tienda` de la tienda o `admin_general` |
+| Catálogo | `POST /catalog/products`, `PATCH /catalog/products/{productId}` | `admin_tienda` de la tienda (el `admin_general` solo supervisa: 403) |
 | Inventario | `GET /inventory` | Público |
-| Inventario | `GET`/`PUT /inventory/{productId}`, `POST /inventory/{productId}/adjust` | `responsable_inventario` o `admin_tienda` de la tienda, o `admin_general` |
-| Pedidos | `GET /orders`, `POST /orders`, `GET /orders/{orderId}`, `POST /orders/{orderId}/cancel` | Cuenta propia; con `?tienda_id=` la cola de la tienda para quien la gestiona |
+| Inventario | `GET /inventory/{productId}` | Cualquier cuenta (`bearerAuth`) |
+| Inventario | `PUT /inventory/{productId}`, `POST /inventory/{productId}/adjust` | `responsable_inventario` o `admin_tienda` de la tienda (el `admin_general`: 403) |
+| Pedidos | `GET /orders`, `POST /orders`, `GET /orders/{orderId}`, `POST /orders/{orderId}/cancel` | Cuenta propia; con `?tienda_id=` la cola de la tienda para quien la supervisa |
 | Pedidos | `POST /orders/{orderId}/estado` | Quien gestiona la tienda del pedido |
+
+### 5.1 Matriz de permisos por rol (API 0.5.0, [ADR 0017](../adr/0017-admin-general-supervisa.md))
+
+«Tienda A» es la tienda dueña del recurso. El admin de la tienda B es un
+`admin_tienda` de **otra** tienda. La misma regla se aplica en la base con RLS
+([ADR 0014](../adr/0014-seguridad-rls.md)), así que un error en la API no la
+salta.
+
+| Operación | Anónimo | Comprador | Admin de A | Responsable de inventario de A | Admin de B | `admin_general` |
+|---|---|---|---|---|---|---|
+| Catálogo, tiendas, `GET /inventory`, salud | 200 | 200 | 200 | 200 | 200 | 200 |
+| `GET /catalog/products?incluir_inactivos=true` | solo activos | solo activos | + inactivos de A | + inactivos de A | + inactivos de B | + inactivos de todas |
+| `GET /catalog/products/{id}` de un producto inactivo de A | 404 | 404 | 200 | 200 | 404 | 200 |
+| `POST /catalog/products` en A, `PATCH` de un producto de A | 401 | 403 | 201 / 200 | 403 | 403 | **403** |
+| `PUT /inventory/{id}`, `POST /inventory/{id}/adjust` de A | 401 | 403 | 200 | 200 | 403 | **403** |
+| `GET /orders?tienda_id=A` (cola) | 401 | 403 | 200 | 200 | 403 | 200 (solo lectura) |
+| `GET /orders/{id}` de un pedido de A | 401 | 200 si es suyo, si no 404 | 200 | 200 | 404 | 200 |
+| `POST /orders/{id}/estado` de A | 401 | 404 (403 si es suyo) | 200 | 200 | 404 | **403** |
+| `POST /orders/{id}/cancel` de A | 401 | 200 si es suyo y está por pagar | 200 | 200 | 404 | **403** |
+
+- Al `admin_general` el 403 le responde siempre con el mismo detalle:
+  «El administrador general solo supervisa: los cambios los hace el admin de la
+  tienda» (`SOLO_SUPERVISA` en `app/shared/seguridad.py`).
+- Al admin de B un pedido de A le responde 404: no lo ve y la API no revela que
+  existe. Los productos sí son públicos, por eso sus escrituras responden 403.
+- El `admin_general` sigue gestionando cuentas, roles y tiendas (políticas de
+  `usuarios`, `usuario_roles` y `tiendas`), aunque esas operaciones aún no
+  tienen endpoint.
+- Las tareas programadas (`python -m app.tareas.vencer_pedidos`) actúan como el
+  principal **sistema** (`app.es_sistema`), que no se puede obtener desde la API.
 
 Los errores usan el cuerpo `{"detail": "..."}` (`ErrorResponse`): `401` sin
 credencial válida (con `WWW-Authenticate: Bearer`), `403` si el rol no
