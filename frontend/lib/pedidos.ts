@@ -22,6 +22,12 @@ import { llaveIdempotencia } from "@/lib/azar";
 export type ResultadoPedido = { estado: "real"; pedidos: OrderOut[] } | Fallo;
 
 /**
+ * Se emite al crear pedidos: el panel lateral aparta y `/pedidos` (que puede
+ * estar debajo) recarga su lista sin que nadie le pase el resultado.
+ */
+export const EVENTO_PEDIDOS = "tvutb:pedidos";
+
+/**
  * Llave del intento en curso. Un reintento con el mismo carrito (por un fallo
  * de red, o un doble clic) reutiliza la llave y la API devuelve los pedidos
  * ya creados sin descontar dos veces. Si el carrito cambia, es otro intento.
@@ -70,6 +76,7 @@ export async function crearPedido(
   try {
     const pedidos = await apiPost<OrderOut[]>(rutaDe("createOrder"), cuerpo, llave);
     cerrarIntento();
+    if (typeof window !== "undefined") window.dispatchEvent(new Event(EVENTO_PEDIDOS));
     return { estado: "real", pedidos };
   } catch (error) {
     // Un error de negocio (sin existencias, producto retirado) cierra el

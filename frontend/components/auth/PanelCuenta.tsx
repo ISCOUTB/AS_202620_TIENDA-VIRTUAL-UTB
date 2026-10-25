@@ -1,43 +1,31 @@
 "use client";
 
-import Link from "next/link";
 import { useSesion, cerrarSesion } from "@/lib/sesion";
-import { useCarrito, totalCentavos, unidades, porTienda, abrirPedido } from "@/lib/carrito";
-import { formatoHora, formatoPrecio } from "@/lib/formato";
-import { productoPorId } from "@/lib/catalogo";
 import { esGestor, etiquetaRol } from "@/lib/roles";
-import { nombreTienda, paletaTienda } from "@/lib/tiendas";
 import { Badge } from "@/components/ui/Badge";
 import { Boton } from "@/components/ui/Boton";
 import { Esqueleto } from "@/components/ui/Esqueleto";
 import { Revelar } from "@/components/motion/Revelar";
-import { useCatalogo } from "@/components/tienda/CatalogoProvider";
 import { Carnet } from "./Carnet";
-import { MisPedidos } from "./MisPedidos";
 
 /**
  * La cuenta (SPEC v4 §3, `/cuenta`): el carnet digital de la sección «La
- * cuenta» del artefacto, con los datos reales de la sesión, y dos tarjetas:
- * los pedidos (`GET /orders`) y lo que hay en el carrito agrupado por tienda.
+ * cuenta» del artefacto, con los datos reales de la sesión. Los pedidos y el
+ * carrito viven en `/pedidos`: aquí solo hay un acceso.
  */
 export function PanelCuenta() {
   const { sesion } = useSesion();
-  const { carrito, cargando } = useCarrito();
-  const { productos } = useCatalogo();
 
   if (!sesion) return null;
   const { usuario, modo } = sesion;
-  const n = unidades(carrito);
-  const total = totalCentavos(carrito, productos);
-  const grupos = porTienda(carrito, productos);
   const rol = etiquetaRol(usuario);
 
   return (
-    <Revelar className="grid gap-6 lg:grid-cols-12">
+    <Revelar className="mx-auto max-w-xl">
       <section
         data-escalon=""
         aria-labelledby="saludo"
-        className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8 lg:col-span-5"
+        className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8"
       >
         <h2 id="saludo" className="titulo-seccion">
           Hola, {usuario.nombre.split(" ")[0]}.
@@ -69,6 +57,9 @@ export function PanelCuenta() {
         </div>
 
         <div className="mt-6 flex flex-col gap-2">
+          <Boton href="/pedidos" variante="primario" bloque>
+            Ver mis pedidos
+          </Boton>
           {esGestor(usuario) ? (
             <Boton href="/admin" variante="suave" bloque>
               Ir a administración
@@ -79,94 +70,6 @@ export function PanelCuenta() {
           </Boton>
         </div>
       </section>
-
-      <div className="flex flex-col gap-6 lg:col-span-7">
-        <MisPedidos demo={modo === "demo"} />
-
-        <section
-          data-escalon=""
-          aria-labelledby="carrito"
-          className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8"
-        >
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 id="carrito" className="font-display text-2xl font-semibold">
-              Tu carrito
-            </h2>
-            <span className="cifra text-sm font-semibold text-tenue">
-              {n} {n === 1 ? "unidad" : "unidades"}
-            </span>
-          </div>
-
-          {cargando ? (
-            <div aria-busy="true" className="mt-4 flex flex-col gap-2">
-              <span className="sr-only">Cargando tu carrito…</span>
-              <Esqueleto className="h-5 w-3/4" />
-              <Esqueleto className="h-5 w-1/2" />
-            </div>
-          ) : n === 0 ? (
-            <p className="mt-3 leading-relaxed text-tenue">
-              Está vacío. Puedes mezclar productos de varias tiendas en un
-              mismo pedido.
-            </p>
-          ) : (
-            <div className="mt-4 flex flex-col gap-3">
-              {grupos.map((g) => {
-                const p = paletaTienda(g.tienda);
-                return (
-                  <div key={g.tienda} className="rounded-md border border-linea p-4">
-                    <p className="flex items-center gap-2 text-sm font-bold">
-                      <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-pill ${p.relleno}`} />
-                      {nombreTienda(g.tienda)}
-                    </p>
-                    <ul className="mt-2">
-                      {g.items.map((item) => (
-                        <li
-                          key={item.nombre}
-                          className="flex items-baseline justify-between gap-4 border-b border-linea py-2 text-[0.9375rem] last:border-b-0"
-                        >
-                          <span>{item.nombre}</span>
-                          <span className="cifra shrink-0 text-tenue">×{item.cantidad}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                );
-              })}
-
-              {carrito.horaRecogida ? (
-                <p className="text-sm text-tenue">
-                  Recogida:{" "}
-                  <span className="cifra font-semibold text-tinta">{formatoHora(carrito.horaRecogida)}</span>
-                </p>
-              ) : null}
-
-              <div className="flex items-baseline justify-between border-t border-linea pt-3">
-                <span className="text-tenue">Total</span>
-                <span className="cifra text-2xl font-bold">{formatoPrecio(total)}</span>
-              </div>
-
-              <p className="text-[0.8125rem] leading-relaxed text-tenue">
-                {carrito.lineas.some((l) => productoPorId(productos, l.productoId)?.esMuestra)
-                  ? "Incluye precios de referencia: la tienda los confirma en el mostrador. "
-                  : ""}
-                El pedido se confirma al recoger; el pago es en el mostrador.
-              </p>
-
-              <Boton variante="primario" tamano="lg" bloque cuadrado onClick={abrirPedido}>
-                Elegir hora y apartar
-              </Boton>
-            </div>
-          )}
-        </section>
-
-        <p className="text-sm text-tenue">
-          ¿Necesitas cambiar algo?{" "}
-          <Link href="/#tiendas" className="font-semibold text-enlace underline underline-offset-4">
-            Vuelve a las tiendas
-          </Link>
-          .
-        </p>
-      </div>
     </Revelar>
   );
 }
@@ -174,8 +77,8 @@ export function PanelCuenta() {
 /** Esqueleto con la misma rejilla y alturas que `PanelCuenta`. */
 export function EsqueletoCuenta() {
   return (
-    <div aria-hidden="true" className="grid gap-6 lg:grid-cols-12">
-      <div className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8 lg:col-span-5">
+    <div aria-hidden="true" className="mx-auto max-w-xl">
+      <div className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8">
         <Esqueleto className="h-8 w-1/2" />
         <Esqueleto className="mt-2.5 h-4 w-2/3" />
         <Esqueleto className="mt-8 aspect-[1.586/1] w-full max-w-[400px] rounded-[22px]" />
@@ -184,16 +87,7 @@ export function EsqueletoCuenta() {
           <Esqueleto className="h-6 w-16 rounded-pill" />
         </div>
         <Esqueleto className="mt-6 h-11 w-full rounded-pill" />
-      </div>
-      <div className="flex flex-col gap-6 lg:col-span-7">
-        <div className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8">
-          <Esqueleto className="h-7 w-32" />
-          <Esqueleto className="mt-5 h-[13.5rem] w-full rounded-tarjeta" />
-        </div>
-        <div className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8">
-          <Esqueleto className="h-7 w-36" />
-          <Esqueleto className="mt-4 h-5 w-3/4" />
-        </div>
+        <Esqueleto className="mt-2 h-11 w-full rounded-pill" />
       </div>
     </div>
   );

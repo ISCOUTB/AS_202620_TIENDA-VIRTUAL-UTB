@@ -62,9 +62,13 @@ async def run_test():
         elem = page.get_by_role("button", name="Entrar")
         await elem.click(timeout=10000)
         
+        # -> Orders live in /pedidos since the account page only shows the profile.
+        await page.wait_for_url("**/cuenta", timeout=15000)
+        await page.goto("http://localhost:3000/pedidos")
+        
         # -> Cancel the pending Antojos order for Gaseosa Coca-Cola and check the account page for the resulting status.
         # Cancelar pedido button
-        elem = page.get_by_role("listitem").filter(has_text="Antojos · #24Por pagarGaseosa").get_by_role("button")
+        elem = page.get_by_role("listitem").filter(has_text="Antojos · #24Por pagar").get_by_role("button")
         await elem.click(timeout=10000)
         
         # --> Assertions to verify final state
@@ -72,7 +76,7 @@ async def run_test():
         # --> Order #24 appears as cancelled in the account order history.
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: Order #24 is shown as cancelled in the order history.
-        await expect(page.locator("xpath=/html/body/div[2]/main/div/div/div/section[1]/ul/li[1]/div[1]/p/span").nth(0)).to_have_text("Cancelado", timeout=15000), "Order #24 is shown as cancelled in the order history."
+        await expect(page.get_by_label("Anteriores").nth(0)).to_contain_text("Antojos \u00b7 #24Cancelado", timeout=15000), "Order #24 is shown as cancelled in the order history."
         await asyncio.sleep(5)
 
     finally:

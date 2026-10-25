@@ -22,7 +22,8 @@ export function BarraPedido() {
   const ruta = usePathname();
   const ref = useRef<HTMLButtonElement>(null);
   const n = unidades(carrito);
-  const visible = !cargando && n > 0;
+  // En `/pedidos` el carrito ya está a la vista con su propio botón de apartar.
+  const visible = !cargando && n > 0 && !ruta.startsWith("/pedidos");
   const enTienda = ruta.startsWith("/tiendas/");
 
   useGSAP(

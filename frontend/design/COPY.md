@@ -120,7 +120,8 @@ pasó y qué hacer.
 | `/tiendas/almuerzo-02` | Almuerzo 02 — Por definir | El segundo punto de almuerzo del campus, abriendo pronto. |
 | `/auth/ingresar` | Ingresar | Entra con tu correo institucional para apartar y recoger. *(noindex)* |
 | `/auth/crear-cuenta` | Crear mi pase | Crea tu cuenta con el correo institucional. *(noindex)* |
-| `/cuenta` | Mi pase | Tus datos, pedidos y carrito. *(noindex)* |
+| `/pedidos` | Mis pedidos | Lo que tienes por apartar y tus pedidos con su hora de recogida. *(noindex)* |
+| `/cuenta` | Mi pase | Tus datos y tu carnet. *(noindex)* |
 | `/terminos` | Términos de uso | Condiciones de uso: cuentas, reservas, precios, recogida y responsabilidad. |
 | `/privacidad` | Privacidad | Cómo tratamos tus datos personales (Ley 1581 de 2012). |
 

@@ -62,6 +62,10 @@ async def run_test():
         elem = page.get_by_role("button", name="Entrar")
         await elem.click(timeout=10000)
         
+        # -> Orders live in /pedidos since the account page only shows the profile.
+        await page.wait_for_url("**/cuenta", timeout=15000)
+        await page.goto("http://localhost:3000/pedidos")
+        
         # -> Scroll down the orders list until the “Antojos · #15” paid order is visible, then verify whether it offers a cancel action.
         await page.mouse.wheel(0, 300)
         
@@ -70,7 +74,7 @@ async def run_test():
         # --> At least one non-pending order is displayed, including a paid order.
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: A paid order is displayed.
-        await expect(page.get_by_label("Pedidos").nth(0)).to_contain_text("Pagado", timeout=15000), "A paid order is displayed."
+        await expect(page.get_by_label("Apartados").nth(0)).to_contain_text("Pagado", timeout=15000), "A paid order is displayed."
         await asyncio.sleep(5)
 
     finally:

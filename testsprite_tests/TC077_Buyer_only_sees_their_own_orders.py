@@ -75,12 +75,16 @@ async def run_test():
         elem = page.get_by_role("button", name="Crear mi pase")
         await elem.click(timeout=10000)
         
+        # -> Orders live in /pedidos since the account page only shows the profile.
+        await page.wait_for_url("**/cuenta", timeout=15000)
+        await page.goto("http://localhost:3000/pedidos")
+        
         # --> Assertions to verify final state
         
         # --> The newly registered buyer’s Pedidos section shows no orders.
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: The new buyer’s orders section is empty.
-        await expect(page.locator("#contenido").nth(0)).to_contain_text("Todav\u00eda no tienes pedidos.", timeout=15000), "The new buyer\u2019s orders section is empty."
+        await expect(page.locator("#contenido").nth(0)).to_contain_text("No tienes nada apartado.", timeout=15000), "The new buyer\u2019s orders section is empty."
         await asyncio.sleep(5)
 
     finally:

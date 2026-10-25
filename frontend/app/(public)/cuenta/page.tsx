@@ -6,7 +6,7 @@ import { Revelar } from "@/components/motion/Revelar";
 export const metadata: Metadata = {
   title: "Mi pase",
   description:
-    "Tus datos, tus pedidos y tu carrito en la Tienda Virtual de la cafetería UTB.",
+    "Tus datos y tu carnet en la Tienda Virtual de la cafetería UTB.",
   robots: { index: false, follow: false },
 };
 
@@ -22,7 +22,7 @@ export default function PaginaCuenta() {
             Tu cuenta de cafetería
           </h1>
           <p data-escalon="" className="lead mt-3 max-w-[40ch] opacity-95">
-            Tus datos, tus pedidos y lo que tienes apartado, en un solo lugar.
+            Tus datos y tu carnet. Lo que apartas está en Pedidos.
           </p>
         </Revelar>
       </header>

@@ -158,7 +158,7 @@ ser obligatoria y documentada en el `400`/`409` correspondiente.
 | Registrar cuenta | `POST /identity/register` | identity | alta del estudiante |
 | Sesión actual | `GET /identity/me` | identity | `/cuenta` sin parpadeo |
 | Crear pedido | `POST /orders` | orders | reserva |
-| Listar mis pedidos | `GET /orders` | orders | historial en `/cuenta` |
+| Listar mis pedidos | `GET /orders` | orders | «Apartados» y «Anteriores» en `/pedidos` |
 | Ajustar existencias | `PATCH /inventory/{product_id}` | inventory | panel `/admin` |
 
 El panel `/admin` funciona hoy con un **borrador local** explícitamente
