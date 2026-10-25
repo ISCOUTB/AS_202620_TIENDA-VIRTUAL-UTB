@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { crearPedido } from "@/lib/pedidos";
+import { EVENTO_PEDIDOS, crearPedido } from "@/lib/pedidos";
 import type { Carrito } from "@/lib/carrito";
 
 function respuesta(cuerpo: unknown, status = 200): Response {
@@ -60,6 +60,22 @@ describe("crearPedido", () => {
       ],
       hora_recogida: "10:40",
     });
+  });
+
+  it("avisa con EVENTO_PEDIDOS solo cuando se crean pedidos", async () => {
+    const oyente = vi.fn();
+    window.addEventListener(EVENTO_PEDIDOS, oyente);
+    try {
+      fetchSimulado.mockResolvedValueOnce(respuesta({ detail: "Sin existencias" }, 400));
+      await crearPedido(CARRITO, "10:40");
+      expect(oyente).not.toHaveBeenCalled();
+
+      fetchSimulado.mockResolvedValueOnce(respuesta([], 201));
+      await crearPedido(CARRITO, "10:40");
+      expect(oyente).toHaveBeenCalledTimes(1);
+    } finally {
+      window.removeEventListener(EVENTO_PEDIDOS, oyente);
+    }
   });
 
   it("sin hora no envía hora_recogida", async () => {

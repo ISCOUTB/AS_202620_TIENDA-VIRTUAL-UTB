@@ -92,30 +92,27 @@ async def run_test():
         elem = page.get_by_role("button", name="Apartar para las 2:00 p. m.")
         await elem.click(timeout=10000)
         
-        # -> Open “Ver en mi pase” to verify the two store reservations and whether the cart was cleared.
-        # Ver en mi pase link
-        elem = page.get_by_role("link", name="Ver en mi pase")
+        # -> Open “Ver mis pedidos” to verify the two store reservations and whether the cart was cleared.
+        # Ver mis pedidos link
+        elem = page.get_by_role("link", name="Ver mis pedidos")
         await elem.click(timeout=10000)
         
-        # -> Open the order panel and check whether it indicates the cart is empty after the reservations.
-        # Ver pedido button
-        elem = page.get_by_role("button", name="Ver pedido")
-        await elem.click(timeout=10000)
+        # -> /pedidos shows the cart («Por apartar») and the orders on the same page: no panel needed.
         
         # --> Assertions to verify final state
         
         # --> Separate reservations are listed for Antojos and Punto Fit.
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The account lists an Antojos reservation.
-        await expect(page.locator("#contenido").nth(0)).to_contain_text("Antojos \u00b7", timeout=15000), "The account lists an Antojos reservation."
+        # Assert: /pedidos lists an Antojos reservation.
+        await expect(page.locator("#contenido").nth(0)).to_contain_text("Antojos \u00b7", timeout=15000), "/pedidos lists an Antojos reservation."
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The account lists a Punto Fit reservation.
-        await expect(page.locator("#contenido").nth(0)).to_contain_text("Punto Fit \u00b7", timeout=15000), "The account lists a Punto Fit reservation."
+        # Assert: /pedidos lists a Punto Fit reservation.
+        await expect(page.locator("#contenido").nth(0)).to_contain_text("Punto Fit \u00b7", timeout=15000), "/pedidos lists a Punto Fit reservation."
         
         # --> The cart is empty after the reservations.
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: The cart is empty after reserving.
-        await expect(page.locator("#contenido").nth(0)).to_contain_text("Est\u00e1 vac\u00edo.", timeout=15000), "The cart is empty after reserving."
+        await expect(page.locator("#contenido").nth(0)).to_contain_text("Todav\u00eda no agregas nada.", timeout=15000), "The cart is empty after reserving."
         await asyncio.sleep(5)
 
     finally:

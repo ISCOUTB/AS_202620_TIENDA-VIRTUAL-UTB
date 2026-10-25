@@ -380,8 +380,8 @@ function Confirmacion({
           Si no lo pagas en 24 horas se cancela solo y las unidades vuelven a la tienda.
         </p>
         <div className="mt-6 flex flex-col gap-2">
-          <Boton href="/cuenta" variante="primario" tamano="lg" bloque cuadrado onClick={alCerrar}>
-            Ver en mi pase
+          <Boton href="/pedidos" variante="primario" tamano="lg" bloque cuadrado onClick={alCerrar}>
+            Ver mis pedidos
           </Boton>
           <Boton variante="texto" bloque onClick={alCerrar}>
             Seguir mirando

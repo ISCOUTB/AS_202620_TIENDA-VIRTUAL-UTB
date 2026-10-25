@@ -62,20 +62,24 @@ async def run_test():
         elem = page.get_by_role("button", name="Entrar")
         await elem.click(timeout=10000)
         
+        # -> Orders live in /pedidos since the account page only shows the profile.
+        await page.wait_for_url("**/cuenta", timeout=15000)
+        await page.goto("http://localhost:3000/pedidos")
+        
         # -> Cancel the visible pending-payment order for Gaseosa Coca-Cola and check the resulting confirmation.
         # Cancelar pedido button
-        elem = page.get_by_role("listitem").filter(has_text="Antojos · #24Por pagarGaseosa").get_by_role("button")
+        elem = page.get_by_role("listitem").filter(has_text="Antojos · #24Por pagar").get_by_role("button")
         await elem.click(timeout=10000)
         
         # --> Assertions to verify final state
         
         # --> The Gaseosa Coca-Cola order is confirmed canceled and is no longer cancellable.
         # Assert-outcome: not verified — the export-time check could not be evaluated
-        # Assert: The account page confirms the cancellation.
-        await expect(page.locator("#contenido").nth(0)).to_contain_text("El pedido ya est\u00e1 cancelado", timeout=15000), "The account page confirms the cancellation."
+        # Assert: /pedidos confirms the cancellation.
+        await expect(page.locator("#contenido").nth(0)).to_contain_text("El pedido ya est\u00e1 cancelado", timeout=15000), "/pedidos confirms the cancellation."
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: The order is marked canceled and is no longer cancellable.
-        await expect(page.get_by_label("Pedidos").nth(0)).to_contain_text("Cancelado", timeout=15000), "The order is marked canceled and is no longer cancellable."
+        await expect(page.get_by_label("Anteriores").nth(0)).to_contain_text("Cancelado", timeout=15000), "The order is marked canceled and is no longer cancellable."
         await asyncio.sleep(5)
 
     finally:

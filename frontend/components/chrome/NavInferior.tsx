@@ -3,14 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useSesion } from "@/lib/sesion";
-import { useCarrito, unidades, abrirPedido } from "@/lib/carrito";
+import { useCarrito, unidades } from "@/lib/carrito";
 import { Icono, type NombreIcono } from "@/components/ui/Icono";
 import { ContadorPedido } from "./ContadorPedido";
 
 /**
  * Navegación inferior de móvil (artefacto «A · Inicio móvil»): Inicio ·
  * Tiendas · Pedidos · Cuenta. El destino activo lleva la pastilla azul suave
- * detrás del ícono. «Pedidos» abre el panel del pedido con `abrirPedido()`.
+ * detrás del ícono. «Pedidos» lleva a `/pedidos` (carrito y pedidos hechos);
+ * el panel lateral queda para apartar.
  * En `lg` y más no existe.
  */
 export function NavInferior() {
@@ -21,7 +22,7 @@ export function NavInferior() {
 
   const items: Array<{
     clave: string;
-    href: string | null;
+    href: string;
     etiqueta: string;
     icono: NombreIcono;
     activa: boolean;
@@ -34,7 +35,13 @@ export function NavInferior() {
       icono: "tiendas",
       activa: ruta.startsWith("/tiendas"),
     },
-    { clave: "pedidos", href: null, etiqueta: "Pedidos", icono: "pedidos", activa: false },
+    {
+      clave: "pedidos",
+      href: "/pedidos",
+      etiqueta: "Pedidos",
+      icono: "pedidos",
+      activa: ruta.startsWith("/pedidos"),
+    },
     {
       clave: "cuenta",
       href: "/cuenta",
@@ -82,15 +89,9 @@ export function NavInferior() {
 
           return (
             <li key={it.clave}>
-              {it.href ? (
-                <Link href={it.href} aria-current={it.activa ? "page" : undefined} className={clases}>
-                  {contenido}
-                </Link>
-              ) : (
-                <button type="button" onClick={abrirPedido} className={clases}>
-                  {contenido}
-                </button>
-              )}
+              <Link href={it.href} aria-current={it.activa ? "page" : undefined} className={clases}>
+                {contenido}
+              </Link>
             </li>
           );
         })}

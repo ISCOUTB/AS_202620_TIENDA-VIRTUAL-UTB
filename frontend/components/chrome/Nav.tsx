@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { TIENDAS, paletaTienda } from "@/lib/tiendas";
 import { useSesion, cerrarSesion } from "@/lib/sesion";
-import { useCarrito, unidades, abrirPedido } from "@/lib/carrito";
+import { useCarrito, unidades } from "@/lib/carrito";
 import { LOGO } from "@/lib/imagenes";
 import { gsap, useGSAP, CONDICIONES, MOVIMIENTO } from "@/lib/movimiento";
 import { Icono, IconoTienda } from "@/components/ui/Icono";
@@ -109,15 +109,15 @@ export function Nav() {
 
           <div className="flex-1" />
 
-          <button
-            type="button"
-            onClick={abrirPedido}
-            aria-label={`Ver pedido${n > 0 ? `: ${n} ${n === 1 ? "unidad" : "unidades"}` : ""}`}
+          <Link
+            href="/pedidos"
+            aria-current={ruta.startsWith("/pedidos") ? "page" : undefined}
+            aria-label={`Mis pedidos${n > 0 ? `: ${n} ${n === 1 ? "unidad" : "unidades"} por apartar` : ""}`}
             className="boton-vidrio relative hidden sm:inline-flex"
           >
             <Icono nombre="pedidos" />
             <ContadorPedido n={n} className="absolute -right-1 -top-1" />
-          </button>
+          </Link>
 
           <BotonTema />
 

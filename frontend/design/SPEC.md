@@ -199,7 +199,8 @@ texto para lectores de pantalla; los bloques son `aria-hidden`.
 | `/` | Sí (móvil y escritorio) | Sábana con titular, buscador y foto · «Elige tienda» solapada (fichas en móvil, tarjetas desde `md`) · promo (móvil) · «Lo más pedido» (carrusel en móvil, rejilla en escritorio) · «Cómo funciona» · banda «La cuenta» con carnet y 5 beneficios · Preguntas |
 | `/tiendas/[slug]` | Sí | Sábana con las cinco pastillas · cabecera con foto y velo, categoría, nombre, chips · nota · carta con «Para uno / Para compartir» (si hay de los dos) · resumen «Tu pedido» en `lg` |
 | Pedido | Sí | Hoja inferior / panel lateral: líneas con cantidad, franja horaria (radios nativos), nota de pago, total, «Apartar para las …», confirmación real o demostración |
-| `/cuenta` | No (mismo lenguaje) | Sábana · tarjeta con saludo, carnet real, estados y acciones · pedidos · carrito por tienda |
+| `/pedidos` | No (mismo lenguaje) | Sábana · «Por apartar» (carrito por tienda, abre el panel para elegir hora y apartar) · «Apartados» (pedidos activos con la hora de recogida al frente y cancelar si están por pagar) · «Anteriores» (entregados y cancelados) |
+| `/cuenta` | No (mismo lenguaje) | Sábana · tarjeta con saludo, carnet real, estados y acciones (incluye «Ver mis pedidos») |
 | `/auth/*` | No | Sábana lateral (arriba en móvil) con las cinco tiendas · formulario en tarjeta |
 | `/admin` | No | Sábana compacta · cabecera · 4 KPI · tiendas · tabla de inventario con borrador local |
 | `/terminos`, `/privacidad` | No | Sábana · `.prosa` en tarjeta solapada |
