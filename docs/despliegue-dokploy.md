@@ -69,7 +69,10 @@ Los datos cargados en local con `python -m app.seed --desde-json` **no** viajan
 en la imagen (`backend/datos_legado` no se copia). Para llevarlos a
 producción: `pg_dump`/`pg_restore` de la base local, o ejecutar una vez esa
 carga en el servidor montando la carpeta, por ejemplo
-`docker compose -f deploy/compose.lab.yaml run --rm -v "$PWD/backend/datos_legado:/datos" migrate python -m app.seed --desde-json /datos/<archivo>.json`.
+`docker compose -f deploy/compose.lab.yaml run --rm -v "$PWD/backend/datos_legado:/app/datos_legado:ro" migrate python -m app.seed --desde-json <archivo>.json`.
+
+El argumento es solo el nombre del JSON; no se permiten rutas externas,
+subcarpetas ni enlaces simbólicos. El operador administra `datos_legado`.
 
 ## Publicar el frontend
 

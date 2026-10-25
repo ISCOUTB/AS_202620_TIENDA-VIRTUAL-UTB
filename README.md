@@ -269,9 +269,15 @@ esta operación borra los datos locales de la base de datos.
 | Aplicar migraciones | `docker compose run --rm migrate` (o, en `backend/`, `alembic upgrade head`) |
 | Comprobar que modelos y migraciones coinciden | en `backend/`: `alembic check` |
 | Sembrar datos de demostración | `docker compose run --rm migrate python -m app.seed` (o `SEED_ON_DEPLOY=true` y `docker compose up`) |
-| Sembrar además los datos exportados | `docker compose run --rm -v "${PWD}/backend/datos_legado:/datos" migrate python -m app.seed --desde-json /datos/<archivo>.json` |
+| Sembrar además los datos exportados | `docker compose run --rm -v "${PWD}/backend/datos_legado:/app/datos_legado:ro" migrate python -m app.seed --desde-json <archivo>.json` |
 | Exportar el esquema anterior a JSON | ver abajo |
 | Crear el rol de la API en una base ya inicializada | `docker compose exec database sh /docker-entrypoint-initdb.d/10-rol-aplicacion.sh` |
+
+`--desde-json` acepta únicamente el nombre de un archivo `.json` dentro de
+`backend/datos_legado` (en Docker, `/app/datos_legado`). No acepta rutas
+absolutas, subcarpetas, `..` ni enlaces simbólicos. El operador administra
+esa carpeta; el montaje de importación es de solo lectura. Ver el
+[diagnóstico y pruebas de seguridad](docs/seguridad-importacion-legado.md).
 
 **Bases creadas antes del ADR 0013.** La migración `0001_esquema_inicial`
 elimina `catalog_products` e `inventory_stock`. Antes de levantar el stack

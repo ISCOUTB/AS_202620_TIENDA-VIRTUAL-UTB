@@ -15,16 +15,19 @@ está sujeto a RLS (ADR 0014).
 
 Opcionalmente carga el JSON que produce `scripts/exportar_datos_legado.py`:
 
-    python -m app.seed --desde-json datos_legado/legado_20261022T120000Z.json
+    python -m app.seed --desde-json legado_20261022T120000Z.json
+
+El archivo debe estar en backend/datos_legado (en Docker, /app/datos_legado).
 """
 
 import argparse
 import json
 import os
-from pathlib import Path
+from typing import Any
 
 from sqlalchemy.orm import Session, sessionmaker
 
+from app.archivos_legado import leer_json_legado
 from app.modules.catalog.public import asegurar_categoria, asegurar_producto, asegurar_tienda
 from app.modules.identity.public import asegurar_admin_general, asegurar_admin_tienda
 from app.modules.inventory.public import asegurar_existencia_inicial
@@ -188,10 +191,8 @@ def sembrar_demo(session: Session) -> dict[str, int]:
     }
 
 
-def cargar_legado(session: Session, ruta: Path) -> dict[str, int]:
-    """Carga productos y existencias exportados de catalog_products/inventory_stock."""
-    # utf-8-sig tolera el BOM que añade PowerShell 5 al redirigir a archivo.
-    datos = json.loads(ruta.read_text(encoding="utf-8-sig"))
+def cargar_legado(session: Session, datos: dict[str, Any]) -> dict[str, int]:
+    """Importa datos ya leídos; esta función no acepta ni abre rutas de archivos."""
     tablas = datos.get("tablas", {})
     productos = tablas.get("catalog_products", {}).get("filas", [])
     stock = {
@@ -264,17 +265,25 @@ def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description="Siembra datos de demostración.")
     parser.add_argument(
         "--desde-json",
-        type=Path,
-        help="JSON exportado por scripts/exportar_datos_legado.py (se carga primero).",
+        metavar="ARCHIVO.json",
+        help="Nombre del JSON dentro de datos_legado, sin ruta (se carga primero).",
     )
     args = parser.parse_args(argv)
+
+    # Rechazar archivos no autorizados antes de abrir una transacción o sembrar.
+    datos_legado = None
+    if args.desde_json is not None:
+        try:
+            datos_legado = leer_json_legado(args.desde_json)
+        except (OSError, ValueError) as error:
+            parser.error(str(error))
 
     engine = crear_engine(resolve_database_url(migraciones=True))
     resumen: dict[str, int] = {}
     # Una sola transacción: o queda todo sembrado o no queda nada.
     with sessionmaker(bind=engine, autoflush=False)() as session, session.begin():
-        if args.desde_json:
-            resumen |= cargar_legado(session, args.desde_json)
+        if datos_legado is not None:
+            resumen |= cargar_legado(session, datos_legado)
         resumen |= sembrar_demo(session)
         resumen |= sembrar_admin(session)
         resumen |= sembrar_admins_tienda(session)
