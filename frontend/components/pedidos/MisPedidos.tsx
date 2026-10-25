@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useId, useState } from "react";
 import type { OrderOut, OrderStatus } from "@/lib/api/generated/contract";
 import { ApiError } from "@/lib/api/client";
 import { EVENTO_PEDIDOS, cancelarPedido, listarPedidos } from "@/lib/pedidos";
@@ -27,7 +27,9 @@ const CERRADOS: ReadonlySet<OrderStatus> = new Set(["entregado", "cancelado"]);
  * el panel lateral crea pedidos (`EVENTO_PEDIDOS`). En modo demostración no
  * hay pedidos que mostrar y se dice.
  */
-export function MisPedidos({ demo }: Readonly<{ demo: boolean }>) {
+export function MisPedidos({ demo, soloActivos = false }: Readonly<{ demo: boolean; soloActivos?: boolean }>) {
+  const id = useId();
+  const idApartados = soloActivos ? `${id}-apartados` : "apartados";
   const [estado, setEstado] = useState<Estado>(demo ? { tipo: "demo" } : { tipo: "cargando" });
   const [cancelando, setCancelando] = useState<number | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -44,8 +46,14 @@ export function MisPedidos({ demo }: Readonly<{ demo: boolean }>) {
     void cargar();
     const recargar = () => void cargar();
     window.addEventListener(EVENTO_PEDIDOS, recargar);
-    return () => window.removeEventListener(EVENTO_PEDIDOS, recargar);
-  }, [demo, cargar]);
+    window.addEventListener("focus", recargar);
+    const intervalo = soloActivos ? window.setInterval(recargar, 30000) : undefined;
+    return () => {
+      window.removeEventListener(EVENTO_PEDIDOS, recargar);
+      window.removeEventListener("focus", recargar);
+      window.clearInterval(intervalo);
+    };
+  }, [demo, cargar, soloActivos]);
 
   async function cancelar(pedido: OrderOut) {
     setAviso(null);
@@ -71,11 +79,11 @@ export function MisPedidos({ demo }: Readonly<{ demo: boolean }>) {
     <>
       <section
         data-escalon=""
-        aria-labelledby="apartados"
+        aria-labelledby={idApartados}
         className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8"
       >
         <div className="flex items-baseline justify-between gap-4">
-          <h2 id="apartados" className="font-display text-2xl font-semibold">
+          <h2 id={idApartados} className="font-display text-2xl font-semibold">
             Apartados
           </h2>
           {estado.tipo === "listo" ? (
@@ -151,7 +159,7 @@ export function MisPedidos({ demo }: Readonly<{ demo: boolean }>) {
         )}
       </section>
 
-      {anteriores.length > 0 ? (
+      {!soloActivos && anteriores.length > 0 ? (
         <section
           data-escalon=""
           aria-labelledby="anteriores"

@@ -90,10 +90,10 @@ incremento actual; `SOLO ESQUEMA` = tablas y modelos creados, sin endpoints.
 
 | Contexto delimitado | Módulo | Dueño (rol) | Tablas que posee (objetivo) | Tabla hoy (real) | Contrato público | Estado |
 |---|---|---|---|---|---|---|
-| Identidad y Acceso | `backend/app/modules/identity/` | Sistema (auth propia) / rol de admin | `usuarios`, `roles`, `usuario_roles` | Las tres (migración `0001_esquema_inicial`) | Autenticación y autorización por rol; aún sin exponer | SOLO ESQUEMA |
+| Identidad y Acceso | `backend/app/modules/identity/` | Sistema (auth propia) / rol de admin | `usuarios`, `roles`, `usuario_roles` | Las tres (migración `0001_esquema_inicial`) | Registro, login, perfil; JWT y roles | IMPLEMENTADO |
 | Catálogo | `backend/app/modules/catalog/` | Administrador de la tienda | `tiendas`, `categorias`, `productos`, `imagenes_producto` | Las cuatro | `GET /catalog/products` → `ProductOut` | IMPLEMENTADO |
-| Inventario | `backend/app/modules/inventory/` | Responsable de inventario | `existencias` (`producto_id`, `cantidad`, `version`), `movimientos_existencias` | Las dos | `GET /inventory` → `StockOut` | IMPLEMENTADO (lectura) |
-| Pedidos | `backend/app/modules/orders/` | Administrador de la tienda / comprador | `pedidos`, `pedido_lineas`, `pedido_historial` | Las tres | Por definir (futuro) | SOLO ESQUEMA |
+| Inventario | `backend/app/modules/inventory/` | Responsable de inventario | `existencias` (`producto_id`, `cantidad`, `version`), `movimientos_existencias` | Las dos | Consulta, escritura por producto y ajustes; contrato público para pedidos | IMPLEMENTADO (lectura y escritura) |
+| Pedidos | `backend/app/modules/orders/` | Administrador de la tienda / comprador | `pedidos`, `pedido_lineas`, `pedido_historial` | Las tres | `POST /orders`, consultas, cancelación y cambio de estado; vencimiento por comando | IMPLEMENTADO |
 
 - **Base de datos:** única instancia PostgreSQL compartida; el esquema lo
   crean las migraciones de Alembic ([ADR 0013](adr/0013-migraciones-alembic-y-esquema.md))

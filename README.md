@@ -189,8 +189,18 @@ Dokploy y, cuando exista, se registrará aquí.
   (propuesta, pendiente de ratificación): confirma el monolito modular del
   ADR 0001 y fija las condiciones que reabrirían la extracción.
 
-Son documentos de diseño: el endpoint de pedidos y los patrones descritos aún
-no están implementados en el código.
+El endpoint de pedidos, la idempotencia y la compensación están implementados
+desde el 2026-10-24. La creación del pedido y la reducción de existencias usan una transacción local.
+La programación del vencimiento en Dokploy sigue pendiente de verificación.
+
+## Evidencia S12 — consistencia, caché y decisión de datos
+
+- [Tabla operación → garantía de consistencia](docs/consistencia-s12.md), con mecanismos, pruebas y límites reales.
+- [Diseño de caché y política de invalidación](docs/cache-s12.md): propuesta para metadatos públicos; todavía no implementada.
+- [ADR 0018: transacción compartida entre Pedidos e Inventario](docs/adr/0018-transaccion-compartida-pedidos-inventario.md): decisión de datos más costosa de revertir.
+
+La entrega se presenta mediante el enlace al repositorio o al commit que
+contenga estos archivos. El PDF de una página es opcional.
 
 ## Arranque local
 

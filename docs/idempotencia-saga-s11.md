@@ -14,7 +14,7 @@ la consistencia de los datos en el flujo principal de creación de pedidos.
 
 ## 1. Diseño de Idempotencia en la Creación de Pedidos
 
-Para evitar la duplicación de pedidos y el doble descuento de inventario
+Para evitar la duplicación de pedidos y la doble reducción de existencias
 debido a fallos de red o reintentos del usuario en el frontend, se implementa un
 mecanismo de idempotencia en el endpoint de creación de pedidos
 (`POST /api/orders`).
@@ -50,7 +50,7 @@ sequenceDiagram
     else Llave ya registrada (reintento por fallo de red)
         API->>DB: SELECT respuesta previa de la llave
         DB-->>API: respuesta original
-        API-->>FE: 200 OK (mismo id, sin descontar stock)
+        API-->>FE: 200 OK (mismo id, sin volver a restar unidades del inventario)
     end
     FE-->>U: Confirmación mostrada una sola vez
 ```
@@ -75,7 +75,7 @@ una **Saga** para manejar la transacción a largo plazo y sus compensaciones.
 *   **Paso 1 (Transacción Local 1 - Pedidos):** Se crea el registro del Pedido
     con estado `Pendiente_Pago_Manual`. Se emite el evento `PedidoCreado`.
 *   **Paso 2 (Transacción Local 2 - Inventario):** El módulo de inventario
-    escucha el evento, descuenta temporalmente las unidades disponibles y las
+    escucha el evento, resta temporalmente las unidades disponibles y las
     marca como `Reservadas`.
 *   **Paso 3 (Punto de Decisión / Espera):**
     *   **Escenario de Éxito:** Si el administrador confirma el pago en el
@@ -149,14 +149,14 @@ Lo que el código hace hoy, y en qué se aparta del diseño:
 |---|---|
 | `POST /api/orders` con `Idempotency-Key` | `POST /orders` con la cabecera `Idempotency-Key` (UUID, obligatoria; si falta o no es UUID, 422). |
 | Llave asociada a la cuenta | `UNIQUE (usuario_id, clave_idempotencia, tienda_id)`: la misma llave en otra cuenta crea su propio pedido. |
-| Llave repetida → `200 OK` con la respuesta original | Igual: `200` con los mismos pedidos, sin tocar stock. Si dos peticiones con la misma llave llegan a la vez, la segunda choca con la restricción única y devuelve los pedidos de la primera. |
+| Llave repetida → `200 OK` con la respuesta original | `200` con los mismos pedidos en su estado actual, sin tocar stock; no almacena una copia de la respuesta HTTP original ni compara el cuerpo del reintento. Si dos peticiones con la misma llave llegan a la vez, la segunda choca con la restricción única y devuelve los pedidos de la primera. |
 | Llave vigente 24 horas | Una llave de más de 24 horas responde `400` («genera una nueva»). |
 | Estado `Pendiente_Pago_Manual` | `pendiente_pago`. Los estados son los del esquema (ADR 0013): `pendiente_pago → pagado → en_preparacion → listo → entregado`, más `cancelado`. |
-| Paso 1 (pedido) y paso 2 (reserva) como transacciones locales separadas, unidas por el evento `PedidoCreado` | **Una sola transacción local**: el pedido se crea y las unidades se descuentan (`inventario_descontar`, movimiento `venta`) juntos. Es lo que el [ADR 0010](adr/0010-no-extraer-modulos.md) mantiene mientras Pedidos e Inventario comparten proceso y base, y lo que pide el escenario 3 (sin consistencia eventual). Pedidos llama a Inventario solo por su `public.py`, así que separar los pasos más adelante no cambia la lógica de compensación. |
+| Paso 1 (pedido) y paso 2 (reserva) como transacciones locales separadas, unidas por el evento `PedidoCreado` | **Una sola transacción local**: el pedido se crea y las unidades se restan del inventario (`inventario_descontar`, movimiento `venta`) juntos. Es lo que el [ADR 0010](adr/0010-no-extraer-modulos.md) mantiene mientras Pedidos e Inventario comparten proceso y base, y lo que pide el escenario 3 (sin consistencia eventual). Pedidos llama a Inventario solo por su `public.py`, así que separar los pasos más adelante no cambia la lógica de compensación. |
 | `PagoConfirmado` lo emite el administrador | La tienda (`admin_tienda` o `responsable_inventario`) pasa el pedido a `pagado` con `POST /orders/{id}/estado`. |
-| Cron Job de compensación a las 24 h | `python -m app.tareas.vencer_pedidos`, programado en Dokploy cada 15 minutos ([despliegue](despliegue-dokploy.md#vencimiento-de-pedidos-sin-pago)). Cancela con el comentario «Vencido sin confirmación de pago (24 h)», `usuario_id` NULL (sistema), y repone las unidades (movimiento `devolucion`). Es idempotente y usa `SKIP LOCKED`. |
+| Cron Job de compensación a las 24 h | `python -m app.tareas.vencer_pedidos`, previsto para programarse en Dokploy cada 15 minutos (configuración pendiente de verificación) ([despliegue](despliegue-dokploy.md#vencimiento-de-pedidos-sin-pago)). Cancela con el comentario «Vencido sin confirmación de pago (24 h)», `usuario_id` NULL (sistema), y repone las unidades (movimiento `devolucion`). Es idempotente y usa `SKIP LOCKED`. |
 | `Cancelado_Por_Inactividad` | `cancelado`; el motivo queda en `pedido_historial.comentario`. |
-| Bloqueo optimista (F-03) | `inventario_aplicar_movimiento` descuenta con un `UPDATE` atómico que no deja stock negativo, así que dos compras de la última unidad no pueden prosperar ambas; `version` sube en cada cambio. Los pedidos usan `version_id_col` (409 ante cambios concurrentes). |
+| Bloqueo optimista (F-03) | `inventario_aplicar_movimiento` resta unidades mediante un `UPDATE` atómico que no deja stock negativo, así que dos compras de la última unidad no pueden prosperar ambas; `version` sube en cada cambio. Los pedidos usan `version_id_col` (409 ante cambios concurrentes). |
 
 Además, cancelar repone el stock: el comprador puede cancelar mientras el
 pedido esté en `pendiente_pago`; la tienda, mientras no se haya entregado.

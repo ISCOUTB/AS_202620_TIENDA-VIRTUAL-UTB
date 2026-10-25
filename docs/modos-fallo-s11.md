@@ -1,8 +1,8 @@
 # Análisis de Resiliencia: Tabla de Modos de Fallo y Mitigación
 
 > **Tipo:** evidencia S11 — modos de fallo y mitigación. **Autor:** Equipo
-> Tienda Virtual UTB. **Fecha:** 2026-10-18. **Estado:** documento de diseño;
-> los patrones seleccionados no están implementados en el código actual.
+> Tienda Virtual UTB. **Fecha:** 2026-10-18. **Estado:** diseño original con
+> actualización de implementación al 2026-10-25 en la tabla de estado siguiente.
 > **Trazabilidad:** [escenarios de calidad](escenarios-calidad.md),
 > [`ADR 0001`](adr/0001-monolito-modular.md),
 > [`ADR 0010`](adr/0010-no-extraer-modulos.md) y
@@ -13,22 +13,25 @@ la arquitectura de la Tienda Virtual, abarcando escenarios de consistencia de
 negocio, infraestructura, seguridad y red. Se incluyen los patrones de diseño
 arquitectónico seleccionados para mitigar cada riesgo.
 
-**Alcance y estado.** Este documento *selecciona* patrones de mitigación; no
-acredita su implementación. En el código actual los módulos `identity`,
-`inventory` y `orders` siguen siendo paquetes reservados y no existe un
-endpoint de creación de pedidos, así que las mitigaciones F-01, F-03, F-04 y
-F-05 quedan como diseño previo verificable contra el repositorio. Las
-mitigaciones de infraestructura (F-02, F-06, F-07) dependen además de
-componentes —caché, *rate limiting* en el punto de entrada, réplicas— que
-tampoco forman parte del stack actual: una única aplicación en Dokploy, según
-el [`ADR 0007`](adr/0007-despliegue-dokploy.md).
+**Alcance y estado (2026-10-25).** La tabla original conserva los patrones
+seleccionados en S11; no todos están implementados. Este es su estado actual:
+
+| Modo | Estado verificable |
+|---|---|
+| F-01 | Cancelación, devolución de stock y comando de vencimiento implementados; falta verificar el Schedule de Dokploy. No hay integración de pasarela ni Strategy implementado para ella. |
+| F-02 | Sin Redis ni retry con backoff de aplicación. Lecturas `no-store` y respaldo estático señalado, sin reserva. La caché se diseña en [S12](cache-s12.md). |
+| F-03 | Reducción de existencias mediante UPDATE atómico; ajustes y pedidos con versión optimista. Ver [garantías S12](consistencia-s12.md). |
+| F-04 | `POST /orders` exige UUID en `Idempotency-Key`; recupera pedidos existentes sin duplicar la reducción de existencias. |
+| F-05 | No hay mensajería, correos ni DLQ implementados. |
+| F-06 | No hay rate limiting implementado en el stack versionado. |
+| F-07 | Hay health checks; no hay réplicas ni failover configurados. El carrito del frontend se conserva localmente. |
 
 | ID | Ámbito Arquitectónico | Descripción del Modo de Fallo | Impacto | Patrón de Mitigación / Resiliencia |
 | :--- | :--- | :--- | :--- | :--- |
 | **F-01** | **Consistencia de Negocio (Pagos Offline)** | **Bloqueo indefinido de inventario.** Dado que el pago en línea está fuera de alcance temporalmente y la coordinación es manual/externa, existe el riesgo de que pedidos abandonados agoten el stock virtual ("falsos agotados"). | **Alto** | **Máquina de Estados y TTL (Time to Live):** Implementación de un proceso programado (Cron Job) de compensación que cancela automáticamente los pedidos en estado `Pendiente_Pago_Manual` tras 24 horas, liberando el inventario. Uso del patrón **Strategy** para la futura integración de la pasarela sin refactorizar el caso de uso central. |
 | **F-02** | **Base de Datos y Catálogo** | **Caída o latencia extrema en la base de datos principal** debido a picos inesperados de tráfico de usuarios consultando el catálogo de productos. | **Alto** | **Caché Distribuida y Retries:** Implementación de una capa de caché (ej. Redis) para consultas de solo lectura del catálogo. Si la BD principal falla, se sirve el catálogo desde la caché. Se aplica el patrón **Retry con Backoff Exponencial** para reconectar a la BD sin saturarla. |
 | **F-03** | **Concurrencia de Datos** | **Condición de carrera en el inventario.** Múltiples usuarios intentan confirmar un pedido para la última unidad disponible de un producto en el mismo milisegundo. | **Alto** | **Bloqueo Optimista (Optimistic Locking):** Manejo de concurrencia a nivel de base de datos utilizando un campo de `version` en la tabla de inventario. Si el stock fue modificado por otra transacción durante el proceso, la transacción actual falla de forma segura y se notifica al usuario. |
-| **F-04** | **Red del Cliente (Cliente-Servidor)** | **Reintentos de creación de pedido.** Un usuario hace clic en "Confirmar Pedido", la red falla antes de recibir respuesta, y el usuario vuelve a presionar el botón generando solicitudes duplicadas. | **Medio** | **Idempotencia en API:** El frontend generará y enviará un `Idempotency-Key` único por cada intento de pedido. El backend validará esta llave; si ya fue procesada exitosamente, retornará la respuesta guardada sin volver a descontar inventario ni duplicar el registro. |
+| **F-04** | **Red del Cliente (Cliente-Servidor)** | **Reintentos de creación de pedido.** Un usuario hace clic en "Confirmar Pedido", la red falla antes de recibir respuesta, y el usuario vuelve a presionar el botón generando solicitudes duplicadas. | **Medio** | **Idempotencia en API:** El frontend generará y enviará un `Idempotency-Key` único por cada intento de pedido. El backend validará esta llave; si ya fue procesada exitosamente, retornará la respuesta guardada sin volver a restar unidades del inventario ni duplicar el registro. |
 | **F-05** | **Procesos Asíncronos (Notificaciones)** | **Fallo en el servicio de envío de correos.** El servidor SMTP o la API de notificaciones falla al intentar enviar el correo de confirmación de pedido al cliente. | **Medio** | **Mensajería (Pub/Sub) y Dead Letter Queue (DLQ):** Desacoplamiento de las notificaciones. El módulo de pedidos emite un evento asíncrono. Si el envío falla, el mensaje pasa a una DLQ donde un proceso en segundo plano intentará reenviarlo (*Retry pattern*) sin afectar el flujo principal del usuario. |
 | **F-06** | **Seguridad y Abuso de API** | **Ataque de fuerza bruta o inundación (Flooding).** Un script malicioso o bot bombardea los endpoints de creación de pedidos o consultas, saturando los recursos del sistema. | **Medio** | **Rate Limiting (Limitación de Tasa):** Configuración en el API Gateway para restringir la cantidad máxima de peticiones permitidas por IP/Usuario en una ventana de tiempo. Se retornará el código HTTP `429 Too Many Requests` protegiendo la infraestructura interna. |
 | **F-07** | **Infraestructura y Despliegue** | **Falla catastrófica de un contenedor o servicio (OOM Crash).** El servicio encargado de gestionar los carritos de compra se queda sin memoria y se reinicia, interrumpiendo las sesiones activas. | **Medio** | **Balanceo de Carga y Health Checks:** Despliegue de múltiples réplicas (instancias) del servicio detrás de un Load Balancer. Si el Health Check detecta una instancia no saludable, el tráfico se redirige a las réplicas sanas mientras el orquestador reinicia el nodo fallido de forma transparente. |
