@@ -5,6 +5,9 @@ __pycache__/
 .contract-tools/
 .security-tools/
 .env
+# Variantes locales (.env.local, .env.production…); las plantillas sí se versionan.
+.env.*
+!.env.example
 node_modules/
 .pnpm-store/
 .next/
@@ -17,6 +20,11 @@ coverage/
 
 # Skills de agente instaladas localmente (se regeneran)
 .agents/
+
+# Enlaces locales de las CLIs de Neon y Vercel: identifican la organización y
+# el proyecto de quien los creó, no son configuración del repositorio.
+.neon
+.vercel/
 
 # Salidas de las scripts de inspección visual del skill de diseño
 .taste-skill/
