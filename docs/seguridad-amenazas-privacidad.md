@@ -113,20 +113,8 @@ token ni la IP del cliente; el proxy no reenvía la cookie del navegador a la
 API (`frontend/lib/api/proxy.ts`); no se recogen datos sensibles ni medios de
 pago (no hay pasarela: el pago se hace en el mostrador).
 
-### 3.2 Lo que la política promete frente a lo que el código hace
 
-| # | Requisito o promesa | Situación en el código | Mitigación asignada | Plazo |
-|---|---|---|---|---|
-| P-01 | **Prueba de la autorización** (Ley 1581 art. 9; Decreto 1377 art. 8) | La casilla «acepto» solo se valida en el navegador (`frontend/components/auth/FormRegistro.tsx:42`). La API no la recibe ni la guarda, así que no hay prueba de qué versión aceptó el titular ni cuándo | Añadir `acepta_politica: true` obligatorio a `RegisterRequest` y guardar `politica_version` y `politica_aceptada_en` en `usuarios` (migración Alembic) | 0.6.0 |
-| P-02 | **Supresión y revocación** (art. 8, literal e) y la frase «Si la eliminas, se borran los datos» de `/privacidad` | No existe operación para eliminar o anonimizar una cuenta; `/identity` solo tiene `register`, `login` y `me` | `DELETE /identity/me` que anonimiza (nombre y correo sustituidos, `activo = false`) y conserva los pedidos sin datos identificativos para la contabilidad | 0.7.0 |
-| P-03 | **Rectificación** (art. 8, literal a) | No hay endpoint para actualizar nombre o correo | `PATCH /identity/me`; mientras tanto, por el canal de correo de §3.3 | 0.7.0 |
-| P-04 | `/privacidad` declara «número de documento» | El modelo no lo recoge | Quitarlo del texto: es mejor minimizar que recogerlo | 0.6.0 |
-| P-05 | `/privacidad` declara registro de IP con retención de 12 meses | La API registra la IP interna del proxy, no la del cliente (`uvicorn` sin `--proxy-headers`, `backend/Dockerfile`), y ninguna parte del repositorio fija 12 meses | Alinear el texto con lo real y fijar la retención de logs en Dokploy; si A-01 empieza a usar la IP, declararlo con esa finalidad | 0.6.0 |
-| P-06 | `/privacidad`: «carrito sin confirmar se elimina a las 24 horas» | El carrito vive en `localStorage` sin caducidad (`frontend/lib/carrito.ts`); lo que vence a las 24 h son los pedidos `pendiente_pago` | Corregir el texto o añadir caducidad al carrito | 0.6.0 |
-| P-07 | Retención de pedidos «luego agregada o anonimizada» | No hay tarea que anonimice pedidos antiguos | Tarea programada como `vencer_pedidos` que, pasado el plazo contable, desvincula `usuario_id` y vacía las notas | 0.8.0 |
-| P-08 | Transferencia internacional (art. 26) | La base y la API se despliegan en un servidor en la nube (`deploy/compose.lab.yaml`); la región no consta en el repositorio | Registrar la región del servidor en `docs/despliegue-dokploy.md` y declararla en `/privacidad` si está fuera de Colombia | 0.6.0 |
-
-### 3.3 Derechos del titular e incidentes
+### Derechos del titular e incidentes
 
 - **Canal:** correo indicado en `/privacidad` con el asunto «Datos
   personales». Plazos legales: consultas en 10 días hábiles, prorrogables 5
