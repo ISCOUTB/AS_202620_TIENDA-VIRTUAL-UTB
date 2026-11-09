@@ -91,11 +91,12 @@ descrito, con margen amplio en latencia (≈ 42 ms en el peor caso).
   optimista y no deben leerse como las que verá un usuario real.
 - `servidor_sigue_saludable` en la salida del medidor es una constante `true`;
   el criterio C4 solo se cumple porque la consulta final de `/health` lanza
-  excepción si falla. Ver [arc42 sección 11](arc42/arc42-template-EN.md#section-technical-risks).
+  excepción si falla. Ver [arc42 sección 11](arc42/11-riesgos-y-deuda-tecnica.md).
 - El escenario 3 (reflejo de inventario en menos de 2 s) **no** se midió aquí.
 
-## 7. Revisión de pares
+## 7. Limitaciones y pares
 
-La opinión de cada integrante está en [revision-pares-escenario-4.md](revision-pares-escenario-4.md) y sus hallazgos están incorporados en
-[arc42 sección 11](arc42/arc42-template-EN.md#section-technical-risks), con su
-mitigación o su estado.
+Las limitaciones de esta medición y su estado (asumido o pendiente) están en
+[arc42 sección 11](arc42/11-riesgos-y-deuda-tecnica.md#114-limits-of-the-scenario-4-measurement-teams-own-assessment).
+Los comentarios de otros equipos sobre el proyecto están pendientes de recibir
+y se añadirán allí con su estado.
