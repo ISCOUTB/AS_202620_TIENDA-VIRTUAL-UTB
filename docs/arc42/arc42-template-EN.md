@@ -619,33 +619,9 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 
 # Risks and Technical Debts {#section-technical-risks}
 
-| Risk or debt | Impact | Current mitigation |
-| --- | --- | --- |
-| Module boundaries are a convention, not enforced by the network | Unwanted coupling between modules | ADR rules plus an AST import test; mapped-column ownership is tested separately because static imports cannot prove data ownership |
-| `create_all` instead of migrations | Schema changes over populated databases will be manual | **Resolved:** Alembic migrations (ADR 0013), verified in CI |
-| Deployment target not chosen | Cannot be demonstrated outside a local machine | **Resolved:** Dokploy consumes `deploy/compose.lab.yaml`; see ADR 0007 |
-| Mocked data only | Behavior is not validated against real cafeteria data | Explicit scope constraint; the seed data models realistic products |
-| Next.js dependency vulnerabilities | Public SSR increases exposure | Keep the lockfile patched and verify `pnpm audit` during upgrades |
-| Single Dokploy server hosts every runtime component | A host or disk failure affects the whole system | Named database volume, external scheduled backups and a tested restore procedure |
-| Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | The Compose requires `POSTGRES_PASSWORD` from Dokploy Environment; `.env` files remain ignored |
-| Failure modes F-01 … F-07 are catalogued but their mitigations are not implemented yet | Identified risks (inventory lock, duplicate orders, DB outage) stay open until the patterns land in code | Mitigation selected per failure in [modos-fallo-s11.md](../modos-fallo-s11.md); idempotency and saga design in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md), with ADR 0010 keeping the design on a single process |
-
-## Peer review of the scenario 4 measurement {#_peer_review_scenario_4}
-
-Each team member (Jasen Yukopila, Alejandro Patron, Levis Ortiz and Shalom
-Jhoanna) reviewed the measurement of scenario 4
-([medicion-escenario-4.md](../medicion-escenario-4.md)): 5 concurrent buyers,
-6 runs, all within the threshold. The full opinions are in
-[revision-pares-escenario-4.md](../revision-pares-escenario-4.md); the findings
-(RP-1 … RP-4, in reviewer order) are incorporated below as risks or debts. None
-invalidates the result, but each limits what it proves.
-
-| Reviewer | Observation | Impact | Resolution / status |
-| --- | --- | --- | --- |
-| Jasen Yukopila | Client and server ran on the same machine over loopback, with a single-process Uvicorn and an ephemeral database container. The ≈ 42 ms worst case is an optimistic floor, not what a user of the Dokploy deployment would see | The result proves the application logic and RLS-restricted queries tolerate 5 concurrent loads, not that the deployed system does | Open. Repeat the measurement against the Dokploy URL from a different network before claiming availability for the deployed system. The report states the limit explicitly |
-| Alejandro Patron | The threshold fixes a user count (5) but no latency bound, and a single level cannot reveal a bottleneck. As the course material notes, load simulation must ramp to find where the database or the worker saturates | A pass at 5 users says nothing about the margin before failure | Open. Add a ramp (5 → 20 → 50 users, `--users` already parametrizes it) and a latency limit to the scenario; record the saturation point. Candidates if a bottleneck appears: caching ([cache-s12.md](../cache-s12.md)) or more instances |
-| Levis Ortiz | The measurer prints `servidor_sigue_saludable: true` as a constant, checks `/health` only once after the load, and checks coherence by comparing ID sets, not stock values | A health failure *during* the load, or a wrong stock quantity, would go unnoticed; the field misleads whoever reads the JSON | Open. Make the field reflect the actual health response, poll `/health` while the workers run, and compare quantities against the database. Until then the report documents the limit |
-| Shalom Jhoanna | The scenario is titled availability but measures concurrency tolerance. The system still has a single PostgreSQL instance on a single Dokploy host (see the risk above), and scenario 3 (stock visible in under 2 s) has no measurement | A database or host failure is not covered by any measured scenario; two of four scenarios remain without end-to-end evidence | Open. Rename or complement the scenario with a fault case (stop the database, expect a controlled error and recovery); measure scenario 3 once the order flow is exposed in the UI. Backups and restore procedure remain the current mitigation |
+The full section lives in [11-riesgos-y-deuda-tecnica.md](11-riesgos-y-deuda-tecnica.md): risks and
+technical debts, what the peer review pointed out, what the instructor's follow-up
+flagged, and the limits of the quality measurements, each with its status.
 
 # Glossary {#section-glossary}
 
