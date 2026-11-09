@@ -114,7 +114,7 @@ Lo que otros equipos opinaron del nuestro está en
 
 ### Gimnasio UTB
 
-- Es el equipo más honesto con el estado de sus ADR: el ADR 0006 (log de
+- El equipo es honesto con el estado de sus ADR: el ADR 0006 (log de
   eventos de acceso) dice "Diseño, no implementado" y el código, en efecto,
   solo guarda el contador.
 - Lo que sí declaran implementado coincide: el token de operador y la lista
