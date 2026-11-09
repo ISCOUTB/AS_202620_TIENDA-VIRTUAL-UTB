@@ -53,6 +53,8 @@ PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 PYTHONPATH=/tmp/tienda-evidence-deps \
 
 ## 3. Medición del escenario AC-04
 
+> **Reemplazada** el 2026-11-08 por [medicion-escenario-4.md](medicion-escenario-4.md), medida sobre PostgreSQL 17 y la API 0.5.0. Se conserva como registro histórico.
+
 **Entorno.** WSL2 Linux 6.18.33.2, Intel Core i5-12450HX, 12 CPU lógicas,
 11,54 GiB disponibles, Python 3.10.12; Uvicorn 0.48.0 y SQLite en archivo
 temporal. Esta es una medición HTTP local: **no** acredita PostgreSQL, Docker,

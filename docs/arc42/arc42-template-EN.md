@@ -615,7 +615,7 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | 1 | Security | An inventory manager tries to change a product's price | 100% of the defined out-of-role operations are rejected (403) | Yes since API 0.4.0; since 0.5.0 also cross-store and general-admin writes (`backend/tests/test_admin_por_tienda.py`) |
 | 2 | Usability | A buyer completes a purchase | Flow completed in at most 4 screens or steps | Partially; the catalog view exists, cart and confirmation are missing |
 | 3 | Performance | An order reduces a product's stock | Change visible to another session in under 2 s on reload | Enabler in place: dynamic catalog read (`no-store`); order flow pending |
-| 4 | Availability | About 5 buyers browse the catalog at the same time | All get correct catalog and stock responses and the local server remains healthy | Measured locally with 5 concurrent simulated buyers; evidence in `docs/entrega-cadena-ia.md` |
+| 4 | Availability | About 5 buyers browse the catalog at the same time | All get correct catalog and stock responses and the local server remains healthy | Measured on 2026-11-08 against API 0.5.0 on PostgreSQL 17 with 5 concurrent simulated buyers: 6 runs, 30/30 loads correct, 0 errors, `/health` 200, worst load 41.78 ms. Meets the threshold locally; report in [medicion-escenario-4.md](../medicion-escenario-4.md) |
 
 # Risks and Technical Debts {#section-technical-risks}
 
@@ -629,6 +629,23 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | Single Dokploy server hosts every runtime component | A host or disk failure affects the whole system | Named database volume, external scheduled backups and a tested restore procedure |
 | Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | The Compose requires `POSTGRES_PASSWORD` from Dokploy Environment; `.env` files remain ignored |
 | Failure modes F-01 … F-07 are catalogued but their mitigations are not implemented yet | Identified risks (inventory lock, duplicate orders, DB outage) stay open until the patterns land in code | Mitigation selected per failure in [modos-fallo-s11.md](../modos-fallo-s11.md); idempotency and saga design in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md), with ADR 0010 keeping the design on a single process |
+
+## Peer review of the scenario 4 measurement {#_peer_review_scenario_4}
+
+Each team member (Jasen Yukopila, Alejandro Patron, Levis Ortiz and Shalom
+Jhoanna) reviewed the measurement of scenario 4
+([medicion-escenario-4.md](../medicion-escenario-4.md)): 5 concurrent buyers,
+6 runs, all within the threshold. The full opinions are in
+[revision-pares-escenario-4.md](../revision-pares-escenario-4.md); the findings
+(RP-1 … RP-4, in reviewer order) are incorporated below as risks or debts. None
+invalidates the result, but each limits what it proves.
+
+| Reviewer | Observation | Impact | Resolution / status |
+| --- | --- | --- | --- |
+| Jasen Yukopila | Client and server ran on the same machine over loopback, with a single-process Uvicorn and an ephemeral database container. The ≈ 42 ms worst case is an optimistic floor, not what a user of the Dokploy deployment would see | The result proves the application logic and RLS-restricted queries tolerate 5 concurrent loads, not that the deployed system does | Open. Repeat the measurement against the Dokploy URL from a different network before claiming availability for the deployed system. The report states the limit explicitly |
+| Alejandro Patron | The threshold fixes a user count (5) but no latency bound, and a single level cannot reveal a bottleneck. As the course material notes, load simulation must ramp to find where the database or the worker saturates | A pass at 5 users says nothing about the margin before failure | Open. Add a ramp (5 → 20 → 50 users, `--users` already parametrizes it) and a latency limit to the scenario; record the saturation point. Candidates if a bottleneck appears: caching ([cache-s12.md](../cache-s12.md)) or more instances |
+| Levis Ortiz | The measurer prints `servidor_sigue_saludable: true` as a constant, checks `/health` only once after the load, and checks coherence by comparing ID sets, not stock values | A health failure *during* the load, or a wrong stock quantity, would go unnoticed; the field misleads whoever reads the JSON | Open. Make the field reflect the actual health response, poll `/health` while the workers run, and compare quantities against the database. Until then the report documents the limit |
+| Shalom Jhoanna | The scenario is titled availability but measures concurrency tolerance. The system still has a single PostgreSQL instance on a single Dokploy host (see the risk above), and scenario 3 (stock visible in under 2 s) has no measurement | A database or host failure is not covered by any measured scenario; two of four scenarios remain without end-to-end evidence | Open. Rename or complement the scenario with a fault case (stop the database, expect a controlled error and recovery); measure scenario 3 once the order flow is exposed in the UI. Backups and restore procedure remain the current mitigation |
 
 # Glossary {#section-glossary}
 
