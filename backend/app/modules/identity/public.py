@@ -2,8 +2,8 @@
 
 - `principal_desde_token`: lo registra `app.main` como resolvedor de
   `shared.seguridad.contexto_actual`.
-- `asegurar_admin_general` y `asegurar_admin_tienda`: altas idempotentes para
-  la siembra, que corre con el rol dueño (ADR 0013).
+- `asegurar_admin_general`, `asegurar_admin_tienda` y `asegurar_estudiante`:
+  altas idempotentes para la siembra, que corre con el rol dueño (ADR 0013).
 """
 
 from sqlalchemy import func, select
@@ -100,6 +100,17 @@ def asegurar_admin_tienda(
         contrasena=contrasena,
         rol="admin_tienda",
         tienda_id=tienda_id,
+    )
+
+
+def asegurar_estudiante(session: Session, *, nombre: str, correo: str, contrasena: str) -> int:
+    """Cuenta de estudiante con el rol `comprador`: aparta en las tiendas.
+
+    La plataforma es universitaria y no hay registro abierto en la interfaz:
+    las cuentas se entregan ya creadas.
+    """
+    return asegurar_cuenta_con_rol(
+        session, nombre=nombre, correo=correo, contrasena=contrasena, rol="comprador"
     )
 
 

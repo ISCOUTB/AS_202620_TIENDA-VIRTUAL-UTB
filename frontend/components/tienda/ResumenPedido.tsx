@@ -22,7 +22,7 @@ export function ResumenPedido() {
   return (
     <aside
       aria-labelledby="titulo-resumen"
-      className="rounded-lg bg-tarjeta p-6 shadow-tarjeta lg:sticky lg:top-6"
+      className="vidrio-alto rounded-lg p-6 lg:sticky lg:top-[calc(var(--tk-alto-nav)+var(--tk-alto-cinta)+1.5rem)]"
     >
       <h2 id="titulo-resumen" className="font-display text-[1.625rem] font-semibold">
         Tu pedido

@@ -6,7 +6,8 @@ import { Icono } from "@/components/ui/Icono";
 /**
  * Control de cantidad del artefacto: «−  n  +» en una pastilla de 44 px.
  * `suave` = campo azul suave (tarjeta de producto); `linea` = solo borde
- * (filas del panel del pedido). Cada botón mide 44×44 (objetivo táctil).
+ * (filas del panel del pedido); `flotante` = pastilla opaca con sombra, para
+ * ir encima de la foto en la carta. Cada botón mide 44×44 (objetivo táctil).
  */
 export const Cantidad = forwardRef<
   HTMLDivElement,
@@ -17,7 +18,7 @@ export const Cantidad = forwardRef<
     alSumar: () => void;
     /** Tope de unidades (existencias). */
     maximo: number;
-    variante?: "suave" | "linea";
+    variante?: "suave" | "linea" | "flotante";
   }
 >(function Cantidad({ cantidad, nombre, alRestar, alSumar, maximo, variante = "suave" }, ref) {
   const lleno = cantidad >= maximo;
@@ -28,7 +29,11 @@ export const Cantidad = forwardRef<
       aria-label={`Cantidad de ${nombre}`}
       className={[
         "flex h-11 shrink-0 items-center rounded-pill",
-        variante === "suave" ? "bg-primario-suave text-enlace" : "border border-linea text-tinta",
+        variante === "suave"
+          ? "bg-primario-suave text-enlace"
+          : variante === "flotante"
+            ? "bg-tarjeta text-enlace shadow-[var(--tk-vidrio-sombra-alta)]"
+            : "border border-linea text-tinta",
       ].join(" ")}
     >
       <button

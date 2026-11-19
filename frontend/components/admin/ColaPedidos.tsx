@@ -6,8 +6,8 @@ import { ApiError } from "@/lib/api/client";
 import { avanzarPedido, cancelarPedido, listarPedidos, SIGUIENTE_ESTADO } from "@/lib/pedidos";
 import { formatoFechaCorta, formatoHora, formatoPrecio } from "@/lib/formato";
 import { Boton } from "@/components/ui/Boton";
-import { EsqueletoTabla } from "@/components/ui/Esqueleto";
 import { EstadoPedido } from "@/components/pedidos/EstadoPedido";
+import { Cargador3D } from "@/components/ui/Cargador3D";
 
 const ACCION: Record<string, string> = {
   pagado: "Confirmar pago",
@@ -118,10 +118,7 @@ export function ColaPedidos({
 
       <div className="mt-5">
         {pedidos === null ? (
-          <div aria-busy="true">
-            <span className="sr-only">Cargando pedidos…</span>
-            <EsqueletoTabla filas={3} />
-          </div>
+          <Cargador3D variante="compacto" etiqueta="Cargando pedidos" />
         ) : visibles.length === 0 ? (
           <p className="rounded-tarjeta bg-tarjeta px-6 py-8 text-center text-tenue shadow-tarjeta">
             No hay pedidos {verCerrados ? "" : "abiertos "}en esta tienda.

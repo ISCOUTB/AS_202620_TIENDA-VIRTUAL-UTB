@@ -70,6 +70,10 @@ services:
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
       # Opcional: un admin por tienda, admin.<tienda>@utb.edu.co (ADR 0017).
       SEED_TIENDAS_PASSWORD: ${SEED_TIENDAS_PASSWORD:-}
+      # Opcional: cuenta de estudiante predeterminada (rol comprador). No hay
+      # registro abierto en la interfaz: las cuentas se entregan creadas.
+      SEED_ESTUDIANTE_CORREO: ${SEED_ESTUDIANTE_CORREO:-}
+      SEED_ESTUDIANTE_PASSWORD: ${SEED_ESTUDIANTE_PASSWORD:-}
     depends_on:
       migrate:
         condition: service_completed_successfully

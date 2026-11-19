@@ -2,8 +2,8 @@ import Link from "next/link";
 import type { ReactNode, Ref } from "react";
 
 /**
- * Botón único del sitio (SPEC v4 §4): pill de 44 px (56 px el grande), con la
- * geometría del artefacto de diseño.
+ * Botón único del sitio (SPEC v5 §4): rectángulo de 44 px (52 px el grande)
+ * con texto en mayúsculas espaciadas, como los botones de un catálogo.
  *
  * - `primario`  azul de marca, texto blanco — la acción principal.
  * - `claro`     blanco con texto azul — acción sobre la sábana («Ingresar»).
@@ -25,8 +25,8 @@ const VARIANTES: Record<VarianteBoton, string> = {
 };
 
 const TAMANOS = {
-  md: "min-h-11 px-5 text-[0.9375rem]",
-  lg: "min-h-14 px-6 text-base",
+  md: "min-h-11 px-6",
+  lg: "min-h-[3.25rem] px-8 text-[0.8125rem]",
 } as const;
 
 type Props = {
@@ -62,7 +62,11 @@ export function Boton({
   ...resto
 }: Props) {
   const clases = [
-    "inline-flex items-center justify-center gap-2 font-bold leading-tight text-center",
+    "inline-flex items-center justify-center gap-2 leading-tight text-center",
+    // El botón de texto es un enlace dentro de una frase: no se grita.
+    variante === "texto"
+      ? "font-bold"
+      : "tipo-accion",
     cuadrado ? "rounded-md" : "rounded-pill",
     "transition-[background-color,color,opacity,transform] duration-[var(--tk-dur)] ease-[var(--tk-ease)] active:scale-[0.98]",
     VARIANTES[variante],

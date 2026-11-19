@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Campo } from "@/components/ui/Campo";
@@ -68,15 +67,14 @@ export function FormIngreso() {
   return (
     <Revelar inmediato className="rounded-xl bg-tarjeta p-6 shadow-tarjeta sm:p-8">
       <p className="rotulo text-tenue">Acceso</p>
-      <h1 className="mt-2 font-display text-[2rem] font-semibold leading-tight">Ingresa a tu pase</h1>
+      <h1 className="mt-2 font-display text-[2rem] font-semibold leading-tight">Ingresa a tu cuenta</h1>
       <p className="mt-2 text-[0.9375rem] leading-relaxed text-tenue">
-        Usa tu correo institucional. Si todavía no tienes cuenta, créala en un
-        minuto.
+        Usa tu correo institucional y la contraseña de tu cuenta.
       </p>
 
       {motivo === "requiere-sesion" && !error ? (
         <div className="mt-5">
-          <Aviso tono="info">Esa página necesita tu pase. Entra y te llevamos allá.</Aviso>
+          <Aviso tono="info">Esa página necesita tu cuenta. Entra y te llevamos allá.</Aviso>
         </div>
       ) : null}
 
@@ -109,11 +107,9 @@ export function FormIngreso() {
         </Boton>
       </form>
 
-      <p className="mt-6 text-[0.9375rem] text-tenue">
-        ¿Sin cuenta?{" "}
-        <Link href="/auth/crear-cuenta" className="font-bold text-enlace underline underline-offset-4">
-          Crear mi pase
-        </Link>
+      <p className="mt-6 text-[0.9375rem] leading-relaxed text-tenue">
+        Las cuentas las entrega la universidad: no hace falta registrarse. Si no
+        puedes entrar, consulta con la administración de la cafetería.
       </p>
 
       <details className="group mt-6 border-t border-linea pt-2">

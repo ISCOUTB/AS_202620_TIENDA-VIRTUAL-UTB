@@ -5,7 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useSesion } from "@/lib/sesion";
 import { esGestor } from "@/lib/roles";
 import { Boton } from "@/components/ui/Boton";
-import { Esqueleto, EsqueletoTabla, ZonaCargando } from "@/components/ui/Esqueleto";
+import { Esqueleto, EsqueletoTabla } from "@/components/ui/Esqueleto";
+import { Cargador3D } from "@/components/ui/Cargador3D";
 
 /**
  * Guard de administración.
@@ -28,9 +29,7 @@ export function RequiereAdmin({ children }: { children: React.ReactNode }) {
 
   if (cargando) {
     return (
-      <ZonaCargando etiqueta="Comprobando permisos…" className="contenedor pb-12">
-        <EsqueletoAdmin />
-      </ZonaCargando>
+      <Cargador3D etiqueta="Comprobando permisos" />
     );
   }
 
@@ -51,7 +50,7 @@ export function RequiereAdmin({ children }: { children: React.ReactNode }) {
           <p className="cifra font-mono text-sm font-semibold text-tenue">403</p>
           <h1 className="titulo mt-2">Esta área es de administración.</h1>
           <p className="mt-3 max-w-[52ch] leading-relaxed text-tenue">
-            Tu pase ({sesion.usuario.email}) no tiene permisos para ver el panel
+            Tu cuenta ({sesion.usuario.email}) no tiene permisos para ver el panel
             de inventario. Si crees que es un error, habla con la coordinación
             de la cafetería.
           </p>
@@ -60,7 +59,7 @@ export function RequiereAdmin({ children }: { children: React.ReactNode }) {
               Volver a la tienda
             </Boton>
             <Boton href="/cuenta" variante="contorno">
-              Ir a mi pase
+              Ir a mi cuenta
             </Boton>
           </div>
         </div>

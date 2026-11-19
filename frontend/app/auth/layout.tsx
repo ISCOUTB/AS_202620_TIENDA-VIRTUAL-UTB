@@ -1,14 +1,15 @@
 import Link from "next/link";
 import Image from "next/image";
-import { TIENDAS, paletaTienda } from "@/lib/tiendas";
+import { TIENDAS } from "@/lib/tiendas";
 import { formatoHora } from "@/lib/formato";
 import { LOGO } from "@/lib/imagenes";
 import { BotonTema } from "@/components/chrome/BotonTema";
 import { Revelar } from "@/components/motion/Revelar";
-import { IconoTienda, Icono } from "@/components/ui/Icono";
+import { Icono } from "@/components/ui/Icono";
+import { LogoTienda } from "@/components/tienda/LogoTienda";
 
 /**
- * Shell del pase (SPEC v4 §3, `/auth/*`). A la izquierda (arriba en móvil),
+ * Shell del acceso (SPEC v4 §3, `/auth/*`). A la izquierda (arriba en móvil),
  * la sábana azul con el logo blanco, el titular en Fraunces y las cinco
  * tiendas con sus fichas; a la derecha, el formulario en una tarjeta sobre
  * el ground.
@@ -43,7 +44,7 @@ export default function LayoutAuth({
               Cafetería La Placita · Campus UTB
             </p>
             <p data-escalon="" className="titulo mt-3">
-              Tu pase de cafetería.
+              Tu cuenta de la cafetería.
             </p>
             <p data-escalon="" className="lead mt-4 max-w-[38ch] opacity-95">
               Un solo acceso para las cinco tiendas. Con él apartas, eliges la
@@ -54,15 +55,9 @@ export default function LayoutAuth({
           <div className="hidden sm:block">
             <ul className="grid gap-2 sm:grid-cols-2">
               {TIENDAS.map((t) => {
-                const p = paletaTienda(t.slug);
                 return (
-                  <li key={t.slug} className="flex items-center gap-3 rounded-md bg-sabana-vidrio px-3 py-2.5">
-                    <span
-                      aria-hidden="true"
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xs ${p.relleno} ${p.sobreRelleno}`}
-                    >
-                      <IconoTienda slug={t.slug} tamano={20} />
-                    </span>
+                  <li key={t.slug} className="cristal flex items-center gap-3 rounded-md px-3 py-2.5">
+                    <LogoTienda slug={t.slug} tamano={36} />
                     <span className="text-[0.9375rem] font-semibold">{t.nombre}</span>
                   </li>
                 );

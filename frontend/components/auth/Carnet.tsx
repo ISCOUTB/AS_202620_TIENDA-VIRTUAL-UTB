@@ -57,7 +57,7 @@ export function Carnet({
       <div aria-hidden="true" className="absolute inset-x-0 top-0 h-1.5 bg-carnet-azul" />
       <div
         aria-hidden="true"
-        className="absolute -right-[70px] -top-[70px] -z-10 h-[200px] w-[200px] rounded-pill border-[28px] border-carnet-azul-suave"
+        className="absolute -right-[70px] -top-[70px] -z-10 h-[200px] w-[200px] rounded-full border-[28px] border-carnet-azul-suave"
       />
 
       <div className="flex items-center justify-between gap-3">

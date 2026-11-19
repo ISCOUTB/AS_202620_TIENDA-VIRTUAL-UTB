@@ -6,6 +6,7 @@ import { Esqueleto } from "@/components/ui/Esqueleto";
 import { Revelar } from "@/components/motion/Revelar";
 import { CarritoPendiente } from "./CarritoPendiente";
 import { MisPedidos } from "./MisPedidos";
+import { Cargador3D } from "@/components/ui/Cargador3D";
 
 /**
  * `/pedidos`: lo que falta apartar y lo ya apartado, en una sola pantalla,
@@ -25,10 +26,8 @@ export function PanelMisPedidos() {
 
       <div className="flex flex-col gap-6 lg:col-span-7">
         {cargando ? (
-          <div aria-busy="true" className="rounded-xl bg-tarjeta p-6 shadow-tarjeta md:p-8">
-            <span className="sr-only">Cargando tus pedidos…</span>
-            <Esqueleto className="h-7 w-32" />
-            <Esqueleto className="mt-5 h-16 w-full rounded-md" />
+          <div className="vidrio-alto rounded-xl">
+            <Cargador3D variante="compacto" etiqueta="Cargando tus pedidos" className="py-14" />
           </div>
         ) : sesion ? (
           <MisPedidos demo={sesion.modo === "demo"} />

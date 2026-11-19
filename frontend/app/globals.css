@@ -49,6 +49,7 @@
   --color-carnet-linea: var(--tk-carnet-linea);
   --color-carnet-azul: var(--tk-carnet-azul);
   --color-carnet-azul-suave: var(--tk-carnet-azul-suave);
+  --color-cinta: var(--tk-cinta);
 
   /* Acentos de tienda */
   --color-antojos: var(--tk-t-antojos);
@@ -99,6 +100,50 @@
 }
 
 /*
+ * ── Escala tipográfica cerrada (SPEC v5 §2.3) ──
+ * Cuatro roles en mayúsculas, con valores fijos. Ningún componente inventa
+ * su propia combinación de tamaño + peso + tracking: usa uno de estos.
+ * Son `@utility` (no `@layer components`) para que acepten prefijos
+ * responsivos y de estado de Tailwind (`md:tipo-bloque`).
+ */
+@utility tipo-micro {
+  /* Chips, rótulos, etiquetas y la cinta: lo más pequeño que se permite. */
+  font-family: var(--tk-font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+@utility tipo-accion {
+  /* Botones, enlaces de navegación y llamadas a la acción. */
+  font-family: var(--tk-font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+@utility tipo-nombre {
+  /* Nombre de producto o de tienda: el tracking justo para leer de corrido. */
+  font-family: var(--tk-font-display);
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+@utility tipo-bloque {
+  /* Título de vitrina y de sección compacta. */
+  font-family: var(--tk-font-display);
+  font-size: clamp(0.9375rem, 0.85rem + 0.4vw, 1.125rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/*
  * IMPORTANTE: todo lo de este archivo va dentro de `@layer`.
  * Las hojas de Tailwind v4 viven en capas y una regla sin capa gana a
  * cualquier capa: sin `@layer`, un `button { color: inherit }` pisaría
@@ -122,6 +167,21 @@
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  /* Fondo ambiental: lavados de luz fijos detrás de toda la página. Va en
+     un pseudo-elemento `fixed` (no en `background-attachment: fixed`, que en
+     móvil repinta en cada scroll) y queda debajo de todo con z-index −1. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(60vw 50vh at 8% 0%, var(--tk-ambiente-1), transparent 70%),
+      radial-gradient(50vw 50vh at 100% 35%, var(--tk-ambiente-2), transparent 70%),
+      radial-gradient(55vw 45vh at 30% 100%, var(--tk-ambiente-3), transparent 70%);
   }
 
   h1,
@@ -191,9 +251,163 @@
     color: var(--tk-sobre-sabana);
   }
 
-  /* Espacio superior para la barra de navegación que flota sobre la sábana. */
+  /* La barra ya no flota sobre la sábana: es blanca y ocupa su sitio en el
+     flujo (`sticky`). La clase se conserva en las cabeceras para no tocar
+     cada página; solo da el respiro superior de la banda azul. */
   .bajo-nav {
-    padding-top: var(--tk-alto-nav);
+    margin: 0.625rem 0.625rem 0;
+    padding-top: var(--tk-esp-6);
+    overflow: hidden;
+    border-radius: var(--tk-radio-xl);
+  }
+  @media (min-width: 40rem) {
+    .bajo-nav {
+      margin-inline: 1rem;
+    }
+  }
+
+  /*
+   * ── Barra del sitio (Nav) ──
+   * Blanca, con filo inferior, como la cabecera del catálogo. Los botones
+   * redondos «de vidrio» (tema, reservas, pedido) se pensaron para la sábana
+   * azul; aquí se redefine su material por cascada en vez de tocar cada
+   * componente: sin borde, sin velo y con la tinta del tema.
+   */
+  .barra-sitio {
+    --tk-sabana-vidrio: transparent;
+    --tk-sabana-vidrio-alto: var(--tk-suave);
+    --tk-sabana-borde: transparent;
+    --tk-foco: var(--tk-primario);
+    /* Enlaces e íconos en el color de marca, como el menú de referencia. */
+    --tk-sobre-sabana: var(--tk-enlace);
+    /* La cabecera es transparente: lo que se ve es la cápsula de vidrio
+       (`.capsula`) que flota con margen sobre el contenido. */
+    color: var(--tk-enlace);
+    transition: transform var(--tk-dur-media) var(--tk-ease);
+  }
+  .barra-sitio .boton-vidrio {
+    border-radius: var(--tk-radio-pill);
+  }
+  .barra-sitio .boton-vidrio:hover {
+    background: var(--tk-resalte);
+  }
+  .capsula {
+    background: var(--tk-vidrio-alto);
+    -webkit-backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.8);
+    backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.8);
+    border: 1px solid var(--tk-vidrio-borde);
+    border-radius: var(--tk-radio-pill);
+    box-shadow: var(--tk-vidrio-sombra), 0 0 0 1px var(--tk-vidrio-filo);
+  }
+  /* Se esconde al bajar y vuelve al subir (Nav decide cuándo). */
+  .barra-sitio[data-oculta="si"] {
+    transform: translateY(-100%);
+  }
+
+  /*
+   * ── Vidrio (glassmorphism) ──
+   * `.vidrio`: superficie clara esmerilada (panel, navegación inferior).
+   * `.cristal`: lámina tenue con brillo diagonal sobre fotos o sobre el azul
+   * de marca; solo para texto blanco.
+   * Sin `backdrop-filter` (navegadores viejos) caen a un fondo casi opaco
+   * para que el texto se siga leyendo.
+   */
+  .vidrio,
+  .vidrio-alto {
+    background: var(--tk-vidrio);
+    -webkit-backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.8);
+    backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.8);
+    border: 1px solid var(--tk-vidrio-borde);
+    border-radius: var(--tk-radio);
+    box-shadow: var(--tk-vidrio-sombra), 0 0 0 1px var(--tk-vidrio-filo);
+  }
+  /* La misma tarjeta de vidrio solo desde `sm` (40rem): las clases propias
+     no aceptan prefijos responsivos de Tailwind. Sirve a la carta, que en
+     móvil es una lista de filas. */
+  @media (min-width: 40rem) {
+    .vidrio-sm {
+      background: var(--tk-vidrio);
+      -webkit-backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.8);
+      backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.8);
+      border: 1px solid var(--tk-vidrio-borde);
+      border-radius: var(--tk-radio);
+      box-shadow: var(--tk-vidrio-sombra), 0 0 0 1px var(--tk-vidrio-filo);
+    }
+  }
+  /* Más opaco: para menús, paneles y listas con mucho texto encima. */
+  .vidrio-alto {
+    background: var(--tk-vidrio-alto);
+  }
+  .cristal {
+    background: var(--tk-cristal-brillo), var(--tk-cristal);
+    -webkit-backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.4);
+    backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.4);
+    border: 1px solid var(--tk-cristal-borde);
+    border-radius: var(--tk-radio-md);
+    box-shadow: var(--tk-cristal-sombra);
+    color: var(--tk-sobre-sabana);
+  }
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .vidrio,
+    .vidrio-alto,
+    .capsula,
+    .tarjeta {
+      background: var(--tk-vidrio-solido);
+    }
+    .cristal {
+      background: var(--tk-cristal-alto);
+    }
+  }
+
+  /* Orbe de luz difusa detrás del cristal (decorativo, sin interacción). */
+  .orbe {
+    position: absolute;
+    z-index: -1;
+    border-radius: 9999px;
+    filter: blur(70px);
+    pointer-events: none;
+  }
+
+  /* Acercamiento lento de la foto activa del carrusel (solo `transform`). */
+  .ken-burns {
+    animation: ken-burns 9s var(--tk-ease) both;
+  }
+
+  /*
+   * Pestañas de sección de la carta: fijas justo bajo la cápsula de la barra.
+   * Cuando la barra se esconde al bajar (`data-barra` lo pone Nav en
+   * <html>), suben al borde superior con la misma curva.
+   */
+  .pestanas-carta {
+    position: sticky;
+    top: calc(var(--tk-alto-cinta) + var(--tk-alto-nav) + 1rem);
+    z-index: 30;
+  }
+  /* Cambia `top`, sin transición: un `transform` también desplazaría las
+     pestañas mientras aún no están pegadas (y taparían el buscador). */
+  :root[data-barra="oculta"] .pestanas-carta {
+    top: 0.5rem;
+  }
+
+  /* Enlace de navegación en mayúsculas con un filo que crece desde el centro. */
+  .enlace-nav {
+    position: relative;
+    display: inline-flex;
+    min-height: 2.5rem;
+    align-items: center;
+    padding-inline: 0.9rem;
+    border-radius: var(--tk-radio-pill);
+    transition: background-color var(--tk-dur) var(--tk-ease);
+    /* Valores de `tipo-accion`. */
+    font-family: var(--tk-font-display);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .enlace-nav:hover,
+  .enlace-nav[aria-current="page"] {
+    background: var(--tk-resalte);
   }
 
   /* Botón redondo translúcido sobre la sábana (tema, volver, menú). */
@@ -215,22 +429,35 @@
   }
 
   /* ── Superficies ── */
+  /* Tarjeta = vidrio: así cuenta, pedidos, formularios y admin adoptan el
+     mismo material sin tocar cada componente. */
   .tarjeta {
-    border: 1px solid var(--tk-linea);
+    border: 1px solid var(--tk-vidrio-borde);
     border-radius: var(--tk-radio);
-    background: var(--tk-tarjeta);
+    background: var(--tk-vidrio-alto);
+    -webkit-backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.8);
+    backdrop-filter: blur(var(--tk-desenfoque)) saturate(1.8);
+    box-shadow: var(--tk-vidrio-sombra), 0 0 0 1px var(--tk-vidrio-filo);
   }
 
-  /* Tarjeta que se levanta al pasar el cursor (solo transform y sombra). */
+  /* Tarjeta de catálogo: no se levanta; al pasar el cursor la foto (`.zoom`)
+     se acerca despacio dentro de su marco, como en una vitrina. */
+  .levanta .zoom {
+    transition: transform 700ms var(--tk-ease);
+  }
   .levanta {
     transition:
       transform var(--tk-dur-media) var(--tk-ease),
       box-shadow var(--tk-dur-media) var(--tk-ease);
   }
   @media (hover: hover) {
-    .levanta:hover {
+    .levanta:hover .zoom {
+      transform: scale(1.045);
+    }
+    .levanta.vidrio:hover,
+    .levanta.vidrio-sm:hover {
       transform: translateY(-3px);
-      box-shadow: var(--tk-sombra);
+      box-shadow: var(--tk-vidrio-sombra-alta), 0 0 0 1px var(--tk-vidrio-filo);
     }
   }
 
@@ -266,27 +493,32 @@
   }
 
   /* ── Tipografía ── */
+  /* Títulos en mayúsculas con tracking: la voz del catálogo. */
   .display {
     font-family: var(--tk-font-display);
     font-size: var(--tk-display);
-    font-weight: 600;
-    line-height: 1.04;
-    letter-spacing: -0.015em;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
   }
 
   .titulo {
     font-family: var(--tk-font-display);
     font-size: var(--tk-titulo);
-    font-weight: 600;
-    line-height: 1.04;
-    letter-spacing: -0.01em;
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
   }
 
   .titulo-seccion {
     font-family: var(--tk-font-display);
     font-size: var(--tk-titulo-seccion);
-    font-weight: 600;
+    font-weight: 700;
     line-height: 1.1;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
   }
 
   .lead {
@@ -294,10 +526,12 @@
     line-height: 1.5;
   }
 
+  /* Alias histórico de `tipo-micro` (se usa en muchas páginas). */
   .rotulo {
-    font-size: var(--tk-texto-chico);
+    font-family: var(--tk-font-display);
+    font-size: 0.6875rem;
     font-weight: 600;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     line-height: 1.2;
   }
@@ -383,6 +617,172 @@
   }
 }
 
+/*
+ * ── Cubo de carga 3D (components/ui/Cargador3D.tsx) ──
+ * Seis caras con el logo, rotando sobre dos ejes con perspectiva. Solo
+ * `transform`; con movimiento reducido el bloque de abajo deja la animación
+ * en un fotograma y el cubo queda quieto en su vista isométrica.
+ */
+@layer components {
+  /* El lado lo da quien lo usa (`--lado` en un ancestro, que también lee la
+     sombra); sin él, 64 px. */
+  .cubo-escena {
+    width: var(--lado, 64px);
+    height: var(--lado, 64px);
+    perspective: 520px;
+  }
+  .cubo {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    transform-style: preserve-3d;
+    transform: rotateX(-24deg) rotateY(45deg);
+    animation: cubo-gira 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+  .cubo > span {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--tk-cubo-filo);
+    background: var(--tk-primario);
+  }
+  /* Caras alternas en blanco con el logo azul: así el giro se lee. */
+  .cubo > span:nth-child(even) {
+    background: var(--tk-carnet);
+    border-color: var(--tk-carnet-linea);
+  }
+  .cubo > span:nth-child(1) { transform: rotateY(0deg) translateZ(calc(var(--lado, 64px) / 2)); }
+  .cubo > span:nth-child(2) { transform: rotateY(90deg) translateZ(calc(var(--lado, 64px) / 2)); }
+  .cubo > span:nth-child(3) { transform: rotateY(180deg) translateZ(calc(var(--lado, 64px) / 2)); }
+  .cubo > span:nth-child(4) { transform: rotateY(-90deg) translateZ(calc(var(--lado, 64px) / 2)); }
+  .cubo > span:nth-child(5) { transform: rotateX(90deg) translateZ(calc(var(--lado, 64px) / 2)); }
+  .cubo > span:nth-child(6) { transform: rotateX(-90deg) translateZ(calc(var(--lado, 64px) / 2)); }
+  .cubo-sombra {
+    width: var(--lado, 64px);
+    height: 10px;
+    margin-top: 22px;
+    border-radius: 50%;
+    background: var(--tk-cubo-sombra);
+    filter: blur(6px);
+    animation: cubo-sombra 2.6s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+  }
+}
+
+/* El giro empieza y termina en la misma vista isométrica (−24°, 45°) más
+   una vuelta completa por eje, así el bucle no salta. */
+/*
+ * ── Pantalla de carga (Cargador3D) ──
+ * `.carga-aparece`: fundido con 150 ms de espera, así una carga instantánea
+ * no hace parpadear la pantalla. `.barra-carga`: progreso indeterminado (un
+ * brillo que recorre una pista). `.halo-carga`: luz azul tras el cubo.
+ */
+@layer components {
+  .carga-aparece {
+    animation: carga-aparece 0.35s var(--tk-ease) 0.15s both;
+  }
+  .barra-carga {
+    position: relative;
+    height: 3px;
+    width: 9rem;
+    overflow: hidden;
+    border-radius: var(--tk-radio-pill);
+    background: var(--tk-resalte);
+  }
+  .barra-carga::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 40%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, transparent, var(--tk-primario), transparent);
+    animation: barra-carga 1.3s var(--tk-ease) infinite;
+  }
+  .halo-carga {
+    position: absolute;
+    inset: -60%;
+    z-index: -1;
+    border-radius: 9999px;
+    background: var(--tk-orbe-1);
+    filter: blur(40px);
+    animation: halo-carga 2.6s ease-in-out infinite;
+  }
+}
+@keyframes carga-aparece {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes barra-carga {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(250%);
+  }
+}
+@keyframes halo-carga {
+  50% {
+    transform: scale(1.15);
+    opacity: 0.7;
+  }
+}
+
+@keyframes cubo-gira {
+  0% {
+    transform: rotateX(-24deg) rotateY(45deg);
+  }
+  50% {
+    transform: rotateX(156deg) rotateY(225deg) translateY(-6px);
+  }
+  100% {
+    transform: rotateX(336deg) rotateY(405deg);
+  }
+}
+@keyframes cubo-sombra {
+  50% {
+    transform: scaleX(0.7);
+    opacity: 0.55;
+  }
+}
+
+/*
+ * ── Barra de información animada (portada) ──
+ * Dos copias del texto en fila; al desplazar la fila un 50 % la segunda
+ * ocupa el sitio de la primera y el bucle no se nota. Con movimiento
+ * reducido la regla global la deja quieta.
+ */
+@layer components {
+  .cinta-animada {
+    display: flex;
+    width: max-content;
+    white-space: nowrap;
+    animation: cinta-desliza 38s linear infinite;
+  }
+  .cinta-animada:hover {
+    animation-play-state: paused;
+  }
+}
+@keyframes ken-burns {
+  from {
+    transform: scale(1.08);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes cinta-desliza {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 @keyframes esqueleto-brillo {
   to {
     transform: translateX(100%);
@@ -463,7 +863,8 @@
   .esqueleto::after {
     display: none;
   }
-  .levanta:hover {
+  .levanta:hover .zoom,
+  .levanta.vidrio:hover {
     transform: none;
   }
 }

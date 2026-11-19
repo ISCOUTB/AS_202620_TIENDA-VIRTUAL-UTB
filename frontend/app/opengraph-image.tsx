@@ -3,7 +3,7 @@ import { TIENDAS } from "@/lib/tiendas";
 import { colorDeToken } from "@/lib/tokens";
 
 export const alt =
-  "Tienda Virtual UTB — la cafetería del campus en un solo pase";
+  "Tienda Virtual UTB — la cafetería del campus con una sola cuenta";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -100,7 +100,7 @@ export default function OpengraphImage() {
               letterSpacing: -4,
             }}
           >
-            un solo pase.
+            una sola cuenta.
           </div>
           <div
             style={{

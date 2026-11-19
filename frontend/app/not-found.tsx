@@ -18,7 +18,7 @@ export default function NoEncontrada() {
           <Boton href="/" variante="claro" tamano="lg">
             Ir al inicio
           </Boton>
-          <Boton href="/#tiendas" variante="oscuro" tamano="lg">
+          <Boton href="/tiendas" variante="oscuro" tamano="lg">
             Ver las tiendas
           </Boton>
         </>

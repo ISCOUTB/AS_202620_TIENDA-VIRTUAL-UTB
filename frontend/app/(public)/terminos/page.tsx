@@ -90,7 +90,7 @@ export default function PaginaTerminos() {
               </li>
             </ul>
 
-            <h2>4. Tu cuenta y tu pase</h2>
+            <h2>4. Tu cuenta</h2>
             <p>
               Eres responsable de la veracidad de los datos que registras y de
               la custodia de tu contraseña. No compartas tu cuenta: los pedidos

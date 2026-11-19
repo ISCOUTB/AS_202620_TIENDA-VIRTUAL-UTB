@@ -35,7 +35,7 @@ export default function LayoutAdmin({
           <span className="flex-1" />
           <nav aria-label="Administración" className="flex items-center gap-1 text-sm font-semibold">
             <Link href="/cuenta" prefetch={false} className="inline-flex min-h-11 items-center px-2 underline-offset-4 hover:underline">
-              Mi pase
+              Mi cuenta
             </Link>
             <Link href="/" prefetch={false} className="inline-flex min-h-11 items-center px-2 underline-offset-4 hover:underline">
               Ver tienda

@@ -10,8 +10,8 @@ describe("colorDeToken", () => {
   });
 
   it("de un token con tema devuelve el valor claro (el primero del archivo)", () => {
-    expect(colorDeToken("fondo")).toBe("#f3f5fa");
-    expect(colorDeToken("tinta")).toBe("#0a1330");
+    expect(colorDeToken("fondo")).toBe("#f5f5f7");
+    expect(colorDeToken("tinta")).toBe("#1f1f1f");
   });
 
   it("cae al respaldo cuando el token no existe", () => {

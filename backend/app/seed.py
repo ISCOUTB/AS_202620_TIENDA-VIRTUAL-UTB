@@ -8,6 +8,9 @@ definen sus variables:
   supervisa todas las tiendas (ADR 0017).
 - `SEED_TIENDAS_PASSWORD`: un admin por tienda, `admin.<tienda>@utb.edu.co`,
   que gestiona solo la suya (stock, productos y pedidos).
+- `SEED_ESTUDIANTE_CORREO` y `SEED_ESTUDIANTE_PASSWORD`: la cuenta de
+  estudiante predeterminada (rol `comprador`). La interfaz no tiene registro
+  abierto: las cuentas se entregan ya creadas.
 
 Se ejecuta con las credenciales del rol dueño
 (`MIGRATIONS_DATABASE_URL` o `DB_MIGRATIONS_*`), no con el rol de la API, que
@@ -29,7 +32,11 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from app.archivos_legado import leer_json_legado
 from app.modules.catalog.public import asegurar_categoria, asegurar_producto, asegurar_tienda
-from app.modules.identity.public import asegurar_admin_general, asegurar_admin_tienda
+from app.modules.identity.public import (
+    asegurar_admin_general,
+    asegurar_admin_tienda,
+    asegurar_estudiante,
+)
 from app.modules.inventory.public import asegurar_existencia_inicial
 from app.shared.database import crear_engine, resolve_database_url
 
@@ -234,6 +241,22 @@ def sembrar_admin(session: Session) -> dict[str, int]:
     return {"admin_general": 1}
 
 
+def sembrar_estudiante(session: Session) -> dict[str, int]:
+    """Crea la cuenta de estudiante si `SEED_ESTUDIANTE_*` están definidas.
+
+    Como con los admins, no pisa la contraseña de una cuenta que ya existe.
+    """
+    correo = os.getenv("SEED_ESTUDIANTE_CORREO")
+    contrasena = os.getenv("SEED_ESTUDIANTE_PASSWORD")
+    if not (correo and contrasena):
+        return {}
+    if len(contrasena) < 8:
+        raise SystemExit("SEED_ESTUDIANTE_PASSWORD debe tener al menos 8 caracteres.")
+    nombre = os.getenv("SEED_ESTUDIANTE_NOMBRE", "Estudiante UTB")
+    asegurar_estudiante(session, nombre=nombre, correo=correo, contrasena=contrasena)
+    return {"estudiante": 1}
+
+
 def correo_admin_tienda(identificador: str) -> str:
     return f"admin.{identificador}@utb.edu.co"
 
@@ -287,6 +310,7 @@ def main(argv: list[str] | None = None) -> None:
         resumen |= sembrar_demo(session)
         resumen |= sembrar_admin(session)
         resumen |= sembrar_admins_tienda(session)
+        resumen |= sembrar_estudiante(session)
     engine.dispose()
     print(json.dumps(resumen, ensure_ascii=False))
 
