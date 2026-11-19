@@ -9,12 +9,12 @@ import { administraTienda, gestionaInventario, supervisaTienda, tiendasGestionad
 import { SLUGS_TIENDA, paletaTienda, type SlugTienda } from "@/lib/tiendas";
 import { formatoPrecio } from "@/lib/formato";
 import { Boton } from "@/components/ui/Boton";
-import { IconoTienda } from "@/components/ui/Icono";
+import { LogoTienda } from "@/components/tienda/LogoTienda";
 import { Revelar } from "@/components/motion/Revelar";
-import { EsqueletoAdmin } from "./RequiereAdmin";
 import { TablaInventario } from "./TablaInventario";
 import { ColaPedidos } from "./ColaPedidos";
 import { FormProducto } from "./FormProducto";
+import { Cargador3D } from "@/components/ui/Cargador3D";
 
 function Kpi({
   rotulo,
@@ -111,10 +111,7 @@ export function PanelAdmin() {
 
   if (carga.tipo === "cargando" || !usuario) {
     return (
-      <div className="contenedor pb-12" aria-busy="true">
-        <span className="sr-only">Cargando el panel…</span>
-        <EsqueletoAdmin />
-      </div>
+      <Cargador3D etiqueta="Cargando el panel" />
     );
   }
 
@@ -222,14 +219,11 @@ export function PanelAdmin() {
             return (
               <li key={t.id} data-escalon="" className={`rounded-tarjeta p-4 ${p.suave}`}>
                 <div className="flex items-center gap-2.5">
-                  <span
-                    aria-hidden="true"
-                    className={`flex h-9 w-9 items-center justify-center rounded-xs ${p.relleno} ${p.sobreRelleno}`}
-                  >
-                    {SLUGS_TIENDA.includes(t.identificador as SlugTienda) ? (
-                      <IconoTienda slug={t.identificador as SlugTienda} tamano={20} />
-                    ) : null}
-                  </span>
+                  {SLUGS_TIENDA.includes(t.identificador as SlugTienda) ? (
+                    <LogoTienda slug={t.identificador as SlugTienda} tamano={36} />
+                  ) : (
+                    <span aria-hidden="true" className={`h-9 w-9 shrink-0 rounded-full ${p.relleno}`} />
+                  )}
                   <span className="font-semibold">{t.nombre}</span>
                 </div>
                 <p className="cifra mt-3 text-2xl font-bold">{propios.length}</p>

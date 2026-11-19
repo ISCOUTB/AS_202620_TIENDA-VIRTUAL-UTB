@@ -49,7 +49,7 @@ export function CarritoPendiente() {
             en un mismo pedido.
           </p>
           <div className="mt-4">
-            <Boton href="/#tiendas" variante="suave">
+            <Boton href="/tiendas" variante="suave">
               Ver las tiendas
             </Boton>
           </div>
@@ -61,7 +61,7 @@ export function CarritoPendiente() {
             return (
               <div key={g.tienda} className="rounded-md border border-linea p-4">
                 <p className="flex items-center gap-2 text-sm font-bold">
-                  <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-pill ${p.relleno}`} />
+                  <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${p.relleno}`} />
                   {nombreTienda(g.tienda)}
                 </p>
                 <ul className="mt-2">

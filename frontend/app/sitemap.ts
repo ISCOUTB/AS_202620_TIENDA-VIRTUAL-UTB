@@ -18,6 +18,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 1,
     },
     {
+      url: `${SITIO_URL}/tiendas`,
+      lastModified: ahora,
+      changeFrequency: "daily",
+      priority: 0.9,
+    },
+    {
+      url: `${SITIO_URL}/como-funciona`,
+      lastModified: ahora,
+      changeFrequency: "monthly",
+      priority: 0.6,
+    },
+    {
       url: `${SITIO_URL}/terminos`,
       lastModified: ahora,
       changeFrequency: "yearly",

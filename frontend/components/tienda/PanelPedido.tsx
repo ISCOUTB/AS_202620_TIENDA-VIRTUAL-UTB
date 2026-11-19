@@ -20,7 +20,7 @@ import { gsap, useGSAP, CONDICIONES, MOVIMIENTO } from "@/lib/movimiento";
 import { Boton } from "@/components/ui/Boton";
 import { Badge } from "@/components/ui/Badge";
 import { Icono } from "@/components/ui/Icono";
-import { MarcadorFoto } from "./MarcadorFoto";
+import { FotoProducto } from "./FotoProducto";
 import { useCatalogo } from "./CatalogoProvider";
 import { Cantidad } from "./Cantidad";
 
@@ -204,14 +204,14 @@ export function PanelPedido() {
 
   return (
     <div ref={raiz} className="fixed inset-0 z-[70]">
-      <div data-velo="" aria-hidden="true" onClick={cerrar} className="absolute inset-0 bg-velo" />
+      <div data-velo="" aria-hidden="true" onClick={cerrar} className="absolute inset-0 bg-velo backdrop-blur-[3px]" />
 
       <div
         ref={hoja}
         role="dialog"
         aria-modal="true"
         aria-labelledby="titulo-pedido"
-        className="absolute inset-x-0 bottom-0 max-h-[92svh] overflow-y-auto rounded-t-lg bg-tarjeta px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-2.5 text-tinta shadow-hoja lg:inset-y-0 lg:left-auto lg:max-h-none lg:w-[440px] lg:rounded-none lg:p-7"
+        className="vidrio absolute inset-x-0 bottom-0 max-h-[92svh] overflow-y-auto rounded-t-lg border-b-0 px-5 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-2.5 text-tinta shadow-hoja lg:inset-y-0 lg:left-auto lg:max-h-none lg:w-[440px] lg:rounded-none lg:p-7"
       >
         <div aria-hidden="true" className="mx-auto mb-3 h-[5px] w-11 rounded-pill bg-linea lg:hidden" />
 
@@ -247,7 +247,7 @@ export function PanelPedido() {
               que pasas.
             </p>
             <div className="mt-5 flex justify-center">
-              <Boton href="/#tiendas" variante="suave" onClick={cerrar}>
+              <Boton href="/tiendas" variante="suave" onClick={cerrar}>
                 Ver las tiendas
               </Boton>
             </div>
@@ -263,7 +263,7 @@ export function PanelPedido() {
                   : p.nombre;
                 return (
                   <li key={linea.productoId} className="flex items-center gap-3 border-b border-linea py-3">
-                    <MarcadorFoto slug={p.tienda} tamanoIcono={20} className="h-12 w-12 shrink-0 rounded-xs lg:h-14 lg:w-14" />
+                    <FotoProducto slug={p.slug} tienda={p.tienda} tamanoIcono={20} className="h-14 w-12 shrink-0 rounded-xs lg:h-[4.5rem] lg:w-14" />
                     <div className="min-w-0 flex-1">
                       <p className="text-[0.9375rem] font-semibold leading-snug">{nombre}</p>
                       <p className="cifra mt-0.5 text-[0.8125rem] text-tenue">

@@ -12,9 +12,10 @@ const EQUIPO = [
 ];
 
 const PROYECTO = [
+  { href: "/como-funciona", nombre: "Cómo funciona" },
   { href: "/terminos", nombre: "Términos" },
   { href: "/privacidad", nombre: "Privacidad" },
-  { href: "/cuenta", nombre: "Mi pase" },
+  { href: "/cuenta", nombre: "Mi cuenta" },
 ];
 
 /**
@@ -33,7 +34,8 @@ export function Footer({ className = "" }: { className?: string }) {
     "inline-flex min-h-9 items-center text-[0.9375rem] text-tinta underline-offset-4 hover:underline md:min-h-11";
 
   return (
-    <footer className={`border-t border-linea bg-tarjeta text-tenue ${className}`}>
+    <footer className={`px-2.5 pb-2.5 pt-10 sm:px-4 md:pt-16 lg:pb-4 ${className}`}>
+      <div className="vidrio-alto overflow-hidden rounded-xl text-tenue">
       <div className="contenedor grid grid-cols-2 gap-x-4 gap-y-5 py-6 md:grid-cols-12 md:gap-10 md:py-10 lg:py-12">
         <div className="col-span-2 md:col-span-5">
           <div className="flex items-center justify-between gap-4 md:block">
@@ -48,7 +50,7 @@ export function Footer({ className = "" }: { className?: string }) {
             <p className="flex items-center gap-2 text-[0.8125rem] md:hidden">
               <span
                 aria-hidden="true"
-                className={`h-2 w-2 rounded-pill ${estado.abierta ? "bg-ok-punto" : "border border-tenue"}`}
+                className={`h-2 w-2 rounded-full ${estado.abierta ? "bg-ok-punto" : "border border-tenue"}`}
               />
               {estado.texto}
             </p>
@@ -60,7 +62,7 @@ export function Footer({ className = "" }: { className?: string }) {
           <p className="mt-4 hidden items-center gap-2 text-sm md:flex">
             <span
               aria-hidden="true"
-              className={`h-2 w-2 rounded-pill ${estado.abierta ? "bg-ok-punto" : "border border-tenue"}`}
+              className={`h-2 w-2 rounded-full ${estado.abierta ? "bg-ok-punto" : "border border-tenue"}`}
             />
             {estado.texto}
           </p>
@@ -72,7 +74,7 @@ export function Footer({ className = "" }: { className?: string }) {
             {TIENDAS.map((t) => (
               <li key={t.slug}>
                 <Link href={`/tiendas/${t.slug}`} className={`${enlace} gap-2`}>
-                  <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-pill ${paletaTienda(t.slug).relleno}`} />
+                  <span aria-hidden="true" className={`h-2 w-2 shrink-0 rounded-full ${paletaTienda(t.slug).relleno}`} />
                   {t.nombre}
                 </Link>
               </li>
@@ -102,7 +104,7 @@ export function Footer({ className = "" }: { className?: string }) {
             <ul className="mt-1 flex flex-wrap gap-x-4 gap-y-0.5 md:mt-2 md:gap-x-5">
               {EQUIPO.map((p) => (
                 <li key={p.codigo}>
-                  {p.nombre} <span className="cifra whitespace-nowrap font-mono opacity-80">· {p.codigo}</span>
+                  {p.nombre} <span className="cifra whitespace-nowrap font-mono">· {p.codigo}</span>
                 </li>
               ))}
             </ul>
@@ -118,6 +120,7 @@ export function Footer({ className = "" }: { className?: string }) {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </footer>
   );

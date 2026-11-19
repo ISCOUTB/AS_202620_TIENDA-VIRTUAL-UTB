@@ -1,11 +1,10 @@
-import { ZonaCargando } from "@/components/ui/Esqueleto";
-import { EsqueletoAdmin } from "@/components/admin/RequiereAdmin";
+import { Cargador3D } from "@/components/ui/Cargador3D";
 
-/** Carga del panel: cabecera, KPI y tabla con sus medidas finales. */
+/**
+ * Carga del panel de administración. El cubo 3D con el logo (SPEC v5 §2.10) es
+ * la única pieza de carga de las rutas: una marca al centro en vez de una
+ * maqueta gris de la página.
+ */
 export default function CargandoAdmin() {
-  return (
-    <ZonaCargando etiqueta="Cargando el panel…" className="contenedor pb-12">
-      <EsqueletoAdmin />
-    </ZonaCargando>
-  );
+  return <Cargador3D variante="pantalla" etiqueta="Cargando el panel" />;
 }

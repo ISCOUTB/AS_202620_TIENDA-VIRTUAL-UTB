@@ -4,7 +4,7 @@ import { PanelCuenta } from "@/components/auth/PanelCuenta";
 import { Revelar } from "@/components/motion/Revelar";
 
 export const metadata: Metadata = {
-  title: "Mi pase",
+  title: "Mi cuenta",
   description:
     "Tus datos y tu carnet en la Tienda Virtual de la cafetería UTB.",
   robots: { index: false, follow: false },
@@ -16,7 +16,7 @@ export default function PaginaCuenta() {
       <header className="sabana bajo-nav">
         <Revelar inmediato className="contenedor pb-16 pt-6 md:pb-20 md:pt-10">
           <p data-escalon="" className="rotulo opacity-90">
-            Mi pase
+            Mi cuenta
           </p>
           <h1 data-escalon="" className="titulo mt-3">
             Tu cuenta de cafetería

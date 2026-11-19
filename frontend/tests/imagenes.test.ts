@@ -5,7 +5,9 @@ import {
   FOTOS_LUGAR,
   LOGO,
   fotoTienda,
+  fotoProducto,
 } from "@/lib/imagenes";
+import { PRODUCTOS } from "@/lib/catalogo";
 
 describe("FOTO_CAFETERIA", () => {
   it("son trece y con numeración estable", () => {
@@ -42,5 +44,21 @@ describe("FOTOS_LUGAR", () => {
   it("es una selección de cuatro de las fotos de la cafetería", () => {
     expect(FOTOS_LUGAR).toHaveLength(4);
     expect(FOTOS_LUGAR[0]).toEqual(FOTO_CAFETERIA[0]);
+  });
+});
+
+describe("fotoProducto", () => {
+  it("todo producto del catálogo tiene su recorte", () => {
+    const sinFoto = PRODUCTOS.filter((p) => fotoProducto(p.slug) === null).map((p) => p.slug);
+    expect(sinFoto).toEqual([]);
+  });
+
+  it("las presentaciones comparten la foto del producto", () => {
+    expect(fotoProducto("de-todito-grande")).toBe("/img/productos/de-todito.webp");
+    expect(fotoProducto("de-todito-pequeno")).toBe(fotoProducto("de-todito-grande"));
+  });
+
+  it("devuelve null para un slug sin recorte", () => {
+    expect(fotoProducto("no-existe")).toBeNull();
   });
 });

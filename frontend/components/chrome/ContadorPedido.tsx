@@ -44,7 +44,7 @@ export function ContadorPedido({
       ref={ref}
       aria-hidden="true"
       className={[
-        "cifra flex h-5 min-w-5 items-center justify-center rounded-pill bg-antojos px-1 text-[0.6875rem] font-bold text-antojos-sobre",
+        "cifra flex h-5 min-w-5 items-center justify-center rounded-full bg-antojos px-1 text-[0.6875rem] font-bold text-antojos-sobre",
         className,
       ].join(" ")}
     >

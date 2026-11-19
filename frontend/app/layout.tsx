@@ -1,14 +1,16 @@
 import type { Metadata, Viewport } from "next";
-import { DM_Sans, Fraunces } from "next/font/google";
+import { DM_Sans, Montserrat } from "next/font/google";
 import "./globals.css";
 import { SITIO_URL, NOMBRE_SITIO, DESCRIPCION_SITIO } from "@/lib/seo";
 import { colorDeToken } from "@/lib/tokens";
 import { SCRIPT_TEMA_INICIAL } from "@/lib/tema-inicial";
+import { IndicadorNavegacion } from "@/components/chrome/IndicadorNavegacion";
 
 /*
- * Dos familias (design/SPEC.md v4 §2.3):
+ * Dos familias (design/SPEC.md v5 §2.3):
  * - DM Sans variable para la interfaz, el cuerpo y las cifras.
- * - Fraunces variable para títulos: hero, secciones, nombres de tienda.
+ * - Montserrat variable para títulos y navegación, en mayúsculas con
+ *   tracking: la voz sobria de catálogo.
  * El subset `latin` cubre á é í ó ú ñ ü ¿ ¡.
  */
 const dmSans = DM_Sans({
@@ -17,10 +19,10 @@ const dmSans = DM_Sans({
   variable: "--font-dm-sans",
 });
 
-const fraunces = Fraunces({
+const montserrat = Montserrat({
   subsets: ["latin"],
   display: "swap",
-  variable: "--font-fraunces",
+  variable: "--font-montserrat",
 });
 
 export const metadata: Metadata = {
@@ -47,10 +49,10 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // La barra del navegador toma el azul de la sábana, que abre cada página.
+  // La barra del navegador continúa la cinta azul que corona cada página.
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: colorDeToken("p-sabana-1") },
-    { media: "(prefers-color-scheme: dark)", color: colorDeToken("p-sabana-noche-2") },
+    { media: "(prefers-color-scheme: light)", color: colorDeToken("p-azul") },
+    { media: "(prefers-color-scheme: dark)", color: colorDeToken("p-sabana-noche-1") },
   ],
   width: "device-width",
   initialScale: 1,
@@ -65,13 +67,22 @@ export default function RootLayout({
     // primer pintado; React no los conoce, de ahí suppressHydrationWarning.
     <html
       lang="es-CO"
-      className={`${dmSans.variable} ${fraunces.variable}`}
+      className={`${dmSans.variable} ${montserrat.variable}`}
       suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA_INICIAL }} />
       </head>
-      <body>{children}</body>
+      {/* GSAP ScrollTrigger (lib/movimiento.ts) toca `body.style` al
+          registrarse, antes de que React hidrate: queda un `style=""` vacío
+          que React reporta como discrepancia. Es inocuo, así que se silencia
+          solo para los atributos de este elemento. */}
+      <body suppressHydrationWarning>
+        {children}
+        {/* Pantalla de carga entre páginas para toda la app (público, cuenta,
+            admin y acceso). */}
+        <IndicadorNavegacion />
+      </body>
     </html>
   );
 }

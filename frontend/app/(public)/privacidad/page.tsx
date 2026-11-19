@@ -84,7 +84,7 @@ export default function PaginaPrivacidad() {
 
             <h2>3. Para qué los usamos</h2>
             <ul>
-              <li>Crear y administrar tu cuenta y tu pase.</li>
+              <li>Crear y administrar tu cuenta.</li>
               <li>Registrar, reservar y entregar tus pedidos.</li>
               <li>Coordinar la hora de recogida con el mostrador.</li>
               <li>Avisarte de cambios en un pedido o en la disponibilidad.</li>

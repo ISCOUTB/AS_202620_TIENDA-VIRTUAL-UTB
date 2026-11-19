@@ -1,14 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
 import type { Producto } from "@/lib/catalogo";
 import { formatoPrecio } from "@/lib/formato";
-import { agregar, cambiarCantidad, useCarrito } from "@/lib/carrito";
-import { useCatalogo } from "./CatalogoProvider";
 import { nombreTienda, paletaTienda } from "@/lib/tiendas";
-import { gsap, useGSAP, CONDICIONES, MOVIMIENTO } from "@/lib/movimiento";
+import { useProductoEnPedido } from "./useProductoEnPedido";
 import { Icono } from "@/components/ui/Icono";
-import { MarcadorFoto } from "./MarcadorFoto";
+import { FotoProducto } from "./FotoProducto";
 import { Cantidad } from "./Cantidad";
 
 /**
@@ -35,54 +32,9 @@ export function ProductoCard({
   mostrarTienda?: boolean;
   className?: string;
 }) {
-  const { carrito } = useCarrito();
-  const cantidad = carrito.lineas.find((l) => l.productoId === producto.id)?.cantidad ?? 0;
-  const agotado = producto.existencias <= 0;
-  // Catálogo de respaldo: sin existencias reales no se aparta (AvisoRespaldo).
-  const enPausa = useCatalogo().origen === "respaldo";
-  const bloqueado = agotado || enPausa;
-  const ultimas = !agotado && producto.existencias <= 3;
+  const { cantidad, agotado, enPausa, bloqueado, ultimas, nombre, accion, anuncio, sumar, restar } =
+    useProductoEnPedido(producto);
   const paleta = paletaTienda(producto.tienda);
-  const nombre = producto.presentacion
-    ? `${producto.nombre} · ${producto.presentacion.toLowerCase()}`
-    : producto.nombre;
-
-  const accion = useRef<HTMLDivElement>(null);
-  const [anuncio, setAnuncio] = useState("");
-  const [pulsos, setPulsos] = useState(0);
-
-  // Rebote de confirmación en la zona de acción cada vez que se agrega.
-  useGSAP(
-    () => {
-      if (pulsos === 0 || !accion.current) return;
-      const mm = gsap.matchMedia();
-      mm.add(CONDICIONES.movimiento, () => {
-        gsap.fromTo(
-          accion.current,
-          { scale: 0.9 },
-          {
-            scale: 1,
-            duration: MOVIMIENTO.pulso.duracion,
-            ease: MOVIMIENTO.pulso.ease,
-            clearProps: "transform",
-          },
-        );
-      });
-    },
-    { dependencies: [pulsos], scope: accion },
-  );
-
-  function sumar() {
-    if (bloqueado) return;
-    agregar(producto, 1);
-    setPulsos((n) => n + 1);
-    setAnuncio(`${nombre}: ${cantidad + 1} en tu pedido`);
-  }
-
-  function restar() {
-    cambiarCantidad(producto.id, cantidad - 1, producto.existencias);
-    setAnuncio(cantidad - 1 > 0 ? `${nombre}: ${cantidad - 1} en tu pedido` : `${nombre} salió del pedido`);
-  }
 
   const vertical = disposicion === "vertical";
 
@@ -105,57 +57,63 @@ export function ProductoCard({
       id={producto.slug}
       data-escalon=""
       className={[
-        "group/producto relative flex scroll-mt-24",
+        "levanta group/producto relative flex scroll-mt-28",
         className,
+        // Tarjeta de vidrio con la foto en un campo translúcido de esquinas
+        // suaves y el texto debajo, alineado a la izquierda. En móvil la
+        // carta de la tienda sigue siendo una lista de filas (se recorre con
+        // el pulgar); desde `sm` cada producto es su propia tarjeta.
         vertical
-          ? "levanta h-full flex-col overflow-hidden rounded-tarjeta border border-linea bg-tarjeta"
-          : "levanta items-center gap-3.5 border-b border-linea py-4 sm:h-full sm:flex-col sm:items-stretch sm:gap-0 sm:overflow-hidden sm:rounded-tarjeta sm:border sm:bg-tarjeta sm:py-0",
+          ? "vidrio h-full flex-col p-2"
+          : "items-center gap-3.5 border-b border-linea py-3.5 vidrio-sm sm:h-full sm:flex-col sm:items-stretch sm:gap-0 sm:p-2",
       ].join(" ")}
     >
-      <MarcadorFoto
-        slug={producto.tienda}
-        tamanoIcono={vertical ? 32 : 26}
+      {/* Marco de la foto: el recorte sin fondo sobre el gris de estudio.
+          Recorta el acercamiento lento del hover (`.zoom`). */}
+      <div
         className={
           vertical
-            ? "aspect-[4/3] w-full"
-            : "h-[88px] w-[88px] shrink-0 rounded-md sm:aspect-[4/3] sm:h-auto sm:w-full sm:rounded-none"
+            ? "relative aspect-[4/5] w-full overflow-hidden rounded-md bg-[color:var(--tk-campo-foto)]"
+            : "relative h-[110px] w-[88px] shrink-0 overflow-hidden rounded-md bg-[color:var(--tk-campo-foto)] sm:aspect-[4/5] sm:h-auto sm:w-full"
         }
       >
-        {mostrarTienda ? (
-          <span
-            className={`absolute left-2.5 top-2.5 inline-flex h-6 items-center rounded-pill px-2.5 text-xs font-bold sm:left-3 sm:top-3 ${paleta.relleno} ${paleta.sobreRelleno}`}
-          >
-            {nombreTienda(producto.tienda)}
-          </span>
-        ) : (
-          <span
-            className={[
-              "absolute left-3 top-3 hidden h-[26px] items-center rounded-pill bg-tarjeta px-2.5 text-xs font-bold sm:inline-flex",
-              agotado ? "text-error" : ultimas ? "text-aviso" : "text-tenue",
-            ].join(" ")}
-          >
-            {existencias}
-          </span>
-        )}
-      </MarcadorFoto>
+        <FotoProducto
+          slug={producto.slug}
+          tienda={producto.tienda}
+          tamanoIcono={vertical ? 40 : 30}
+          className="zoom h-full w-full"
+        />
+        <span aria-hidden="true" className="contents">
+          {mostrarTienda ? (
+            <span
+              className={`absolute left-2.5 top-2.5 inline-flex h-6 items-center rounded-pill px-2.5 tipo-micro sm:left-3 sm:top-3 ${paleta.relleno} ${paleta.sobreRelleno}`}
+            >
+              {nombreTienda(producto.tienda)}
+            </span>
+          ) : (
+            <span
+              className={[
+                "vidrio-alto absolute left-3 top-3 hidden h-6 items-center rounded-pill px-2.5 tipo-micro sm:inline-flex",
+                agotado ? "text-error" : ultimas ? "text-aviso" : "text-tenue",
+              ].join(" ")}
+            >
+              {existencias}
+            </span>
+          )}
+        </span>
+      </div>
 
       <div
         className={
           vertical
-            ? "flex flex-1 flex-col gap-1 px-3 pb-3 pt-2.5 sm:gap-1.5 sm:px-5 sm:pb-5 sm:pt-4"
-            : "flex min-w-0 flex-1 flex-col gap-0.5 sm:gap-1.5 sm:px-5 sm:pb-5 sm:pt-4"
+            ? "flex flex-1 flex-col gap-0.5 px-1.5 pb-1 pt-3"
+            : "flex min-w-0 flex-1 flex-col gap-0.5 sm:px-1.5 sm:pb-1 sm:pt-3"
         }
       >
-        <h3
-          className={
-            vertical
-              ? "text-[0.9375rem] font-semibold leading-snug sm:text-lg"
-              : "text-base font-semibold leading-snug sm:text-lg"
-          }
-        >
+        <h3 className="tipo-nombre">
           {nombre}
         </h3>
-        <p className="text-[0.8125rem] leading-snug text-tenue sm:text-sm">
+        <p className={`text-xs leading-snug text-tenue ${vertical ? "line-clamp-1" : "line-clamp-2 sm:line-clamp-1"}`}>
           {vertical && producto.esMuestra ? "Precio de referencia" : producto.descripcion}
         </p>
         {!vertical && producto.sabores?.length ? (
@@ -167,12 +125,12 @@ export function ProductoCard({
         <div
           className={
             vertical
-              ? "mt-auto flex items-center justify-between gap-2 pt-1.5 sm:pt-3.5"
-              : "mt-1.5 flex items-center justify-between gap-3 sm:mt-auto sm:pt-2.5"
+              ? "mt-auto flex items-center justify-between gap-2 pt-1.5"
+              : "mt-1.5 flex items-center justify-between gap-3 sm:mt-auto sm:pt-1.5"
           }
         >
           <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5">
-            <span className="cifra text-base font-bold sm:text-xl">
+            <span className="cifra font-display text-[0.8125rem] font-semibold tracking-[0.02em]">
               {formatoPrecio(producto.precioCentavos)}
             </span>
             {!vertical ? (
@@ -207,10 +165,10 @@ export function ProductoCard({
                       : `Agregar ${nombre} al pedido`
                 }
                 className={[
-                  "inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-pill font-bold transition-colors duration-[var(--tk-dur)]",
+                  "inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-pill tipo-accion transition-colors duration-[var(--tk-dur)]",
                   bloqueado
-                    ? "whitespace-nowrap bg-suave px-3.5 text-[0.8125rem] text-tenue sm:px-4 sm:text-sm"
-                    : "bg-primario text-sobre-primario hover:bg-primario-hover sm:px-[1.125rem] sm:text-sm",
+                    ? "whitespace-nowrap bg-suave px-3.5 text-tenue sm:px-4"
+                    : "border border-primario text-enlace hover:bg-primario hover:text-sobre-primario sm:px-4",
                   vertical ? "-m-1.5 sm:m-0" : "",
                 ].join(" ")}
               >

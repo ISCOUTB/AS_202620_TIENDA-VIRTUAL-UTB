@@ -1,6 +1,6 @@
 import type { SlugTienda } from "@/lib/tiendas";
 import { paletaTienda } from "@/lib/tiendas";
-import { IconoTienda } from "@/components/ui/Icono";
+import { LogoTienda } from "./LogoTienda";
 
 /**
  * Campo de foto mientras el producto o la tienda no tenga foto asignada
@@ -28,7 +28,7 @@ export function MarcadorFoto({
       aria-hidden="true"
       className={`marcador relative flex items-center justify-center ${fondo ?? p.suave} ${p.tinta} ${className}`}
     >
-      <IconoTienda slug={slug} tamano={tamanoIcono} className="opacity-80" />
+      <LogoTienda slug={slug} tamano={Math.round(tamanoIcono * 1.4)} />
       {children}
     </div>
   );

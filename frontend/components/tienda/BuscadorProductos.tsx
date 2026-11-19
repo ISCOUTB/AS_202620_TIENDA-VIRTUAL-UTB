@@ -6,7 +6,7 @@ import { buscarProductos, type Catalogo } from "@/lib/catalogo";
 import { formatoPrecio } from "@/lib/formato";
 import { nombreTienda } from "@/lib/tiendas";
 import { Icono } from "@/components/ui/Icono";
-import { MarcadorFoto } from "./MarcadorFoto";
+import { FotoProducto } from "./FotoProducto";
 
 /**
  * Buscador de la sábana (artefacto «A · Inicio»). Busca en el mismo catálogo
@@ -52,12 +52,13 @@ export function BuscadorProductos({
       <label
         htmlFor={`${id}-q`}
         className={[
-          "flex items-center gap-2.5 rounded-pill bg-blanco text-carnet-tenue shadow-alta [--tk-foco:var(--tk-carnet-azul)]",
-          "focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-[color:var(--tk-sobre-sabana)]",
-          compacto ? "h-[52px] px-[18px]" : "h-14 px-5",
+          // Campo de búsqueda del catálogo: filo fino sobre blanco, sin sombra.
+          "flex items-center gap-2.5 rounded-pill border border-[color:var(--tk-vidrio-borde)] bg-[color:var(--tk-vidrio-alto)] text-tenue shadow-[var(--tk-vidrio-sombra)] transition-colors duration-[var(--tk-dur)] hover:border-borde",
+          "focus-within:border-tinta focus-within:outline-3 focus-within:outline-offset-2 focus-within:outline-[color:var(--tk-foco)]",
+          compacto ? "h-11 px-5" : "h-12 px-5",
         ].join(" ")}
       >
-        <Icono nombre="buscar" tamano={20} grosor={2.2} className="shrink-0 text-carnet-azul" />
+        <Icono nombre="buscar" tamano={20} grosor={2.2} className="shrink-0 text-enlace" />
         <span className="sr-only">Buscar en las tiendas</span>
         <input
           id={`${id}-q`}
@@ -77,8 +78,10 @@ export function BuscadorProductos({
           placeholder="Arroz, granola, helado…"
           autoComplete="off"
           aria-describedby={`${id}-estado`}
-          aria-controls={`${id}-lista`}
-          className="min-w-0 flex-1 bg-transparent text-base text-carnet-tinta outline-none placeholder:text-carnet-tenue"
+          // Solo apunta a la lista mientras existe: un id inexistente en
+          // `aria-controls` es ARIA inválido (axe: aria-valid-attr-value).
+          aria-controls={abierto && activa ? `${id}-lista` : undefined}
+          className="min-w-0 flex-1 bg-transparent text-base text-tinta outline-none placeholder:text-tenue"
         />
       </label>
 
@@ -93,7 +96,7 @@ export function BuscadorProductos({
       {abierto && activa ? (
         <div
           id={`${id}-lista`}
-          className="absolute inset-x-0 top-[calc(100%+0.5rem)] z-30 overflow-hidden rounded-[20px] border border-linea bg-tarjeta text-tinta shadow-alta"
+          className="vidrio-alto absolute inset-x-0 top-[calc(100%+0.5rem)] z-30 overflow-hidden text-tinta"
         >
           {resultados.length === 0 ? (
             <p className="px-5 py-4 text-sm text-tenue">
@@ -108,7 +111,7 @@ export function BuscadorProductos({
                     onClick={() => setAbierto(false)}
                     className="flex min-h-14 items-center gap-3 px-4 py-2 hover:bg-suave focus-visible:bg-suave"
                   >
-                    <MarcadorFoto slug={p.tienda} tamanoIcono={18} className="h-10 w-10 shrink-0 rounded-xs" />
+                    <FotoProducto slug={p.slug} tienda={p.tienda} tamanoIcono={18} className="h-12 w-10 shrink-0 rounded-xs" />
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-[0.9375rem] font-semibold">
                         {p.nombre}

@@ -3,8 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useSesion } from "@/lib/sesion";
-import { ZonaCargando } from "@/components/ui/Esqueleto";
-import { EsqueletoCuenta } from "./PanelCuenta";
+import { Cargador3D } from "@/components/ui/Cargador3D";
 
 /**
  * Guard de sesión del lado del cliente.
@@ -27,9 +26,7 @@ export function RequiereSesion({ children }: { children: React.ReactNode }) {
 
   if (cargando) {
     return (
-      <ZonaCargando etiqueta="Cargando tu pase…">
-        <EsqueletoCuenta />
-      </ZonaCargando>
+      <Cargador3D etiqueta="Cargando tu cuenta" />
     );
   }
 

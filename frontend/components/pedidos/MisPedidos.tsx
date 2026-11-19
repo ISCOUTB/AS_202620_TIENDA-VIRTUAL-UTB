@@ -7,8 +7,8 @@ import { EVENTO_PEDIDOS, cancelarPedido, listarPedidos } from "@/lib/pedidos";
 import { formatoFechaCorta, formatoHora, formatoPrecio } from "@/lib/formato";
 import { nombreTienda, paletaTienda } from "@/lib/tiendas";
 import { Boton } from "@/components/ui/Boton";
-import { Esqueleto } from "@/components/ui/Esqueleto";
 import { EstadoPedido } from "@/components/pedidos/EstadoPedido";
+import { Cargador3D } from "@/components/ui/Cargador3D";
 
 type Estado =
   | { tipo: "cargando" }
@@ -98,11 +98,7 @@ export function MisPedidos({ demo, soloActivos = false }: Readonly<{ demo: boole
         ) : null}
 
         {estado.tipo === "cargando" ? (
-          <div aria-busy="true" className="mt-5 flex flex-col gap-2">
-            <span className="sr-only">Cargando tus pedidos…</span>
-            <Esqueleto className="h-16 w-full rounded-md" />
-            <Esqueleto className="h-16 w-full rounded-md" />
-          </div>
+          <Cargador3D variante="compacto" etiqueta="Cargando tus pedidos" className="mt-2" />
         ) : estado.tipo === "error" ? (
           <p role="alert" className="mt-5 rounded-sm bg-error-suave px-4 py-3 text-sm text-error">
             {estado.mensaje}
@@ -196,7 +192,7 @@ function CabeceraPedido({ pedido }: Readonly<{ pedido: OrderOut }>) {
   const slug = pedido.tienda ?? "";
   return (
     <p className="flex items-center gap-2 text-sm font-bold">
-      <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-pill ${paletaTienda(slug).relleno}`} />
+      <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${paletaTienda(slug).relleno}`} />
       {nombreTienda(slug)} · #{pedido.id}
     </p>
   );

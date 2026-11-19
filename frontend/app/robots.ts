@@ -7,7 +7,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // El pase, las pantallas de acceso y la API no aportan nada al índice
+        // La cuenta, las pantallas de acceso y la API no aportan nada al índice
         // y exponen superficie innecesaria.
         disallow: ["/auth/", "/cuenta", "/pedidos", "/admin", "/api/"],
       },

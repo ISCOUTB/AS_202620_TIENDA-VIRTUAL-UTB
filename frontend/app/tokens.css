@@ -6,8 +6,9 @@
  * Tailwind v4 los expone como utilidades (`bg-tarjeta`, `text-tenue`…) vía
  * `@theme inline` en globals.css.
  *
- * Dirección de arte: design/SPEC.md v4 — «Azul de marca, claro y oscuro»
- * (artefacto «Tienda UTB rediseño», dirección A).
+ * Dirección de arte: design/SPEC.md v5 — «Editorial UTB»: la sobriedad de
+ * catálogo de moda (fondo claro, filos de 1 px, botones rectos, títulos en
+ * mayúsculas con tracking) con el azul y el logo de la UTB como marca.
  *
  * ─────────────────────────────────────────────────────────────────────────
  * ESTRUCTURA
@@ -42,30 +43,29 @@
   --tk-p-sabana-2: #0018c9; /* sábana clara: base del degradado */
   --tk-p-sabana-noche-1: #0a2fb0; /* sábana oscura */
   --tk-p-sabana-noche-2: #030b45;
-  --tk-p-brillo: #19e6f5; /* brillo cian de la esquina de la sábana */
-  --tk-p-hueso: #f3f5fa; /* ground claro */
-  --tk-p-noche: #050a1c; /* ground oscuro */
-  --tk-p-tinta: #0a1330; /* tinta clara y fondo de foto */
+    --tk-p-hueso: #f5f5f7; /* ground claro */
+  --tk-p-noche: #0c0d10; /* ground oscuro */
+  --tk-p-tinta: #1f1f1f; /* tinta clara y fondo de foto */
   --tk-p-blanco: #ffffff;
   --tk-p-negro: #000000;
   --tk-p-verde: #2fbf2f; /* punto de «abierto» */
 
   /* — 2. Semánticas · tema claro — */
   color-scheme: light;
-  --tk-fondo: #f3f5fa; /* ground del sitio */
-  --tk-tarjeta: #ffffff; /* superficie de tarjeta y hojas */
-  --tk-suave: #f1f4fb; /* pasos, chips, cajas de nota */
-  --tk-suave-2: #eaeef8; /* pista del control segmentado */
-  --tk-tinta: #0a1330; /* texto principal */
-  --tk-tenue: #4b5672; /* texto secundario */
-  --tk-linea: #e1e6f0; /* hairline */
-  --tk-borde: #7d88a1; /* borde de control (3:1) */
+  --tk-fondo: #f5f5f7; /* ground: blanco cálido de sistema, base del fondo ambiental */
+  --tk-tarjeta: #ffffff; /* superficie de tarjeta, barra y hojas */
+  --tk-suave: #f5f5f5; /* campo de foto de producto (gris de estudio), chips, notas */
+  --tk-suave-2: #eeeeee; /* pista del control segmentado */
+  --tk-tinta: #1f1f1f; /* texto principal: grafito, no negro puro */
+  --tk-tenue: #5f5f5f; /* texto secundario (6.4 sobre blanco, 5.9 sobre el campo) */
+  --tk-linea: #e8e8e8; /* hairline */
+  --tk-borde: #8c8c8c; /* borde de control (3:1) */
   --tk-enlace: #093ad8; /* enlaces y acentos de texto */
   --tk-primario: #093ad8;
   --tk-primario-hover: #0730b8;
   --tk-sobre-primario: #ffffff;
-  --tk-primario-suave: #e7edfd; /* stepper, pestaña activa del nav inferior */
-  --tk-oscuro: #0a1330; /* botón oscuro sobre la sábana, fondo de foto */
+  --tk-primario-suave: #e8edfc; /* stepper, pestaña activa del nav inferior */
+  --tk-oscuro: #111111; /* botón oscuro, fondo de foto */
   --tk-aviso: #8a5a00; /* «últimas unidades», precios de referencia */
   --tk-aviso-suave: #fff2cc;
   --tk-error: #b3261e;
@@ -74,19 +74,60 @@
   --tk-ok-suave: #e2fbd6;
   --tk-ok-punto: #2fbf2f;
   --tk-foco: #093ad8; /* anillo de foco sobre superficies */
-  --tk-velo: rgba(10, 19, 48, 0.5); /* fondo de diálogo */
-  --tk-raya: rgba(10, 19, 48, 0.05); /* rayado de los marcadores de foto */
-  --tk-esqueleto: #e6eaf3;
+  --tk-velo: rgba(17, 17, 17, 0.45); /* fondo de diálogo */
+  --tk-raya: rgba(17, 17, 17, 0.04); /* rayado de los marcadores de foto */
+  --tk-esqueleto: #eeeeee;
   --tk-esqueleto-brillo: rgba(255, 255, 255, 0.75);
-  --tk-sombra: 0 1px 2px rgba(10, 19, 48, 0.06), 0 18px 48px rgba(10, 19, 48, 0.1);
-  --tk-sombra-alta: 0 16px 40px rgba(0, 10, 60, 0.22);
-  --tk-sombra-pestana: 0 1px 3px rgba(10, 19, 48, 0.15);
-  --tk-sombra-primaria: 0 12px 30px rgba(9, 58, 216, 0.35);
-  --tk-sombra-hoja: -20px 0 60px rgba(0, 0, 0, 0.25);
+  /* Sombras casi planas: la separación la dan los filos, no la elevación. */
+  --tk-sombra: 0 1px 2px rgba(17, 17, 17, 0.06), 0 10px 30px rgba(17, 17, 17, 0.06);
+  --tk-sombra-alta: 0 12px 32px rgba(17, 17, 17, 0.14);
+  --tk-sombra-pestana: 0 1px 2px rgba(17, 17, 17, 0.12);
+  --tk-sombra-primaria: 0 10px 24px rgba(9, 58, 216, 0.28);
+  --tk-sombra-hoja: -16px 0 48px rgba(0, 0, 0, 0.18);
   --tk-logo-filtro: none; /* el logo azul original sobre claro */
   --tk-foto-filtro: none; /* fotos de contenido: tal cual sobre claro */
-  --tk-sabana: radial-gradient(60% 80% at 100% 0%, rgba(25, 230, 245, 0.8) 0%, rgba(25, 230, 245, 0) 60%),
-    linear-gradient(165deg, #0a3fe0 0%, #0018c9 100%);
+  /* La sábana es ahora una banda de marca plana: azul UTB con un degradado
+     apenas perceptible, sin el brillo cian de la v4. */
+  --tk-sabana: linear-gradient(165deg, #0a3fe0 0%, #0729b8 100%);
+  /* Velo del hero a sangre: deja ver la foto arriba y asienta el texto abajo. */
+  --tk-velo-hero: linear-gradient(180deg, rgba(5, 16, 60, 0.3) 0%, rgba(5, 16, 60, 0.38) 45%, rgba(5, 16, 60, 0.86) 100%);
+  --tk-cinta: #093ad8; /* cinta de mensajes sobre la barra */
+  --tk-cubo-filo: rgba(255, 255, 255, 0.28); /* aristas del cubo de carga */
+  --tk-cubo-sombra: rgba(17, 17, 17, 0.18);
+  --tk-sombra-punto: 0 2px 6px 2px rgba(0, 0, 0, 0.35); /* puntos del carrusel sobre foto */
+
+  /*
+   * Vidrio (glassmorphism). Dos materiales:
+   * - `vidrio`: superficie clara esmerilada sobre contenido (barra, panel,
+   *   navegación inferior). Opaca al 78 % para que el texto siempre pase
+   *   AA aunque lo de atrás sea una foto.
+   * - `cristal`: lámina tenue sobre fotos y sobre el azul de marca; solo
+   *   lleva texto blanco y se apoya en el velo oscuro de la foto.
+   * `--tk-vidrio-solido` es el respaldo sin `backdrop-filter`.
+   */
+  --tk-vidrio: rgba(255, 255, 255, 0.62);
+  --tk-vidrio-alto: rgba(255, 255, 255, 0.8); /* barra, menús y paneles con mucho texto */
+  --tk-vidrio-solido: rgba(255, 255, 255, 0.97);
+  --tk-vidrio-borde: rgba(255, 255, 255, 0.75);
+  --tk-vidrio-filo: rgba(17, 17, 17, 0.06); /* filo exterior apenas visible */
+  --tk-vidrio-sombra: 0 1px 1px rgba(17, 17, 17, 0.03), 0 10px 30px rgba(17, 17, 17, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --tk-vidrio-sombra-alta: 0 2px 4px rgba(17, 17, 17, 0.04), 0 22px 50px rgba(17, 17, 17, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --tk-campo-foto: rgba(255, 255, 255, 0.72); /* campo de la foto dentro de la tarjeta de vidrio */
+  /* Fondo ambiental: tres lavados de luz detrás de toda la página para que
+     la transparencia del vidrio se perciba también fuera de las fotos. */
+  --tk-ambiente-1: rgba(9, 58, 216, 0.11);
+  --tk-ambiente-2: rgba(112, 242, 252, 0.16);
+  --tk-ambiente-3: rgba(98, 89, 226, 0.08);
+  --tk-cristal: rgba(255, 255, 255, 0.12);
+  --tk-cristal-alto: rgba(255, 255, 255, 0.2);
+  --tk-cristal-borde: rgba(255, 255, 255, 0.28);
+  --tk-cristal-brillo: linear-gradient(135deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.04) 55%, rgba(255, 255, 255, 0) 100%);
+  --tk-cristal-sombra: 0 12px 40px rgba(3, 10, 50, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  --tk-desenfoque: 24px;
+  --tk-resalte: rgba(9, 58, 216, 0.08); /* fondo de hover en píldora sobre vidrio */
+  /* Orbes de luz tras el cristal en las bandas azules (mismo valor en ambos temas). */
+  --tk-orbe-1: rgba(128, 192, 255, 0.55);
+  --tk-orbe-2: rgba(112, 242, 252, 0.32);
 
   /* Material de la sábana (igual en ambos temas: siempre va sobre azul) */
   --tk-sobre-sabana: #ffffff;
@@ -98,10 +139,10 @@
 
   /* Banda oscura de «La cuenta» (portada). Siempre oscura: en claro es tinta,
      en oscuro sube a tarjeta con filo azul para separarse del ground. */
-  --tk-banda: #0a1330;
-  --tk-banda-borde: #0a1330;
-  --tk-banda-tinta: #f1f4ff; /* 15.9 sobre la banda */
-  --tk-banda-tenue: #a6b1d3; /* 8.4 sobre la banda */
+  --tk-banda: #0a1f6b; /* azul UTB profundo: la franja de marca del catálogo */
+  --tk-banda-borde: #0a1f6b;
+  --tk-banda-tinta: #ffffff; /* 15.0 sobre la banda */
+  --tk-banda-tenue: #c3cdee; /* 9.6 sobre la banda */
   --tk-banda-linea: rgba(255, 255, 255, 0.12);
   --tk-banda-acento: #70f2fc; /* rótulo e íconos cian, 13.4 sobre la banda */
   --tk-banda-acento-fondo: rgba(112, 242, 252, 0.1);
@@ -141,7 +182,8 @@
 
   /* — Tipografía — */
   --tk-font-texto: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
-  --tk-font-display: var(--font-fraunces), "Fraunces", Georgia, serif;
+  /* Geométrica en mayúsculas para títulos y navegación (la voz del catálogo). */
+  --tk-font-display: var(--font-montserrat), "Montserrat", "Helvetica Neue", Arial, sans-serif;
   --tk-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace; /* códigos */
 
   /* — Escala de tipo — */
@@ -168,16 +210,18 @@
   --tk-esp-16: 4rem;
   --tk-margen: clamp(1rem, 4vw, 1.5rem); /* 16px a 320px, 24px en escritorio */
   --tk-ancho: 1200px; /* ancho máximo del contenido */
-  --tk-alto-nav: 4.75rem; /* alto de la barra superior sobre la sábana */
+  --tk-alto-nav: 3.5rem; /* alto de la barra superior blanca */
+  --tk-alto-cinta: 2rem; /* cinta azul de mensajes sobre la barra */
 
-  /* — Radio — */
-  --tk-radio-xs: 12px; /* miniaturas */
-  --tk-radio-sm: 14px; /* campos, franjas horarias, número de paso */
-  --tk-radio-md: 18px; /* botón de bloque, preguntas, pasos móviles */
-  --tk-radio: 24px; /* tarjetas */
-  --tk-radio-lg: 28px; /* hojas y paneles */
-  --tk-radio-xl: 32px; /* cabeceras de foto y sección destacada */
-  --tk-radio-pill: 999px;
+  /* — Radio — esquinas suaves y continuas, a la manera de las interfaces de
+     vidrio: cuanto más grande la pieza, más amplio el radio. */
+  --tk-radio-xs: 10px; /* miniaturas */
+  --tk-radio-sm: 12px; /* campos, chips, franjas horarias */
+  --tk-radio-md: 16px; /* botón de bloque, preguntas, foto dentro de tarjeta */
+  --tk-radio: 22px; /* tarjetas */
+  --tk-radio-lg: 26px; /* hojas, paneles y banners */
+  --tk-radio-xl: 32px; /* hero y secciones destacadas */
+  --tk-radio-pill: 999px; /* botones y píldoras */
 
   /* — Motion — (GSAP lee sus constantes de lib/movimiento.ts) */
   --tk-dur: 160ms;
@@ -188,20 +232,20 @@
 /* — 2b. Semánticas · tema oscuro — */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --tk-fondo: #050a1c;
-  --tk-tarjeta: #0b1230;
-  --tk-suave: #121b3d;
-  --tk-suave-2: #121b3d;
-  --tk-tinta: #f1f4ff;
-  --tk-tenue: #a6b1d3;
-  --tk-linea: #223060;
-  --tk-borde: #5d6ea6;
-  --tk-enlace: #80c0ff;
+  --tk-fondo: #0c0d10;
+  --tk-tarjeta: #15171c;
+  --tk-suave: #1d2027;
+  --tk-suave-2: #1d2027;
+  --tk-tinta: #f2f3f5;
+  --tk-tenue: #a3a8b3;
+  --tk-linea: #2a2e37;
+  --tk-borde: #6b7180;
+  --tk-enlace: #8fb4ff;
   --tk-primario: #093ad8;
   --tk-primario-hover: #1f4ff0;
   --tk-sobre-primario: #ffffff;
-  --tk-primario-suave: #16246a;
-  --tk-oscuro: #0a1330;
+  --tk-primario-suave: #142252;
+  --tk-oscuro: #0c0d10;
   --tk-aviso: #ffd266;
   --tk-aviso-suave: #33280a;
   --tk-error: #ff8a80;
@@ -209,21 +253,34 @@
   --tk-ok: #7ee07e;
   --tk-ok-suave: #14321a;
   --tk-ok-punto: #2fbf2f;
-  --tk-foco: #80c0ff;
+  --tk-foco: #8fb4ff;
   --tk-velo: rgba(0, 0, 0, 0.65);
-  --tk-raya: rgba(255, 255, 255, 0.05);
-  --tk-esqueleto: #16204a;
-  --tk-esqueleto-brillo: rgba(255, 255, 255, 0.07);
-  --tk-sombra: 0 18px 48px rgba(0, 0, 0, 0.45);
-  --tk-sombra-alta: 0 16px 40px rgba(0, 0, 0, 0.5);
-  --tk-sombra-pestana: 0 1px 3px rgba(0, 0, 0, 0.5);
-  --tk-sombra-primaria: 0 12px 30px rgba(0, 0, 0, 0.45);
-  --tk-sombra-hoja: -20px 0 60px rgba(0, 0, 0, 0.55);
+  --tk-raya: rgba(255, 255, 255, 0.04);
+  --tk-esqueleto: #1d2027;
+  --tk-esqueleto-brillo: rgba(255, 255, 255, 0.06);
+  --tk-sombra: 0 10px 30px rgba(0, 0, 0, 0.4);
+  --tk-sombra-alta: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --tk-sombra-pestana: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --tk-sombra-primaria: 0 10px 24px rgba(0, 0, 0, 0.45);
+  --tk-sombra-hoja: -16px 0 48px rgba(0, 0, 0, 0.55);
   --tk-logo-filtro: brightness(0) invert(1);
-  --tk-foto-filtro: brightness(0.8) saturate(0.92);
-  --tk-sabana: radial-gradient(60% 80% at 100% 0%, rgba(25, 230, 245, 0.28) 0%, rgba(25, 230, 245, 0) 60%),
-    linear-gradient(165deg, #0a2fb0 0%, #030b45 100%);
-  --tk-banda: #0b1230;
+  --tk-foto-filtro: brightness(0.85) saturate(0.92);
+  --tk-sabana: linear-gradient(165deg, #0a2fb0 0%, #061c78 100%);
+  --tk-cinta: #0a2fb0;
+  --tk-cubo-sombra: rgba(0, 0, 0, 0.5);
+  --tk-vidrio: rgba(30, 32, 40, 0.55);
+  --tk-vidrio-alto: rgba(26, 28, 35, 0.78);
+  --tk-vidrio-solido: rgba(21, 23, 28, 0.97);
+  --tk-vidrio-borde: rgba(255, 255, 255, 0.09);
+  --tk-vidrio-filo: rgba(255, 255, 255, 0.08);
+  --tk-vidrio-sombra: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --tk-vidrio-sombra-alta: 0 22px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  --tk-campo-foto: rgba(255, 255, 255, 0.06);
+  --tk-ambiente-1: rgba(9, 58, 216, 0.28);
+  --tk-ambiente-2: rgba(112, 242, 252, 0.1);
+  --tk-ambiente-3: rgba(98, 89, 226, 0.16);
+  --tk-resalte: rgba(143, 180, 255, 0.14);
+  --tk-banda: #0a1f6b;
   --tk-banda-borde: #223060;
 
   --tk-t-antojos-suave: #33280a;
@@ -247,20 +304,20 @@
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
-    --tk-fondo: #050a1c;
-    --tk-tarjeta: #0b1230;
-    --tk-suave: #121b3d;
-    --tk-suave-2: #121b3d;
-    --tk-tinta: #f1f4ff;
-    --tk-tenue: #a6b1d3;
-    --tk-linea: #223060;
-    --tk-borde: #5d6ea6;
-    --tk-enlace: #80c0ff;
+    --tk-fondo: #0c0d10;
+    --tk-tarjeta: #15171c;
+    --tk-suave: #1d2027;
+    --tk-suave-2: #1d2027;
+    --tk-tinta: #f2f3f5;
+    --tk-tenue: #a3a8b3;
+    --tk-linea: #2a2e37;
+    --tk-borde: #6b7180;
+    --tk-enlace: #8fb4ff;
     --tk-primario: #093ad8;
     --tk-primario-hover: #1f4ff0;
     --tk-sobre-primario: #ffffff;
-    --tk-primario-suave: #16246a;
-    --tk-oscuro: #0a1330;
+    --tk-primario-suave: #142252;
+    --tk-oscuro: #0c0d10;
     --tk-aviso: #ffd266;
     --tk-aviso-suave: #33280a;
     --tk-error: #ff8a80;
@@ -268,21 +325,34 @@
     --tk-ok: #7ee07e;
     --tk-ok-suave: #14321a;
     --tk-ok-punto: #2fbf2f;
-    --tk-foco: #80c0ff;
+    --tk-foco: #8fb4ff;
     --tk-velo: rgba(0, 0, 0, 0.65);
-    --tk-raya: rgba(255, 255, 255, 0.05);
-    --tk-esqueleto: #16204a;
-    --tk-esqueleto-brillo: rgba(255, 255, 255, 0.07);
-    --tk-sombra: 0 18px 48px rgba(0, 0, 0, 0.45);
-    --tk-sombra-alta: 0 16px 40px rgba(0, 0, 0, 0.5);
-    --tk-sombra-pestana: 0 1px 3px rgba(0, 0, 0, 0.5);
-    --tk-sombra-primaria: 0 12px 30px rgba(0, 0, 0, 0.45);
-    --tk-sombra-hoja: -20px 0 60px rgba(0, 0, 0, 0.55);
+    --tk-raya: rgba(255, 255, 255, 0.04);
+    --tk-esqueleto: #1d2027;
+    --tk-esqueleto-brillo: rgba(255, 255, 255, 0.06);
+    --tk-sombra: 0 10px 30px rgba(0, 0, 0, 0.4);
+    --tk-sombra-alta: 0 12px 32px rgba(0, 0, 0, 0.5);
+    --tk-sombra-pestana: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --tk-sombra-primaria: 0 10px 24px rgba(0, 0, 0, 0.45);
+    --tk-sombra-hoja: -16px 0 48px rgba(0, 0, 0, 0.55);
     --tk-logo-filtro: brightness(0) invert(1);
-    --tk-foto-filtro: brightness(0.8) saturate(0.92);
-    --tk-sabana: radial-gradient(60% 80% at 100% 0%, rgba(25, 230, 245, 0.28) 0%, rgba(25, 230, 245, 0) 60%),
-      linear-gradient(165deg, #0a2fb0 0%, #030b45 100%);
-    --tk-banda: #0b1230;
+    --tk-foto-filtro: brightness(0.85) saturate(0.92);
+    --tk-sabana: linear-gradient(165deg, #0a2fb0 0%, #061c78 100%);
+    --tk-cinta: #0a2fb0;
+    --tk-cubo-sombra: rgba(0, 0, 0, 0.5);
+    --tk-vidrio: rgba(30, 32, 40, 0.55);
+    --tk-vidrio-alto: rgba(26, 28, 35, 0.78);
+    --tk-vidrio-solido: rgba(21, 23, 28, 0.97);
+    --tk-vidrio-borde: rgba(255, 255, 255, 0.09);
+    --tk-vidrio-filo: rgba(255, 255, 255, 0.08);
+    --tk-vidrio-sombra: 0 10px 30px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --tk-vidrio-sombra-alta: 0 22px 50px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    --tk-campo-foto: rgba(255, 255, 255, 0.06);
+    --tk-ambiente-1: rgba(9, 58, 216, 0.28);
+    --tk-ambiente-2: rgba(112, 242, 252, 0.1);
+    --tk-ambiente-3: rgba(98, 89, 226, 0.16);
+    --tk-resalte: rgba(143, 180, 255, 0.14);
+    --tk-banda: #0a1f6b;
     --tk-banda-borde: #223060;
 
     --tk-t-antojos-suave: #33280a;

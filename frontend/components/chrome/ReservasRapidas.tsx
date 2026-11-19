@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSesion } from "@/lib/sesion";
 import { MisPedidos } from "@/components/pedidos/MisPedidos";
 import { Icono } from "@/components/ui/Icono";
+import { Cargador3D } from "@/components/ui/Cargador3D";
 
 /** Consulta las reservas sin abandonar la carta ni confundirlas con el carrito. */
 export function ReservasRapidas() {
@@ -26,7 +27,7 @@ export function ReservasRapidas() {
       {abierto ? (
         <VistaReservas alCerrar={() => setAbierto(false)}>
           {cargando ? (
-            <p role="status" className="p-6">Cargando tu cuenta…</p>
+            <Cargador3D variante="compacto" etiqueta="Cargando tu cuenta" />
           ) : sesion ? (
             <MisPedidos key={sesion.usuario.id} demo={sesion.modo === "demo"} soloActivos />
           ) : (
@@ -65,7 +66,7 @@ function VistaReservas({ children, alCerrar }: Readonly<{
       ref={dialogo}
       aria-labelledby="titulo-reservas-rapidas"
       onClose={alCerrar}
-      className="fixed inset-0 m-auto max-h-[85svh] w-[calc(100%_-_1.5rem)] max-w-xl overflow-y-auto rounded-xl border border-linea bg-tarjeta p-0 text-tinta shadow-alta backdrop:bg-velo"
+      className="fixed inset-0 m-auto max-h-[85svh] w-[calc(100%_-_1.5rem)] max-w-xl overflow-y-auto rounded-xl vidrio p-0 text-tinta backdrop:bg-velo backdrop:backdrop-blur-sm"
     >
       <div className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-linea bg-tarjeta px-6 py-4">
         <h2 id="titulo-reservas-rapidas" className="font-display text-2xl font-semibold">Por recoger</h2>

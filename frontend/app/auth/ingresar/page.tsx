@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { FormIngreso } from "@/components/auth/FormIngreso";
-import { EsqueletoFormulario, ZonaCargando } from "@/components/ui/Esqueleto";
+import { Cargador3D } from "@/components/ui/Cargador3D";
 
 export const metadata: Metadata = {
   title: "Ingresar",
@@ -13,14 +13,8 @@ export const metadata: Metadata = {
 export default function PaginaIngreso() {
   return (
     // `useSearchParams` obliga a un límite de Suspense: mientras tanto, el
-    // esqueleto del formulario con sus mismas medidas.
-    <Suspense
-      fallback={
-        <ZonaCargando etiqueta="Cargando el acceso…">
-          <EsqueletoFormulario campos={2} />
-        </ZonaCargando>
-      }
-    >
+    // cubo de carga en su tamaño compacto.
+    <Suspense fallback={<Cargador3D variante="compacto" etiqueta="Cargando el acceso" />}>
       <FormIngreso />
     </Suspense>
   );

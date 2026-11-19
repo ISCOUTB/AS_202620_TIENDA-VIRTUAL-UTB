@@ -9,7 +9,11 @@ from sqlalchemy.orm import Session
 
 from app.modules.identity import contrasenas, repository, tokens
 from app.modules.identity.models import Usuario
-from app.modules.identity.public import asegurar_admin_general, principal_desde_token
+from app.modules.identity.public import (
+    asegurar_admin_general,
+    asegurar_estudiante,
+    principal_desde_token,
+)
 from app.shared.database import SessionLocal, engine
 from app.shared.seguridad import ANONIMO, ContextoSeguridad, aplicar_contexto
 from tests.conftest import asignar_rol, registrar_y_entrar
@@ -165,6 +169,27 @@ def test_admin_general_sembrado_es_idempotente_y_no_pisa_la_contrasena(cliente) 
         "/identity/me", headers={"Authorization": f"Bearer {login.json()['access_token']}"}
     )
     assert me.json()["roles"] == [{"codigo": "admin_general", "tienda_id": None}]
+
+
+def test_estudiante_sembrado_es_comprador_idempotente_y_no_pisa_la_contrasena(cliente) -> None:
+    with SessionLocal() as session, session.begin():
+        primero = asegurar_estudiante(
+            session, nombre="Estudiante", correo="estudiante@utb.edu.co", contrasena="clave-est-1"
+        )
+    with SessionLocal() as session, session.begin():
+        segundo = asegurar_estudiante(
+            session, nombre="Estudiante", correo="ESTUDIANTE@utb.edu.co", contrasena="otra-clave-2"
+        )
+
+    assert primero == segundo
+    login = cliente.post(
+        "/identity/login", json={"email": "estudiante@utb.edu.co", "password": "clave-est-1"}
+    )
+    assert login.status_code == 200
+    me = cliente.get(
+        "/identity/me", headers={"Authorization": f"Bearer {login.json()['access_token']}"}
+    )
+    assert me.json()["roles"] == [{"codigo": "comprador", "tienda_id": None}]
 
 
 def test_consultas_de_identidad_funcionan_con_el_rol_de_aplicacion() -> None:

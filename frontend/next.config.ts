@@ -19,7 +19,10 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       { source: "/login", destination: "/auth/ingresar", permanent: false },
-      { source: "/registro", destination: "/auth/crear-cuenta", permanent: false },
+      // Sin registro abierto (plataforma universitaria: las cuentas se
+      // entregan creadas). Los enlaces viejos al registro llegan al acceso.
+      { source: "/registro", destination: "/auth/ingresar", permanent: false },
+      { source: "/auth/crear-cuenta", destination: "/auth/ingresar", permanent: true },
     ];
   },
 };

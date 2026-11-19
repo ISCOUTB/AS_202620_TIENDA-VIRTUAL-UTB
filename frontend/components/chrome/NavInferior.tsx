@@ -30,7 +30,7 @@ export function NavInferior() {
     { clave: "inicio", href: "/", etiqueta: "Inicio", icono: "inicio", activa: ruta === "/" },
     {
       clave: "tiendas",
-      href: "/#tiendas",
+      href: "/tiendas",
       etiqueta: "Tiendas",
       icono: "tiendas",
       activa: ruta.startsWith("/tiendas"),
@@ -54,7 +54,7 @@ export function NavInferior() {
   return (
     <nav
       aria-label="Navegación principal"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-linea bg-tarjeta pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden"
+      className="vidrio fixed inset-x-0 bottom-0 z-40 border-x-0 border-b-0 pb-[max(0.5rem,env(safe-area-inset-bottom))] lg:hidden"
     >
       <ul className="mx-auto grid max-w-lg grid-cols-4 px-2 pt-2">
         {items.map((it) => {

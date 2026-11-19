@@ -155,7 +155,7 @@ export function TablaInventario({
                       {p.precio_confirmado === false ? <Badge tono="muestra">Referencia</Badge> : null}
                     </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.8125rem] text-tenue">
-                      <span aria-hidden="true" className={`h-2 w-2 rounded-pill ${paleta.relleno}`} />
+                      <span aria-hidden="true" className={`h-2 w-2 rounded-full ${paleta.relleno}`} />
                       {t?.nombre ?? slug}
                       <span aria-hidden="true">·</span>
                       <span className="cifra font-mono">id {p.id}</span>

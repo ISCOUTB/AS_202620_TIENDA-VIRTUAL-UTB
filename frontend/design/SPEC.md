@@ -14,6 +14,79 @@
 >   (utilidades de Tailwind, `.sabana`, `.esqueleto`, `.prosa`, revelado y
 >   View Transitions), `lib/movimiento.ts` (GSAP), `lib/tema.ts` (tema).
 
+> **v5 · 2026-11-18 — «Editorial UTB».** Sobre esta v4 se aplicó una capa
+> editorial inspirada en catálogos de moda: fondo `#f5f5f5`, tinta `#111`,
+> esquinas casi rectas (2–4 px; lo redondo usa `rounded-full`), sombras
+> planas, Montserrat en mayúsculas con tracking para títulos, botones y
+> navegación (sustituye a Fraunces), barra blanca `sticky` con cinta azul que
+> se esconde al bajar, portada con hero a sangre, vitrinas 3:4 por tienda,
+> rejilla de catálogo, banner partido y mosaico de fotos, y un **cubo 3D con
+> el logo** (`components/ui/Cargador3D.tsx`) como única pieza de carga de las
+> rutas. El azul de marca, los acentos por tienda, el carnet y las reglas de
+> contraste y movimiento de abajo siguen vigentes; los valores mandan en
+> `app/tokens.css`.
+>
+> **v5.1 · 2026-11-18.** Más cerca todavía del catálogo de referencia: fondo
+> blanco puro, campo de foto `#f5f5f5`, barra con logo a la izquierda y menú
+> centrado en el azul de marca, y una portada con la secuencia del catálogo
+> (carrusel a sangre → vitrinas a todo el ancho → banner de marca → triple
+> banner → banda de la cuenta → fila de fotos → barra de texto animada). Los
+> productos usan recortes sin fondo (`public/img/productos/`, mapeados en
+> `lib/imagenes.ts → fotoProducto`).
+>
+> **v5.2 · 2026-11-18 — vidrio.** Dos materiales en `tokens.css`: `vidrio`
+> (superficie clara esmerilada: barra fija, panel del pedido, navegación
+> móvil, menú, panel del buscador sobre el carrusel) y `cristal` (lámina
+> tenue con brillo diagonal, solo con texto blanco, sobre fotos y sobre el
+> azul de marca). Las bandas azules llevan dos orbes de luz difusa para que
+> el cristal tenga qué desenfocar; la foto activa del carrusel se acerca
+> despacio (Ken Burns). Sin `backdrop-filter`, ambos caen a un fondo casi
+> opaco. No se usa vidrio sobre blanco liso: ahí no se ve.
+>
+> **v5.3 · 2026-11-18 — filosofía de vidrio.** Se abandonan las esquinas
+> rectas: radios suaves (10–32 px, botones en píldora) y piezas que flotan
+> con margen (barra en cápsula, hero, banners azules, cabeceras interiores y
+> pie). Un fondo ambiental fijo (`body::before`, tres lavados de luz sobre
+> `#f5f5f7`) da al vidrio algo que desenfocar en toda la página; por eso
+> `.tarjeta`, las tarjetas de producto y de tienda, el resumen del pedido,
+> el buscador y las preguntas son vidrio (`vidrio`, `vidrio-alto`, y
+> `vidrio-sm` para lo que solo es tarjeta desde `sm`).
+>
+> **v5.4 · 2026-11-18 — escala tipográfica cerrada.** Tras una auditoría
+> (22+ combinaciones de mayúsculas distintas, chips de 9 px) todo texto en
+> mayúsculas usa uno de cuatro roles definidos como `@utility` en
+> `globals.css`: `tipo-micro` (11 px · 600 · +0,12 em), `tipo-accion`
+> (12 px · 600 · +0,1 em), `tipo-nombre` (12 px · 500 · +0,04 em) y
+> `tipo-bloque` (15→18 px · 700 · +0,04 em). `.rotulo` y `.enlace-nav` son
+> alias con esos valores. Mínimo legible: 11 px (el carnet, que imita una
+> tarjeta física, es la única excepción).
+>
+> **v5.5 · 2026-11-18 — tiendas y carta al modo de las apps de domicilios.**
+> Logos de tienda (`LogoTienda`: monograma en un círculo de su acento) en
+> lugar de los íconos de trazo. Página de tienda: portada con foto, ficha de
+> vidrio con el logo superpuesto y chips en una fila deslizable; carta con
+> buscador propio, pestañas de sección fijas que siguen al scroll
+> (`.pestanas-carta`, se acomodan a la barra con `data-barra` en `<html>`) y
+> filas de producto con la foto a la derecha y el «+» sobre ella
+> (`ProductoFila`). Las secciones son presentación (`lib/secciones.ts`); las
+> portadas, `portadaTienda()` en `lib/imagenes.ts`.
+>
+> **v5.6 · 2026-11-18 — módulos.** Cada sección es su propia página y ningún
+> enlace del menú salta a un ancla: **Inicio** (`/`) solo lleva anuncios
+> (carrusel, banners), recomendaciones (lo más pedido y vitrinas por tienda)
+> y propuestas («Para compartir», a partir de los datos: no hay descuentos
+> en la base); **Tiendas** (`/tiendas`) el listado; **Cómo funciona**
+> (`/como-funciona`) los pasos, la cuenta y las preguntas (con su JSON-LD
+> de FAQ). El menú: Inicio · Tiendas · Cómo funciona · Mis pedidos.
+>
+> **v5.7 · 2026-11-18 — pantalla de carga.** `Cargador3D` tiene tres tamaños:
+> `pantalla` (rutas: cubre todo sobre vidrio, cubo de 96 px con halo, barra
+> de progreso y marca), `bloque` (un panel que espera la red) y `compacto`
+> (diálogos y listas). Todas las rutas con datos tienen su `loading.tsx` en
+> `pantalla`, y `IndicadorNavegacion` (layout raíz) la muestra en cuanto se
+> toca un enlace interno a otra página: Next, sin precarga, deja la página
+> vieja quieta y sin señal. Aparece con 150 ms de espera para no parpadear.
+
 ## 0. Qué cambia respecto a la v3
 
 | v3 «Campus oscuro» | v4 «Azul de marca» |
