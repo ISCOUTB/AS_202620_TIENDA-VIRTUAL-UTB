@@ -3,7 +3,7 @@
 #
 # - Recrea la base, migra y siembra:
 #   - el admin general `admin@utb.edu.co`, que solo supervisa (ADR 0017);
-#   - un admin por tienda, `admin.<tienda>@utb.edu.co`, con la contraseña de
+#   - un admin por tienda, `<tienda> (sin guiones)`, con la contraseña de
 #     `SEED_TIENDAS_PASSWORD`.
 # - Registra a `ana` (comprador).
 # - Crea pedidos de ana en Almuerzo 01 y en Antojos, en todos los estados: por
@@ -109,4 +109,4 @@ pedidos_de() {
 echo "→ Pedidos de ana"
 pedidos_de almuerzo-01
 pedidos_de antojos
-echo "Listo. Admins de tienda: admin.<tienda>@utb.edu.co (antojos, punto-fit, alegria, almuerzo-01, almuerzo-02)."
+echo "Listo. Admins de tienda: <tienda> (sin guiones) (antojos, punto-fit, alegria, almuerzo-01, almuerzo-02)."

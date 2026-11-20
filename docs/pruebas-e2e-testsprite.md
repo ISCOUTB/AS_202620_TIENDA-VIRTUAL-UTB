@@ -82,7 +82,7 @@ Valores **solo para la base E2E local**; no existen en producción.
 | Cuenta | Contraseña | Rol |
 |---|---|---|
 | `ana@utb.edu.co` | `Comprador-2026` | comprador |
-| `admin.<tienda>@utb.edu.co` (`antojos`, `punto-fit`, `alegria`, `almuerzo-01`, `almuerzo-02`) | `Tienda-2026` (`CLAVE_TIENDAS`) | `admin_tienda` de esa tienda |
+| `<tienda> (sin guiones)` (`antojos`, `puntofit`, `alegria`, `almuerzo01`, `almuerzo02`) | `Tienda-2026` (`CLAVE_TIENDAS`) | `admin_tienda` de esa tienda |
 | `admin@utb.edu.co` | `Admin-Demo-2026` | `admin_general`, solo supervisa |
 
 ## 3. Correr las tandas

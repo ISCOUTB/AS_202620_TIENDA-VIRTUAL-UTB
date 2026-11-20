@@ -100,7 +100,7 @@ corre fuera del alcance web (comando o Schedule de Dokploy).
 - `identity.public.asegurar_cuenta_con_rol` generaliza el alta idempotente
   (no pisa contraseñas existentes). `asegurar_admin_general` y
   `asegurar_admin_tienda` la envuelven.
-- `python -m app.seed` crea `admin.<tienda>@utb.edu.co` («Admin <Tienda>»), con
+- `python -m app.seed` crea `<tienda> (sin guiones)` («Admin <Tienda>»), con
   `admin_tienda` de esa tienda, **solo si** está definida
   `SEED_TIENDAS_PASSWORD` (8 caracteres o más). Sin la variable no crea
   cuentas, igual que `SEED_ADMIN_*`. La contraseña nunca se versiona y se

@@ -36,7 +36,7 @@ def get_inventory_entry(product_id, headers):
 
 def test_verify_post_inventory_productid_adjust_endpoint_updates_stock_correctly():
     # Use a store admin for 'antojos' (store id 1)
-    admin_email = "admin.antojos@utb.edu.co"
+    admin_email = "antojos"
     admin_password = "Tienda-2026"
     token = login(admin_email, admin_password)
     headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}

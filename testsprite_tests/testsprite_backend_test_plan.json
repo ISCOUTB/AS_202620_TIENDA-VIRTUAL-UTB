@@ -72,22 +72,22 @@
   {
     "id": "TC015",
     "title": "store_admin_manages_only_own_store_stock",
-    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Store ids: antojos=1, punto-fit=2, alegria=3, almuerzo-01=4, almuerzo-02=5. Antojos products: 14,15,4,18; Punto Fit: 25,27,28,29; Almuerzo 01: 50,51,52,53. As admin.punto-fit@utb.edu.co / Tienda-2026: POST /inventory/25/adjust {delta:1,motivo:'conteo'} -> 200 and cantidad increases by 1. POST /inventory/14/adjust (Antojos product) -> 403. PUT /inventory/50 {cantidad:3} (Almuerzo 01) -> 403."
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Store ids: antojos=1, punto-fit=2, alegria=3, almuerzo-01=4, almuerzo-02=5. Antojos products: 14,15,4,18; Punto Fit: 25,27,28,29; Almuerzo 01: 50,51,52,53. As puntofit / Tienda-2026: POST /inventory/25/adjust {delta:1,motivo:'conteo'} -> 200 and cantidad increases by 1. POST /inventory/14/adjust (Antojos product) -> 403. PUT /inventory/50 {cantidad:3} (Almuerzo 01) -> 403."
   },
   {
     "id": "TC016",
     "title": "store_admin_creates_and_edits_only_in_own_store",
-    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Store ids: antojos=1, punto-fit=2, alegria=3, almuerzo-01=4, almuerzo-02=5. Antojos products: 14,15,4,18; Punto Fit: 25,27,28,29; Almuerzo 01: 50,51,52,53. As admin.alegria@utb.edu.co / Tienda-2026: POST /catalog/products {tienda:'alegria',nombre:<unique>,descripcion:'x',precio_centavos:250000} -> 201; POST same body with tienda:'antojos' -> 403; PATCH /catalog/products/25 (Punto Fit) {descripcion:'x'} -> 403."
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Store ids: antojos=1, punto-fit=2, alegria=3, almuerzo-01=4, almuerzo-02=5. Antojos products: 14,15,4,18; Punto Fit: 25,27,28,29; Almuerzo 01: 50,51,52,53. As alegria / Tienda-2026: POST /catalog/products {tienda:'alegria',nombre:<unique>,descripcion:'x',precio_centavos:250000} -> 201; POST same body with tienda:'antojos' -> 403; PATCH /catalog/products/25 (Punto Fit) {descripcion:'x'} -> 403."
   },
   {
     "id": "TC017",
     "title": "store_admin_cannot_see_other_store_orders",
-    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As admin.punto-fit@utb.edu.co / Tienda-2026: GET /orders?tienda_id=4 -> 403. Create an order of ana in Almuerzo 01 (product 51); as admin.punto-fit GET /orders/{id} -> 404, POST /orders/{id}/estado {estado:'pagado'} -> 404, POST /orders/{id}/cancel -> 404."
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As puntofit / Tienda-2026: GET /orders?tienda_id=4 -> 403. Create an order of ana in Almuerzo 01 (product 51); as puntofit GET /orders/{id} -> 404, POST /orders/{id}/estado {estado:'pagado'} -> 404, POST /orders/{id}/cancel -> 404."
   },
   {
     "id": "TC018",
     "title": "store_admin_queue_lists_only_own_store",
-    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As admin.antojos@utb.edu.co / Tienda-2026: GET /orders?tienda_id=1 -> 200 and every order has tienda_id 1; GET /orders?tienda_id=2 -> 403."
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As antojos / Tienda-2026: GET /orders?tienda_id=1 -> 200 and every order has tienda_id 1; GET /orders?tienda_id=2 -> 403."
   },
   {
     "id": "TC019",
@@ -107,12 +107,12 @@
   {
     "id": "TC022",
     "title": "order_status_transitions_follow_the_lifecycle",
-    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Create an order of ana in Almuerzo 01 (product 52). As admin.almuerzo-01@utb.edu.co / Tienda-2026 advance pagado -> en_preparacion -> listo -> entregado, each 200. Then estado 'pagado' on the delivered order -> 400. On a new order, jumping directly from pendiente_pago to 'entregado' -> 400."
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Create an order of ana in Almuerzo 01 (product 52). As almuerzo01 / Tienda-2026 advance pagado -> en_preparacion -> listo -> entregado, each 200. Then estado 'pagado' on the delivered order -> 400. On a new order, jumping directly from pendiente_pago to 'entregado' -> 400."
   },
   {
     "id": "TC023",
     "title": "buyer_cannot_cancel_after_payment",
-    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Create order of ana (product 53). Admin admin.almuerzo-01@utb.edu.co / Tienda-2026 sets estado 'pagado'. ana POST /orders/{id}/cancel -> 400 (only pendiente_pago can be cancelled by the buyer). The store admin can still cancel it -> 200 and stock is restored."
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. Create order of ana (product 53). Admin almuerzo01 / Tienda-2026 sets estado 'pagado'. ana POST /orders/{id}/cancel -> 400 (only pendiente_pago can be cancelled by the buyer). The store admin can still cancel it -> 200 and stock is restored."
   },
   {
     "id": "TC024",
@@ -142,12 +142,12 @@
   {
     "id": "TC029",
     "title": "stock_cannot_go_negative",
-    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As admin.antojos@utb.edu.co / Tienda-2026 read cantidad of product 14 then POST /inventory/14/adjust {delta: -(cantidad+1), motivo:'merma'} -> 400 and cantidad unchanged. PUT /inventory/14 {cantidad:-1} -> 422. delta 0 -> 400 or 422."
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As antojos / Tienda-2026 read cantidad of product 14 then POST /inventory/14/adjust {delta: -(cantidad+1), motivo:'merma'} -> 400 and cantidad unchanged. PUT /inventory/14 {cantidad:-1} -> 422. delta 0 -> 400 or 422."
   },
   {
     "id": "TC030",
     "title": "product_validation_errors",
-    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As admin.antojos@utb.edu.co / Tienda-2026 POST /catalog/products with negative precio_centavos -> 422; empty nombre -> 422; nombre repeated in the same store (e.g. 'Cheetos') -> 409; unknown tienda 'no-existe' -> 404 or 403."
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. As antojos / Tienda-2026 POST /catalog/products with negative precio_centavos -> 422; empty nombre -> 422; nombre repeated in the same store (e.g. 'Cheetos') -> 409; unknown tienda 'no-existe' -> 404 or 403."
   },
   {
     "id": "TC031",
@@ -162,7 +162,7 @@
   {
     "id": "TC033",
     "title": "me_returns_roles_per_store",
-    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. GET /identity/me as admin.almuerzo-01@utb.edu.co / Tienda-2026 -> roles [{codigo:'admin_tienda', tienda_id:4}]; as admin@utb.edu.co -> roles include admin_general."
+    "description": "Base URL http://localhost:8000. Get tokens with POST /identity/login {email,password}. GET /identity/me as almuerzo01 / Tienda-2026 -> roles [{codigo:'admin_tienda', tienda_id:4}]; as admin@utb.edu.co -> roles include admin_general."
   },
   {
     "id": "TC034",

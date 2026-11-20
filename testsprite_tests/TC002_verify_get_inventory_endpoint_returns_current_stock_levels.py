@@ -6,7 +6,7 @@ import time
 BASE_URL = "http://localhost:8000"
 TIMEOUT = 30
 
-ADMIN_EMAIL = "admin.antojos@utb.edu.co"
+ADMIN_EMAIL = "antojos"
 ADMIN_PASSWORD = "Tienda-2026"
 
 

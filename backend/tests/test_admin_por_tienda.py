@@ -273,7 +273,7 @@ def test_siembra_un_admin_por_tienda(cliente, datos_demo, monkeypatch) -> None:
         roles = session.execute(
             select(Usuario.correo, UsuarioRol.rol_codigo, UsuarioRol.tienda_id)
             .join(UsuarioRol, UsuarioRol.usuario_id == Usuario.id)
-            .where(Usuario.correo.like("admin.%"))
+            .where(Usuario.correo.in_([correo_admin_tienda(t[0]) for t in TIENDAS]))
         ).all()
     assert len(roles) == len(TIENDAS)
     assert {r.rol_codigo for r in roles} == {"admin_tienda"}

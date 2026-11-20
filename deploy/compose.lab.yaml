@@ -68,7 +68,7 @@ services:
       # Opcional: administrador general inicial, solo supervisa (ADR 0016, 0017).
       SEED_ADMIN_CORREO: ${SEED_ADMIN_CORREO:-}
       SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-}
-      # Opcional: un admin por tienda, admin.<tienda>@utb.edu.co (ADR 0017).
+      # Opcional: un admin por tienda, <tienda> (sin guiones) (ADR 0017).
       SEED_TIENDAS_PASSWORD: ${SEED_TIENDAS_PASSWORD:-}
       # Opcional: cuenta de estudiante predeterminada (rol comprador). No hay
       # registro abierto en la interfaz: las cuentas se entregan creadas.

@@ -122,7 +122,7 @@
         "path": "/auth/ingresar",
         "file": "frontend/app/auth/ingresar/page.tsx",
         "auth_required": false,
-        "description": "Login page (Correo institucional, Contraseña, Entrar)"
+        "description": "Login page (Correo o usuario, Contraseña, Entrar)"
       },
       {
         "path": "/auth/crear-cuenta",
@@ -232,7 +232,7 @@
         ],
         "entry_route": "/auth/ingresar",
         "user_interactions": [
-          "Fill \"Correo institucional\" and \"Contraseña\"",
+          "Fill \"Correo o usuario\" and \"Contraseña\"",
           "Click \"Entrar\"",
           "See an error message on invalid credentials",
           "Click \"Cerrar sesión\" in /cuenta"

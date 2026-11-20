@@ -70,8 +70,8 @@ def assert_role_present(roles: List[Dict[str, Any]], codigo: str, tienda_id: int
         raise AssertionError(f"Role with codigo '{codigo}' and tienda_id {tienda_id} not found in roles: {roles}")
 
 def test_me_returns_roles_per_store():
-    # Store admin: admin.almuerzo-01@utb.edu.co / Tienda-2026 -> tienda_id 4, admin_tienda role
-    store_admin_email = "admin.almuerzo-01@utb.edu.co"
+    # Store admin: almuerzo01 / Tienda-2026 -> tienda_id 4, admin_tienda role
+    store_admin_email = "almuerzo01"
     store_admin_password = "Tienda-2026"
 
     token_store_admin = login(store_admin_email, store_admin_password)

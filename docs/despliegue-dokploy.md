@@ -36,7 +36,7 @@ FastAPI y PostgreSQL en una red privada; solo Next.js recibe tráfico público.
    sembrar no cambia su contraseña). Desde la API 0.5.0 ese administrador
    **solo supervisa** ([ADR 0017](adr/0017-admin-general-supervisa.md)); con
    `SEED_TIENDAS_PASSWORD` la siembra crea además un admin por tienda,
-   `admin.<tienda>@utb.edu.co`, que es quien cambia stock, productos y pedidos.
+   `<tienda> (sin guiones)`, que es quien cambia stock, productos y pedidos.
    Cambiar `JWT_SECRET` cierra todas las sesiones abiertas.
 
    `SEED_ON_DEPLOY=true` hace que el servicio `seed` siembre los datos de
@@ -260,7 +260,7 @@ ejecutan en la terminal del servidor, desde la carpeta del despliegue.
    frontend.
 2. `migrate` muestra en su log `Running upgrade 0003_producto_presentacion ->
    0004_admin_general_supervisa`.
-3. Entrar como `admin.antojos@utb.edu.co`:
+3. Entrar como `antojos`:
    - el panel dice «Gestionas Antojos.»;
    - solo aparece Antojos en filtros, inventario y cola;
    - un ajuste de stock con + se guarda.
@@ -295,7 +295,7 @@ docker compose -f deploy/compose.lab.yaml run --rm migrate alembic downgrade 000
 
 Después, en Dokploy, desplegar el commit anterior. El `downgrade` restaura las
 funciones y políticas de `0002` (el general vuelve a editar). Las cuentas
-`admin.<tienda>` quedan creadas, con su rol; si no se quieren, se borran sus
+`<tienda>` quedan creadas, con su rol; si no se quieren, se borran sus
 filas de `usuario_roles`. El respaldo del paso 1.2 solo hace falta si se
 perdieran datos, porque la migración no toca tablas.
 

@@ -9,7 +9,7 @@ TIMEOUT = 30.0
 BUYER_EMAIL = "ana@utb.edu.co"
 BUYER_PASSWORD = "Comprador-2026"
 
-STORE_ADMIN_EMAIL = "admin.almuerzo-01@utb.edu.co"
+STORE_ADMIN_EMAIL = "almuerzo01"
 STORE_ADMIN_PASSWORD = "Tienda-2026"
 
 PRODUCT_ID_FOR_ALMUERZO_01 = 52  # from PRD example list for Almuerzo 01

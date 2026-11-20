@@ -6,7 +6,7 @@ import time
 BASE_URL = "http://localhost:8000"
 LOGIN_URL = f"{BASE_URL}/identity/login"
 INVENTORY_URL = f"{BASE_URL}/inventory"
-USERNAME = "admin.punto-fit@utb.edu.co"
+USERNAME = "puntofit"
 PASSWORD = "Tienda-2026"
 TIMEOUT = 30
 
