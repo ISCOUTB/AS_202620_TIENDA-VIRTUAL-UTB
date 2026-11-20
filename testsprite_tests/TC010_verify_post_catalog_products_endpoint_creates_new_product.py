@@ -11,7 +11,7 @@ TIMEOUT = 30
 
 def test_verify_post_catalog_products_endpoint_creates_new_product():
     # Credentials for a store admin (Antojos)
-    email = "admin.antojos@utb.edu.co"
+    email = "antojos"
     password = "Tienda-2026"
 
     # Login to obtain token

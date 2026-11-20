@@ -165,6 +165,6 @@ Ver [`api/tiendas-catalogo.md`](api/tiendas-catalogo.md). Resumen:
 - **Comando para crear solo las cuentas de tienda.** `python -m app.seed`
   también reescribe los productos demo. En una base de producción con
   productos editados a mano conviene un comando que cree solo
-  `admin.<tienda>` ([runbook 0.5.0](despliegue-dokploy.md#subir-050)).
+  `<tienda>` ([runbook 0.5.0](despliegue-dokploy.md#subir-050)).
 - **Cambio de contraseña.** Las cuentas sembradas (`SEED_ADMIN_*`,
   `SEED_TIENDAS_PASSWORD`) no pueden cambiar su clave desde la aplicación.

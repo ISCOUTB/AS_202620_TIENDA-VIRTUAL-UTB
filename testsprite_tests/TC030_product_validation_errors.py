@@ -7,7 +7,7 @@ LOGIN_ENDPOINT = "/identity/login"
 PRODUCTS_ENDPOINT = "/catalog/products"
 TIMEOUT = 30.0
 
-ADMIN_EMAIL = "admin.antojos@utb.edu.co"
+ADMIN_EMAIL = "antojos"
 ADMIN_PASSWORD = "Tienda-2026"
 
 

@@ -47,9 +47,9 @@ async def run_test():
         
         # -> Enter the Almuerzo 01 store administrator’s credentials and submit the sign-in form.
         # email email field
-        elem = page.get_by_role("textbox", name="Correo institucional")
+        elem = page.get_by_role("textbox", name="Correo o usuario")
         await elem.wait_for(state="visible", timeout=10000)
-        await elem.fill("admin.almuerzo-01@utb.edu.co")
+        await elem.fill("almuerzo01")
         
         # -> Enter the Almuerzo 01 store administrator’s credentials and submit the sign-in form.
         # password password field

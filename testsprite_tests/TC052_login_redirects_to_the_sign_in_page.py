@@ -53,10 +53,10 @@ async def run_test():
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: The URL includes /auth/ingresar.
         await expect(page).to_have_url(re.compile("/auth/ingresar"), timeout=15000), "The URL includes /auth/ingresar."
-        await page.get_by_role("textbox", name="Correo institucional").nth(0).scroll_into_view_if_needed()
+        await page.get_by_role("textbox", name="Correo o usuario").nth(0).scroll_into_view_if_needed()
         # Assert-outcome: not verified — the export-time check could not be evaluated
         # Assert: The institutional email field in the sign-in form is visible.
-        await expect(page.get_by_role("textbox", name="Correo institucional").nth(0)).to_be_visible(timeout=15000), "The institutional email field in the sign-in form is visible."
+        await expect(page.get_by_role("textbox", name="Correo o usuario").nth(0)).to_be_visible(timeout=15000), "The institutional email field in the sign-in form is visible."
         await asyncio.sleep(5)
 
     finally:

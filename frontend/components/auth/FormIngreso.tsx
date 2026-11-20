@@ -41,8 +41,8 @@ export function FormIngreso() {
     e.preventDefault();
     setError(null);
 
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      setError("Escribe un correo válido, por ejemplo nombre@utb.edu.co.");
+    if (email.trim().length === 0) {
+      setError("Escribe tu correo o usuario.");
       return;
     }
     if (password.length === 0) {
@@ -80,12 +80,11 @@ export function FormIngreso() {
 
       <form onSubmit={enviar} className="mt-7 flex flex-col gap-5" noValidate>
         <Campo
-          etiqueta="Correo institucional"
-          type="email"
+          etiqueta="Correo o usuario"
+          type="text"
           value={email}
           onChange={setEmail}
-          autoComplete="email"
-          inputMode="email"
+          autoComplete="username"
           requerido
           autoFocus
           name="email"

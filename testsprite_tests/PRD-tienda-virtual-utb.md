@@ -33,11 +33,11 @@ Toda cuenta nueva creada desde la web es «comprador».
 | Correo | Contraseña | Rol |
 |---|---|---|
 | `ana@utb.edu.co` | `Comprador-2026` | Comprador |
-| `admin.antojos@utb.edu.co` | `Tienda-2026` | Admin de **Antojos** únicamente |
-| `admin.punto-fit@utb.edu.co` | `Tienda-2026` | Admin de **Punto Fit** únicamente |
-| `admin.alegria@utb.edu.co` | `Tienda-2026` | Admin de **Alegría** únicamente |
-| `admin.almuerzo-01@utb.edu.co` | `Tienda-2026` | Admin de **Almuerzo 01** únicamente |
-| `admin.almuerzo-02@utb.edu.co` | `Tienda-2026` | Admin de **Almuerzo 02** únicamente |
+| `antojos` | `Tienda-2026` | Admin de **Antojos** únicamente |
+| `puntofit` | `Tienda-2026` | Admin de **Punto Fit** únicamente |
+| `alegria` | `Tienda-2026` | Admin de **Alegría** únicamente |
+| `almuerzo01` | `Tienda-2026` | Admin de **Almuerzo 01** únicamente |
+| `almuerzo02` | `Tienda-2026` | Admin de **Almuerzo 02** únicamente |
 | `admin@utb.edu.co` | `Admin-Demo-2026` | Administrador general (solo supervisa) |
 
 Datos sembrados: ana tiene pedidos en Almuerzo 01 y en Antojos en todos los
@@ -60,7 +60,7 @@ estados (por tienda: 8 «Por pagar», 1 «Pagado», 1 «En preparación», 1
 |---|---|
 | `/` | Portada: titular «Cinco tiendas, un solo pase.», buscador de productos (placeholder «Arroz, granola, helado…»), «Elige tienda», «Lo más pedido», preguntas frecuentes. |
 | `/tiendas/{slug}` | Carta de una tienda con pestañas de tiendas, tarjetas de producto y resumen del pedido (escritorio). |
-| `/auth/ingresar` | Login: campos «Correo institucional» y «Contraseña», botón «Entrar». |
+| `/auth/ingresar` | Login: campos «Correo o usuario» y «Contraseña», botón «Entrar». |
 | `/auth/crear-cuenta` | Registro de cuenta (nombre, correo, contraseña de 8+ caracteres). |
 | `/cuenta` | Pase del usuario: carnet, rol, sección «Pedidos» y sección «Tu carrito». Requiere sesión. |
 | `/admin` | Panel de cafetería. Requiere sesión y un rol de gestión; un comprador ve un 403 «Esta área es de administración.» |

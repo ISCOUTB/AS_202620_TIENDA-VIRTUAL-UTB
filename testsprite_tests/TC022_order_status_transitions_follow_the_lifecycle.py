@@ -72,7 +72,7 @@ def cancel_order(token: str, order_id):
 def test_order_status_transitions_follow_the_lifecycle():
     # Login buyer (ana) and admin for almuerzo-01
     buyer_token = login("ana@utb.edu.co", "Comprador-2026")
-    admin_token = login("admin.almuerzo-01@utb.edu.co", "Tienda-2026")
+    admin_token = login("almuerzo01", "Tienda-2026")
 
     order1_id = None
     order2_id = None

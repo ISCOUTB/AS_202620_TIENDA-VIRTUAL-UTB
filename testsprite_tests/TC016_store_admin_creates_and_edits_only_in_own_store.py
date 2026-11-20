@@ -9,11 +9,11 @@ def test_store_admin_creates_and_edits_only_in_own_store():
     token = None
     product_id = None
 
-    # Login as admin.alegria@utb.edu.co
+    # Login as alegria
     try:
         resp = requests.post(
             f"{BASE_URL}/identity/login",
-            json={"email": "admin.alegria@utb.edu.co", "password": "Tienda-2026"},
+            json={"email": "alegria", "password": "Tienda-2026"},
             timeout=TIMEOUT,
         )
     except requests.RequestException as e:

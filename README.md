@@ -237,7 +237,7 @@ de todas las tiendas, pero no cambia stock, productos ni pedidos
 | Cuenta | Rol | Qué puede hacer | Cómo se crea |
 |---|---|---|---|
 | `SEED_ADMIN_CORREO` (p. ej. `admin@utb.edu.co`) | `admin_general` | Supervisar todas las tiendas; gestionar cuentas, roles y tiendas | Siembra con `SEED_ADMIN_CORREO` + `SEED_ADMIN_PASSWORD` |
-| `admin.<tienda>@utb.edu.co` (`antojos`, `punto-fit`, `alegria`, `almuerzo-01`, `almuerzo-02`) | `admin_tienda` de esa tienda | Productos, stock y pedidos **solo de su tienda** | Siembra con `SEED_TIENDAS_PASSWORD` (8+ caracteres) |
+| `<tienda> (sin guiones)` (`antojos`, `puntofit`, `alegria`, `almuerzo01`, `almuerzo02`) | `admin_tienda` de esa tienda | Productos, stock y pedidos **solo de su tienda** | Siembra con `SEED_TIENDAS_PASSWORD` (8+ caracteres) |
 | Cualquier registro en `/auth/crear-cuenta` | `comprador` | Apartar y cancelar sus pedidos | Registro público |
 
 Las contraseñas no se versionan: se definen en `.env` (o como secreto en

@@ -7,7 +7,7 @@ TIMEOUT = 30
 
 def test_store_admin_queue_lists_only_own_store():
     login_url = f"{BASE_URL}/identity/login"
-    creds = {"email": "admin.antojos@utb.edu.co", "password": "Tienda-2026"}
+    creds = {"email": "antojos", "password": "Tienda-2026"}
 
     try:
         resp = requests.post(login_url, json=creds, timeout=TIMEOUT)

@@ -55,7 +55,7 @@ async def run_test():
         
         # -> Submit the registration form with the name “Prueba,” a unique email, password “1234,” and the terms accepted.
         # email email field
-        elem = page.get_by_role("textbox", name="Correo institucional")
+        elem = page.get_by_role("textbox", name="Correo o usuario")
         await elem.wait_for(state="visible", timeout=10000)
         await elem.fill("prueba.20261024@example.com")
         

@@ -3,7 +3,7 @@ import sys
 
 BASE = "http://localhost:8000"
 PRODUCT_ID = 14
-EMAIL = "admin.antojos@utb.edu.co"
+EMAIL = "antojos"
 PASSWORD = "Tienda-2026"
 TIMEOUT = 30.0
 

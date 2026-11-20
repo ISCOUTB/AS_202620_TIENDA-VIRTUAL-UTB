@@ -55,7 +55,7 @@ async def run_test():
         
         # -> Enter new shopper details, accept the terms of use, and submit the registration form.
         # email email field
-        elem = page.get_by_role("textbox", name="Correo institucional")
+        elem = page.get_by_role("textbox", name="Correo o usuario")
         await elem.wait_for(state="visible", timeout=10000)
         await elem.fill("qa.shopper.20261024@utb.edu.co")
         

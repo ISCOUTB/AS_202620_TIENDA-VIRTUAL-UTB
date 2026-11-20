@@ -16,7 +16,8 @@ class RegisterRequest(BaseModel):
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    # Not EmailStr: store admins log in with a bare username (`antojos`).
+    email: str = Field(min_length=1, max_length=254)
     password: str = Field(max_length=128)
 
 

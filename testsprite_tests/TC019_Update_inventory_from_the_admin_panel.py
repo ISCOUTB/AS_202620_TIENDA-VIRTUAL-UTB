@@ -47,9 +47,9 @@ async def run_test():
         
         # -> Sign in to the Antojos store-admin account using the visible institutional email and password fields.
         # email email field
-        elem = page.get_by_role("textbox", name="Correo institucional")
+        elem = page.get_by_role("textbox", name="Correo o usuario")
         await elem.wait_for(state="visible", timeout=10000)
-        await elem.fill("admin.antojos@utb.edu.co")
+        await elem.fill("antojos")
         
         # -> Sign in to the Antojos store-admin account using the visible institutional email and password fields.
         # password password field

@@ -1538,7 +1538,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin.antojos@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with antojos"
       },
       {
         "type": "action",
@@ -1579,7 +1579,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin.punto-fit@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with puntofit"
       },
       {
         "type": "action",
@@ -1620,7 +1620,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin.alegria@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with alegria"
       },
       {
         "type": "action",
@@ -1661,7 +1661,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin.almuerzo-02@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with almuerzo02"
       },
       {
         "type": "action",
@@ -1702,7 +1702,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin.antojos@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with antojos"
       },
       {
         "type": "action",
@@ -1743,7 +1743,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin.almuerzo-01@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with almuerzo01"
       },
       {
         "type": "action",
@@ -1796,7 +1796,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin.punto-fit@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with puntofit"
       },
       {
         "type": "action",
@@ -1833,7 +1833,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin.alegria@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with alegria"
       },
       {
         "type": "action",
@@ -1878,7 +1878,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with admin@utb.edu.co"
       },
       {
         "type": "action",
@@ -1919,7 +1919,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with admin@utb.edu.co"
       },
       {
         "type": "action",
@@ -1956,7 +1956,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with admin@utb.edu.co"
       },
       {
         "type": "action",
@@ -2005,7 +2005,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with admin@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with admin@utb.edu.co"
       },
       {
         "type": "action",
@@ -2101,7 +2101,7 @@
       },
       {
         "type": "action",
-        "description": "Fill admin.almuerzo-01@utb.edu.co / Tienda-2026 and click \"Entrar\""
+        "description": "Fill almuerzo01 / Tienda-2026 and click \"Entrar\""
       },
       {
         "type": "assertion",
@@ -2122,7 +2122,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with ana@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with ana@utb.edu.co"
       },
       {
         "type": "action",
@@ -2495,7 +2495,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with ana@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with ana@utb.edu.co"
       },
       {
         "type": "action",
@@ -2540,7 +2540,7 @@
       },
       {
         "type": "action",
-        "description": "Fill in \"Correo institucional\" with ana@utb.edu.co"
+        "description": "Fill in \"Correo o usuario\" with ana@utb.edu.co"
       },
       {
         "type": "action",

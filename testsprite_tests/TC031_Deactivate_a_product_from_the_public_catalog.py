@@ -47,9 +47,9 @@ async def run_test():
         
         # -> Sign in using the Antojos store admin account and confirm the account’s landing page.
         # email email field
-        elem = page.get_by_role("textbox", name="Correo institucional")
+        elem = page.get_by_role("textbox", name="Correo o usuario")
         await elem.wait_for(state="visible", timeout=10000)
-        await elem.fill("admin.antojos@utb.edu.co")
+        await elem.fill("antojos")
         
         # -> Sign in using the Antojos store admin account and confirm the account’s landing page.
         # password password field

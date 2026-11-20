@@ -6,7 +6,7 @@ definen sus variables:
 
 - `SEED_ADMIN_CORREO` y `SEED_ADMIN_PASSWORD`: el administrador general, que
   supervisa todas las tiendas (ADR 0017).
-- `SEED_TIENDAS_PASSWORD`: un admin por tienda, `admin.<tienda>@utb.edu.co`,
+- `SEED_TIENDAS_PASSWORD`: un admin por tienda, usuario `<tienda>` sin guiones (`puntofit`),
   que gestiona solo la suya (stock, productos y pedidos).
 - `SEED_ESTUDIANTE_CORREO` y `SEED_ESTUDIANTE_PASSWORD`: la cuenta de
   estudiante predeterminada (rol `comprador`). La interfaz no tiene registro
@@ -258,7 +258,8 @@ def sembrar_estudiante(session: Session) -> dict[str, int]:
 
 
 def correo_admin_tienda(identificador: str) -> str:
-    return f"admin.{identificador}@utb.edu.co"
+    # shortcut: bare usernames for testing (antojos, puntofit...); use real emails before go-live.
+    return identificador.replace("-", "")
 
 
 def sembrar_admins_tienda(session: Session) -> dict[str, int]:

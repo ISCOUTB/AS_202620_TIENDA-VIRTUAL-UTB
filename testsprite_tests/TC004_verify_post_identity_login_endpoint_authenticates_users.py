@@ -11,7 +11,7 @@ def test_post_identity_login_endpoint_authenticates_users():
     # Successful login cases to verify tokens and /identity/me
     valid_accounts = [
         ("ana@utb.edu.co", "Comprador-2026"),                 # buyer
-        ("admin.antojos@utb.edu.co", "Tienda-2026"),          # store admin
+        ("antojos", "Tienda-2026"),          # store admin
         ("admin@utb.edu.co", "Admin-Demo-2026"),              # general admin (supervisor)
     ]
 

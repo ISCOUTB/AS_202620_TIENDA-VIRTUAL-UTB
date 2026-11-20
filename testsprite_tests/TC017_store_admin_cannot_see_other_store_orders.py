@@ -9,7 +9,7 @@ TIMEOUT = 30.0
 ANA_EMAIL = "ana@utb.edu.co"
 ANA_PASSWORD = "Comprador-2026"
 
-ADMIN_PUNTOFIT_EMAIL = "admin.punto-fit@utb.edu.co"
+ADMIN_PUNTOFIT_EMAIL = "puntofit"
 ADMIN_PUNTOFIT_PASSWORD = "Tienda-2026"
 
 PRODUCT_ID_ALMUERZO_01 = 51
@@ -92,11 +92,11 @@ def test_store_admin_cannot_see_other_store_orders():
         if not order_id:
             raise AssertionError(f"Could not determine order id from created order: {found}")
 
-        # Step 2: Login as admin.punto-fit
+        # Step 2: Login as puntofit
         admin_token = login(ADMIN_PUNTOFIT_EMAIL, ADMIN_PUNTOFIT_PASSWORD)
         headers_admin = {"Authorization": f"Bearer {admin_token}"}
 
-        # As admin.punto-fit: GET /orders?tienda_id=4 -> expect 403
+        # As puntofit: GET /orders?tienda_id=4 -> expect 403
         try:
             resp = requests.get(f"{BASE_URL}/orders", params={"tienda_id": TIENDA_ALMUERZO_01_ID}, headers=headers_admin, timeout=TIMEOUT)
         except RequestException as e:
@@ -104,7 +104,7 @@ def test_store_admin_cannot_see_other_store_orders():
 
         assert resp.status_code == 403, f"Expected 403 for admin accessing other store orders list, got {resp.status_code}, body: {resp.text}"
 
-        # As admin.punto-fit: GET /orders/{id} -> expect 404 (not found / not visible)
+        # As puntofit: GET /orders/{id} -> expect 404 (not found / not visible)
         try:
             resp = requests.get(f"{BASE_URL}/orders/{order_id}", headers=headers_admin, timeout=TIMEOUT)
         except RequestException as e:
@@ -112,7 +112,7 @@ def test_store_admin_cannot_see_other_store_orders():
 
         assert resp.status_code == 404, f"Expected 404 for admin accessing other store order by id, got {resp.status_code}, body: {resp.text}"
 
-        # As admin.punto-fit: POST /orders/{id}/estado {estado:'pagado'} -> expect 404
+        # As puntofit: POST /orders/{id}/estado {estado:'pagado'} -> expect 404
         try:
             resp = requests.post(f"{BASE_URL}/orders/{order_id}/estado", json={"estado": "pagado"}, headers=headers_admin, timeout=TIMEOUT)
         except RequestException as e:
@@ -120,7 +120,7 @@ def test_store_admin_cannot_see_other_store_orders():
 
         assert resp.status_code == 404, f"Expected 404 for admin advancing other store order, got {resp.status_code}, body: {resp.text}"
 
-        # As admin.punto-fit: POST /orders/{id}/cancel -> expect 404
+        # As puntofit: POST /orders/{id}/cancel -> expect 404
         try:
             resp = requests.post(f"{BASE_URL}/orders/{order_id}/cancel", headers=headers_admin, timeout=TIMEOUT)
         except RequestException as e:
