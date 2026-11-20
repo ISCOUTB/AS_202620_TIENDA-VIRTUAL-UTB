@@ -81,16 +81,14 @@ En **Domains**, crear o generar un dominio con estos valores:
 - Service: `frontend`
 - Container Port: `3000`
 - Path: `/`
-- HTTPS y Let's Encrypt cuando el DNS definitivo ya apunte al servidor
+- Host: `tiendautb.iscoutb.dev`
+- HTTPS con Let's Encrypt
 
-El dominio vigente es
-`https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io/`, generado por
-la plataforma (`sslip.io` resuelve el nombre hacia la IP del servidor). Es un
-dominio temporal: sirve para la demostración, pero para la entrega conviene
-registrar uno propio y apuntarlo por DNS. Mientras tanto, si Traefik no
-consigue emitir el certificado, presenta su **certificado autofirmado** y el
-navegador avisa de que la conexión no es privada: es un aviso del navegador,
-no un fallo del despliegue.
+El dominio vigente es `https://tiendautb.iscoutb.dev/`. El DNS comodín
+`*.iscoutb.dev` ya apunta al servidor, así que basta con darlo de alta en
+*Domains* y Traefik emite el certificado de Let's Encrypt. La variable
+`NEXT_PUBLIC_SITIO_URL` del Compose debe coincidir con ese dominio, porque se
+hornea en el build.
 
 No se debe crear dominio ni mapeo de puerto para `database`. Mientras la API
 sea privada, tampoco se crea dominio para `backend`; Next.js la alcanza como

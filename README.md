@@ -4,7 +4,7 @@ Proyecto académico para diseñar una tienda virtual dirigida a la comunidad de 
 
 ## Ver la tienda en línea
 
-**<https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io/>**
+**<https://tiendautb.iscoutb.dev/>**
 
 Cinco puntos, un solo pase: Antojos, Punto Fit, Alegría y los dos almuerzos del
 campus. Catálogo con existencias, horario en vivo y reserva de hora de
@@ -147,9 +147,8 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 El despliegue vigente se ejecuta en Dokploy desde
 [`deploy/compose.lab.yaml`](deploy/compose.lab.yaml): Next.js, FastAPI y
 PostgreSQL 17 en un único stack. Solo el frontend recibe un dominio público:
-**<https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io/>**. Ese
-dominio lo genera la plataforma de despliegue; el definitivo se configurará en
-Dokploy y, cuando exista, se registrará aquí.
+**<https://tiendautb.iscoutb.dev/>**, con certificado de Let's Encrypt emitido
+por Traefik en Dokploy.
 
 > Tras fusionar en `main`, el servicio de Dokploy hay que **redesplegarlo**
 > (Redeploy en el panel): el repositorio queda conectado, pero la imagen del

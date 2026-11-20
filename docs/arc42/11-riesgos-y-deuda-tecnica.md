@@ -41,7 +41,7 @@ observations, not peers', and are listed here because they are open risks.
 | The gaps between the privacy promises and the code (consent, deletion, rectification, retention) are not fixed in code or tests; removing the gap table from `docs/seguridad-amenazas-privacidad.md` does not close them | Personal data is processed without the rights channel working end to end | **Pending**: each correction must be proven in code and tests |
 | The SonarCloud job reports success but its checkout, coverage and analysis steps were skipped on the latest run | No evidence of a new analysis or Quality Gate | **Pending**: restore an effective Sonar analysis; separate the job result from the steps actually run |
 | Dependency audit (`pip-audit`, `pnpm audit`) is documented as a local run, not as a blocking step in the pipeline | A vulnerable dependency can reach `main` unnoticed | **Pending**: reproducible, blocking audit in `.github/workflows/tests.yml` |
-| README does not document an institutional domain for the frontend (external `sslip.io` URL) | The deployed system cannot be reached through the course domain | **Pending** |
+| README does not document an institutional domain for the frontend (external `sslip.io` URL) | The deployed system cannot be reached through the course domain | **Resolved**: `https://tiendautb.iscoutb.dev` with a Let's Encrypt certificate |
 | Backup/restore and the functional order flow are not verified in the deployment | A host or disk failure may be unrecoverable; ordering may not work end to end | **Pending**: restore drill and order walkthrough |
 
 ## 11.4 Limits of the scenario 4 measurement (team's own assessment)
