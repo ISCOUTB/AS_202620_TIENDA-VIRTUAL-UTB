@@ -26,7 +26,7 @@ FROM base AS builder
 # `NEXT_PUBLIC_*` se hornea en el bundle durante el build, así que el dominio
 # público del sitio tiene que entrar aquí. Sin esto, `sitemap.xml`,
 # `robots.txt` y las URLs canónicas salen con `http://localhost:3000`.
-ARG NEXT_PUBLIC_SITIO_URL=https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io
+ARG NEXT_PUBLIC_SITIO_URL=https://tiendautb.iscoutb.dev
 ENV NEXT_PUBLIC_SITIO_URL=$NEXT_PUBLIC_SITIO_URL
 
 # node_modules de pnpm es un árbol de enlaces simbólicos relativos hacia

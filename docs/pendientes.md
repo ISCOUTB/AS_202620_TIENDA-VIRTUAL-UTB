@@ -16,16 +16,6 @@ descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
   Analysis y crear un Scoped Organization Token como `SONAR_TOKEN`.
 - Crear el servicio Docker Compose en Dokploy con path
   `./deploy/compose.lab.yaml` y definir `POSTGRES_PASSWORD`.
-- **Asignar el dominio definitivo al servicio `frontend`, puerto 3000, y
-  registrarlo aquí y en el README.** El vigente es
-  `https://tiendautb-sistema-n0ojjk-fde272-144-24-4-187.sslip.io/`, que genera
-  la plataforma (`sslip.io` resuelve el nombre hacia la IP del servidor) y es
-  temporal: para la entrega conviene registrar un dominio propio y apuntarlo
-  por DNS.
-- **Emitir el certificado del dominio.** Traefik está sirviendo su certificado
-  autofirmado (*TRAEFIK DEFAULT CERT*), así que el navegador avisa de que la
-  conexión no es privada. Hay que habilitar Let's Encrypt para ese dominio en
-  *Domains*.
 - Configurar una copia periódica del volumen `postgres_data` hacia almacenamiento
   externo y documentar una restauración de prueba.
 - Dar de baja manualmente los recursos anteriores en Render, Vercel y Neon
