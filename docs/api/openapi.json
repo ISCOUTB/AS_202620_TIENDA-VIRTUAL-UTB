@@ -1476,7 +1476,8 @@
         "properties": {
           "email": {
             "type": "string",
-            "format": "email",
+            "maxLength": 254,
+            "minLength": 1,
             "title": "Email"
           },
           "password": {
