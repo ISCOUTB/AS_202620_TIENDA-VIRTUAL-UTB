@@ -761,7 +761,9 @@ components:
       properties:
         email:
           type: string
-          format: email
+          minLength: 1
+          maxLength: 254
+          description: Correo, o usuario corto de un admin de tienda (`antojos`).
           example: "juan@utb.edu.co"
         password:
           type: string
