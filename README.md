@@ -12,9 +12,19 @@ recogida, con pago en el mostrador.
 
 El sitio se despliega en Dokploy desde
 [`deploy/compose.lab.yaml`](deploy/compose.lab.yaml) — Next.js, FastAPI y
-PostgreSQL 17 en un único stack. El dominio actual es el que genera la
-plataforma de despliegue; el definitivo se configurará allí
+PostgreSQL 17 en un único stack. El dominio de acceso entregado es `https://tiendautb.iscoutb.dev/`,
+configurado en la plataforma de despliegue
 ([guía de despliegue](docs/despliegue-dokploy.md)).
+
+## Cierre del proyecto
+
+- [Informe final y matriz de cumplimiento](docs/cierre-proyecto.md): alcance entregado, evidencia, guion de sustentación y condiciones de cierre.
+- [Aspectos de calidad](docs/aspectos.md): cuatro filas contrastadas con el código y sus mediciones.
+- [C4 de componentes](docs/c4/component.md): nivel 3 de la API y correspondencia con archivos.
+- [Pendientes reales](docs/pendientes.md): verificación final y evolución, separados de lo ya implementado.
+
+Documentación revisada el **2026-11-22**. Las secciones S1–S12 conservan la
+secuencia de entregas; el informe final describe el estado consolidado.
 
 ## Equipo
 
@@ -69,7 +79,7 @@ el cliente web y PostgreSQL el almacenamiento.
 - [C4 nivel 1 — contexto](docs/c4/context.md) y [C4 nivel 2 — contenedores](docs/c4/container.md)
 - [Tabla de aspectos de calidad](docs/aspectos.md) (fila de disponibilidad completa hasta pruebas)
 
-### Corte vertical ejecutable: consultar el catálogo
+### Corte vertical de S4: consultar el catálogo (histórico)
 
 Una funcionalidad implementada de extremo a extremo sobre el esqueleto:
 
@@ -125,7 +135,7 @@ reales del código frente a esa propiedad de datos y la propuesta de corrección
 
 ## Evidencia de contrato e integración
 
-- [Administrador de la tienda y flujo de gestión de productos (diseño previsto)](docs/api/administracion-catalogo.md)
+- [Administrador de la tienda y flujo de gestión de productos implementado](docs/api/administracion-catalogo.md)
 - [Documentación de la API, diagramas y explicación de `/health`](docs/api/contrato-api.md)
 - [Guía de la evidencia y comandos de verificación](docs/api/README.md)
 - [Contrato OpenAPI 3.1.0, versión de API 0.5.0](docs/api/openapi.json)
@@ -238,10 +248,14 @@ de todas las tiendas, pero no cambia stock, productos ni pedidos
 |---|---|---|---|
 | `SEED_ADMIN_CORREO` (p. ej. `admin@utb.edu.co`) | `admin_general` | Supervisar todas las tiendas; gestionar cuentas, roles y tiendas | Siembra con `SEED_ADMIN_CORREO` + `SEED_ADMIN_PASSWORD` |
 | `<tienda> (sin guiones)` (`antojos`, `puntofit`, `alegria`, `almuerzo01`, `almuerzo02`) | `admin_tienda` de esa tienda | Productos, stock y pedidos **solo de su tienda** | Siembra con `SEED_TIENDAS_PASSWORD` (8+ caracteres) |
-| Cualquier registro en `/auth/crear-cuenta` | `comprador` | Apartar y cancelar sus pedidos | Registro público |
+| `SEED_ESTUDIANTE_CORREO` | `comprador` | Apartar y cancelar sus pedidos | Siembra con `SEED_ESTUDIANTE_PASSWORD`; la interfaz ofrece acceso con cuentas creadas |
 
-Las contraseñas no se versionan: se definen en `.env` (o como secreto en
-Dokploy) y se cambian tras el primer ingreso. La siembra es idempotente y no
+La interfaz redirige `/registro` y `/auth/crear-cuenta` al acceso. El endpoint
+`POST /identity/register` sigue público: reconciliar esa política es un
+[pendiente de cierre](docs/pendientes.md).
+
+Las contraseñas del despliegue se definen en `.env` o como secreto en Dokploy;
+la aplicación todavía no ofrece cambio de contraseña desde la interfaz. La siembra es idempotente y no
 pisa la contraseña de una cuenta que ya existe.
 
 `docker compose up` arranca primero `database`, luego el servicio de una sola

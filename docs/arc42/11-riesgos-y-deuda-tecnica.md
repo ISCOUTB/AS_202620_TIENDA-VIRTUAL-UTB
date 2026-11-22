@@ -1,5 +1,7 @@
 # Risks and Technical Debts {#section-technical-risks}
 
+**Review: 2026-11-22.** Historical instructor observations retain their original wording; the status column distinguishes subsequent changes. The deployment already exists at [tiendautb.iscoutb.dev](https://tiendautb.iscoutb.dev/), as confirmed by the team. Current execution evidence is tracked in the [closure report](../cierre-proyecto.md).
+
 Section 11 of arc42 for the Tienda Virtual UTB. It collects the known risks and
 technical debts, what the peer review pointed out and what the instructor's
 follow-up flagged, each with its status: **fixed**, **assumed** or **pending**.
@@ -16,9 +18,9 @@ fix them.
 | Deployment target not chosen | Cannot be demonstrated outside a local machine | **Resolved:** Dokploy consumes `deploy/compose.lab.yaml`; see ADR 0007 |
 | Mocked data only | Behavior is not validated against real cafeteria data | Explicit scope constraint; the seed data models realistic products |
 | Next.js dependency vulnerabilities | Public SSR increases exposure | Keep the lockfile patched and verify `pnpm audit` during upgrades |
-| Single Dokploy server hosts every runtime component | A host or disk failure affects the whole system | Named database volume, external scheduled backups and a tested restore procedure |
+| Single Dokploy server hosts every runtime component | A host or disk failure affects the whole system | Named database volume implemented; external scheduled backups and a restore drill still require operational evidence |
 | Public repository increases the impact of a leaked secret | A committed credential would be scraped within minutes | The Compose requires `POSTGRES_PASSWORD` from Dokploy Environment; `.env` files remain ignored |
-| Failure modes F-01 … F-07 are catalogued but their mitigations are not implemented yet | Identified risks (inventory lock, duplicate orders, DB outage) stay open until the patterns land in code | Mitigation selected per failure in [modos-fallo-s11.md](../modos-fallo-s11.md); idempotency and saga design in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md), with ADR 0010 keeping the design on a single process |
+| Failure modes have mixed implementation status | Unimplemented controls leave availability and abuse risks open | F-01 cancellation/expiry code, F-03 stock concurrency and F-04 idempotency are implemented and have tests. Verify expiry scheduling. F-02 cache/retries, F-05 messaging, F-06 rate limiting and F-07 replicas/failover remain unimplemented; see [status table](../modos-fallo-s11.md). |
 
 ## 11.2 What the peer review pointed out {#_peer_review}
 
@@ -39,7 +41,7 @@ observations, not peers', and are listed here because they are open risks.
 | Observation | Impact | Status |
 | --- | --- | --- |
 | The gaps between the privacy promises and the code (consent, deletion, rectification, retention) are not fixed in code or tests; removing the gap table from `docs/seguridad-amenazas-privacidad.md` does not close them | Personal data is processed without the rights channel working end to end | **Pending**: each correction must be proven in code and tests |
-| The SonarCloud job reports success but its checkout, coverage and analysis steps were skipped on the latest run | No evidence of a new analysis or Quality Gate | **Pending**: restore an effective Sonar analysis; separate the job result from the steps actually run |
+| The SonarCloud job reports success but its checkout, coverage and analysis steps were skipped on the latest run | No evidence of a new analysis or Quality Gate | **Updated 2026-11-22:** [PR #19 has a Sonar Quality Gate comment](https://github.com/ISCOUTB/AS_202620_TIENDA-VIRTUAL-UTB/pull/19#issuecomment-7040896955). Final-commit analysis and coverage still require evidence; the workflow skips analysis steps without SONAR_TOKEN |
 | Dependency audit (`pip-audit`, `pnpm audit`) is documented as a local run, not as a blocking step in the pipeline | A vulnerable dependency can reach `main` unnoticed | **Pending**: reproducible, blocking audit in `.github/workflows/tests.yml` |
 | README does not document an institutional domain for the frontend (external `sslip.io` URL) | The deployed system cannot be reached through the course domain | **Resolved**: `https://tiendautb.iscoutb.dev` with a Let's Encrypt certificate |
 | Backup/restore and the functional order flow are not verified in the deployment | A host or disk failure may be unrecoverable; ordering may not work end to end | **Pending**: restore drill and order walkthrough |

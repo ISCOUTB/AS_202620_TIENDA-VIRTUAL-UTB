@@ -1,5 +1,7 @@
 # Pruebas E2E con TestSprite
 
+> **Alcance histórico:** los resultados del 2026-10-24 corresponden a la interfaz y cuentas de ese incremento. El rediseño de noviembre retiró el registro de la interfaz y cambió los usuarios de administradores. Actualizar los casos afectados y conservar una nueva corrida del commit final; no presentar estos resultados como una ejecución de noviembre. Ver [cierre](cierre-proyecto.md).
+
 **Última corrida: 2026-10-24, API 0.5.0. Estado: frontend 77/77, API 36/36.** Este documento cubre qué se probó,
 cómo se reproduce, qué falló y por qué, y qué se corrigió. Las pruebas unitarias
 y de integración (pytest y vitest) siguen siendo la red principal. Las E2E de

@@ -1,19 +1,15 @@
 ---
-date: August 2026
-title: "![arc42](images/arc42-logo.png) Architecture Documentation — Tienda Virtual UTB"
+date: 2026-11-22
+title: Architecture Documentation — Tienda Virtual UTB
 ---
 
-# 
+# Tienda Virtual UTB Architecture Documentation
 
-**About arc42**
-
-arc42, the template for documentation of software and system
-architecture.
-
-Template Version 9.0-EN. (based upon AsciiDoc version), July 2025
-
-Created, maintained and © by Dr. Peter Hruschka, Dr. Gernot Starke and
-contributors. See <https://arc42.org>.
+This arc42 document describes the implemented system reviewed on 2026-11-22.
+The twelve sections cover the current architecture; remaining operational
+checks and measurements are listed in section 11 and the [closure report](../cierre-proyecto.md).
+Structure based on arc42 by Peter Hruschka, Gernot Starke and contributors,
+[arc42.org](https://arc42.org).
 
 ## Diagram conventions {#_diagram_conventions}
 
@@ -21,11 +17,11 @@ These conventions apply to every figure in this document, so they are stated
 once here instead of being repeated under each diagram:
 
 - **Author / date:** all diagrams are maintained by the Tienda Virtual UTB team
-  and were last revised on 2026-08-31. They are versioned as text (Mermaid)
+  and were reviewed on 2026-11-22. They are versioned as text (Mermaid)
   together with the code; change history and the commit that introduced each
   change are in the git log.
 - **Notation:**
-  - C4 diagrams (`docs/c4/context.md`, `docs/c4/container.md`) follow the
+  - C4 diagrams (`docs/c4/context.md`, `docs/c4/container.md`, `docs/c4/component.md`) follow the
     [C4 model](https://c4model.com) notation: a *Person* is a human role, the
     highlighted box is the system in scope, and every arrow is a one-way
     relationship labelled with its purpose and — from level 2 on — its protocol.
@@ -99,7 +95,7 @@ goal is missed.
 
 | # | Quality Goal | Motivation | Supports | Stakeholder who cares most |
 | --- | --- | --- | --- | --- |
-| 1 | Security | Only authenticated users should access the system, and each role (buyer, store admin, inventory manager) should only be able to perform the operations that correspond to it. | BG-1, BG-3 | Store administrator — a price or stock changed by the wrong person destroys the single reliable view BG-1 promises |
+| 1 | Security | Catalog browsing is public; orders and administrative operations require authentication and permissions for the relevant user and store. | BG-1, BG-3 | Store administrator — a price or stock changed by the wrong person destroys the single reliable view BG-1 promises |
 | 2 | Usability | Buying a product should take few steps; adding authentication and role checks must not turn the purchase flow into a tedious process. | BG-2, BG-4 | Buyer — a flow more tedious than walking to the counter defeats the purpose of the system |
 | 3 | Performance | Stock changes triggered by a purchase should be reflected quickly enough that two buyers do not both believe the same unit of an out-of-stock product is available. | BG-2 | Buyer — availability that is shown but not real is worse than no information at all |
 | 4 | Availability | The catalog should stay reachable during peak consultation times (e.g. lunch hour), since that is when most of the community is expected to use it. | BG-2 | Buyer — the catalog is worth least precisely when it is needed most |
@@ -151,7 +147,7 @@ yet (see Architecture Constraints above).
 | Channel | Technology | Notes |
 | --- | --- | --- |
 | Web client | Next.js | Used by buyers, administrators and inventory managers through role-based views. |
-| API | FastAPI (REST over HTTP) | Exposes catalog, cart, order and inventory operations to the Next.js client. |
+| API | FastAPI (REST over HTTP) | Exposes identity, catalog, order and inventory operations; the cart is maintained in the web client. |
 | Data storage | PostgreSQL | Currently seeded with mocked catalog, inventory and order data; not yet fed by a real cafeteria system. |
 
 No external systems (payment gateway, institutional SSO) are part of
@@ -174,7 +170,7 @@ consequences are recorded in
 | System structure | A Next.js web client and one modular FastAPI backend, backed by one PostgreSQL instance | Avoids distributed-system overhead while preserving functional boundaries |
 | Backend decomposition | Packages for identity, catalog, inventory and orders, plus a restricted shared package | Aligns the code with the business capabilities and role boundaries |
 | Communication | REST over HTTP between Next.js and FastAPI; explicit public interfaces or internal events for future cross-module collaboration | Keeps integration understandable and prevents imports of another module's internals |
-| Data | One PostgreSQL instance for the current phase; data ownership will be assigned to modules when persistence is implemented | Supports consistency of orders and stock without premature distribution |
+| Data | One PostgreSQL instance with tables owned by their modules, Alembic migrations and RLS | Supports consistency of orders and stock without premature distribution |
 | Execution environment | Docker Compose starts the web client, API and database as one reproducible local environment | Reduces setup differences between team members and demonstrations |
 | Evolution | Keep a single deployable until measured scaling or organizational needs justify extracting a module | Preserves a path to change without paying the cost of microservices now |
 
@@ -187,7 +183,7 @@ the [architecture comparison matrix](../matriz-comparativa-arquitectura.md).
 
 - **Security** (scenario 1: an out-of-role price change is rejected with 403):
   identity and authorization have their own module, sole owner of the contract,
-  and other modules must not bypass its future public contract.
+  and other modules must not bypass its public contract.
 - **Usability** (scenario 2: a purchase completed in at most 4 screens): Next.js
   remains an independent web client so the purchase flow can evolve without
   mixing presentation concerns into backend modules.
@@ -218,11 +214,11 @@ flowchart LR
 talk (flowchart). Scope: the logical shape only; the concrete containers, images
 and volume are in Fig. 7.1.*
 
-On top of that skeleton this increment adds one **vertical slice** —
-*browse the product catalog* — implemented end to end (Next.js page → FastAPI
-`GET /catalog/products` → SQLAlchemy → PostgreSQL, seeded with mocked data).
-Inventory availability is now a second vertical read slice; identity and orders
-remain empty packages and are deferred to later increments.
+The delivered vertical flows include public catalog and inventory reads,
+JWT login, a client-side cart, orders split by store, stock updates and store
+administration. Orders and inventory commit together; cancellation and expiry
+restore stock in a later transaction. The public deployment is
+[tiendautb.iscoutb.dev](https://tiendautb.iscoutb.dev/).
 
 # Building Block View {#section-building-block-view}
 
@@ -238,21 +234,28 @@ flowchart TB
     staff([Store admin / Inventory manager]):::actor
 
     subgraph system["System: Tienda Virtual UTB"]
-        web["Web client (Next.js)<br/>shows the server-rendered catalog"]:::impl
+        web["Web client (Next.js)<br/>catalog, cart, orders and administration"]:::impl
         subgraph api["API — modular monolith (FastAPI, backend/app/)"]
             catalog["catalog module<br/>products and prices<br/>IMPLEMENTED"]:::impl
-            identity["identity module<br/>empty — planned"]:::todo
+            identity["identity module<br/>JWT, roles and profile<br/>IMPLEMENTED"]:::impl
             inventory["inventory module<br/>available stock<br/>IMPLEMENTED"]:::impl
-            orders["orders module<br/>empty — planned"]:::todo
+            orders["orders module<br/>checkout and lifecycle<br/>IMPLEMENTED"]:::impl
             shared["shared/database<br/>DB access only, no business logic"]:::impl
         end
         db[("PostgreSQL<br/>one schema, tables owned per module")]:::data
     end
 
     buyer -->|"browses the catalog · HTTPS"| web
-    staff -.->|"manage store / stock — planned"| web
+    staff -->|"manage own store / stock"| web
     web -->|"GET /catalog/products · REST/JSON"| catalog
     web -->|"GET /inventory · REST/JSON"| inventory
+    web -->|"login and profile"| identity
+    web -->|"create and manage orders"| orders
+    orders -->|"product data via public contract"| catalog
+    orders -->|"discount / restore via public contract"| inventory
+    inventory -->|"product lookup via public contract"| catalog
+    identity -->|"session and security context"| shared
+    orders -->|"transaction and permissions"| shared
     catalog -->|"uses for DB access"| shared
     inventory -->|"uses for DB access"| shared
     shared -->|"SQL · SQLAlchemy"| db
@@ -268,21 +271,21 @@ flowchart TB
 *Fig. 5.1 — Building Block View, level 1: the whole system as a white box
 (flowchart; see the colour legend under "Diagram conventions"). Top-level
 building blocks: the web client, the API (with its four modules and the `shared`
-package), and the database. Scope: `catalog` and `inventory` have read behaviour;
-`identity` and `orders` are empty packages and
-their internals are out of scope. The same web client, API and database appear,
+package), and the database. All four modules implement HTTP operations.
+The API component view and code mapping are in [C4 level 3](../c4/component.md). The same web client, API and database appear,
 in C4 container notation, in [`docs/c4/container.md`](../c4/container.md).*
 
 Contained building blocks:
 
 | Building block | Responsibility | Location |
 | --- | --- | --- |
-| Web client | Server-rendered catalog view; formats prices and stock | `frontend/app/` |
+| Web client | Catalog, cart, login, own orders and store administration; internal HTTP proxy | `frontend/app/` |
 | API entry point | Creates the FastAPI application and exposes `/health`; it no longer touches the schema (ADR 0013) | `backend/app/main.py` |
 | Migrations and seed | `alembic upgrade head` (one-shot `migrate` service) creates the schema and RLS policies; `python -m app.seed` loads demo data on demand, or automatically through the one-shot `seed` service when `SEED_ON_DEPLOY=true` | `backend/alembic/`, `backend/app/seed.py` |
 | `catalog` module | Owns `tiendas`, `categorias`, `productos`, `imagenes_producto` and the `/catalog/products` endpoint | `backend/app/modules/catalog/` |
-| `inventory` module | Owns `existencias`, `movimientos_existencias` and the public `GET /inventory` read contract | `backend/app/modules/inventory/` |
-| `identity`, `orders` modules | Own their tables (`usuarios`, `roles`, `usuario_roles`; `pedidos`, `pedido_lineas`, `pedido_historial`); no endpoints yet | `backend/app/modules/` |
+| `inventory` module | Owns `existencias`, `movimientos_existencias`; reads, stock adjustments and public discount/restore operations for Orders | `backend/app/modules/inventory/` |
+| `identity` module | Owns `usuarios`, `roles`, `usuario_roles`; login, API registration, profile and principal resolution | `backend/app/modules/identity/` |
+| `orders` module | Owns `pedidos`, `pedido_lineas`, `pedido_historial`; checkout, lifecycle, cancellation and expiry | `backend/app/modules/orders/` |
 | `shared` | Cross-cutting database access and per-transaction security context; no business logic, per ADR 0001 | `backend/app/shared/` |
 | Database | Single PostgreSQL instance; each table has one module owner; row-level security per ADR 0014 | `database` container in `compose.yaml` |
 
@@ -343,9 +346,10 @@ for context — they live outside this module. Scope: the read path
 | `models.py` | `Tienda`, `Categoria`, `Producto` and `ImagenProducto`; the module owns these tables. |
 | `public.py` | `asegurar_tienda`, `asegurar_categoria`, `asegurar_producto`: idempotent upserts by natural key, used by the composition-root seed (`app/seed.py`). |
 
-The dependency rules from ADR 0001 hold here: the module imports from
-`app.shared.database` (allowed, because it is cross-cutting) and from nothing
-inside `identity`, `inventory` or `orders`.
+The figure focuses on the read and seed paths. The same module also implements
+product creation, editing and activation through `router.py` and `schemas.py`.
+It uses shared database/security services and does not import other modules'
+internal ORM models. The complete module relationships are in [C4 level 3](../c4/component.md).
 
 ### White Box *shared/database* {#_white_box_building_block_2}
 
@@ -399,26 +403,54 @@ checks, not by retry logic in the code.
 sequenceDiagram
     autonumber
     actor U as Buyer
-    participant F as Web client (Next.js, server side)
-    participant A as API (FastAPI)
+    participant F as Next.js server
+    participant A as FastAPI
     participant DB as PostgreSQL
-    U->>F: open the home page
-    F->>A: ask for the product list (GET /catalog/products)
-    A->>DB: read all products, ordered by name
-    DB-->>A: product rows
-    A-->>F: product list as JSON
-    F-->>U: rendered HTML page with the catalog
-    Note over F,A: the browser never calls the API directly.<br/>If the API is down, the page shows an error message instead of failing
+    U->>F: Open catalog or store
+    par Catalog
+        F->>A: GET /catalog/products
+        A->>DB: Read visible products
+        DB-->>A: Products
+        A-->>F: ProductOut list
+    and Inventory
+        F->>A: GET /inventory
+        A->>DB: Read available stock
+        DB-->>A: Quantities
+        A-->>F: Stock list
+    end
+    F->>F: Compose by product_id
+    F-->>U: Render catalog with availability
 ```
 
-*Fig. 6.2 — Runtime scenario: a buyer browses the catalog (sequence diagram;
-time flows top to bottom). Scope: the read path only; cart, checkout and
-authentication are not implemented yet.*
+*Fig. 6.2 — Server-side catalog read. `frontend/lib/catalogo-servidor.ts`
+uses `no-store` and a 3-second timeout. On failure it serves explicitly labelled
+reference data and disables reservations. This is not a distributed cache.*
 
-Notable aspects: the page is server-rendered, so the browser never calls the
-API directly; `cache: "no-store"` makes the route dynamic, so stock changes are
-reflected on the next request. If the API is unavailable, the page shows an
-error message instead of failing the whole response.
+## Reserving and cancelling an order
+
+The buyer logs in through the same-origin proxy, then submits the cart with a
+UUID `Idempotency-Key` to `POST /api/proxy/orders`, forwarded to `POST /orders`.
+The service groups products by store, copies prices and updates stock via
+`inventory.public`. A successful commit persists the orders and stock changes
+together; insufficient stock rolls the operation back. Reusing an accepted key
+returns the existing orders without another stock reduction.
+
+The buyer may cancel an unpaid own order. Authorized store staff handle the
+order lifecycle; the general administrator only supervises. Cancellation and
+expiry restore stock transactionally. The expiry command exists; its external
+Schedule must be verified in Dokploy. See [consistency](../consistencia-s12.md),
+[implementation and historical design](../idempotencia-saga-s11.md) and
+[order tests](../../backend/tests/test_orders.py).
+
+## Signing in and resolving permissions
+
+`POST /identity/login` verifies an Argon2id password and issues an HS256 JWT.
+Each protected request resolves the user and current roles through
+`identity.public`; shared security applies that context to the database
+transaction. The browser stores the token in `localStorage` and sends Bearer
+authorization through the proxy. The web interface no longer offers registration,
+but `POST /identity/register` remains public: reconciling that policy is a
+remaining task, not a completed access restriction.
 
 # Deployment View {#section-deployment-view}
 
@@ -426,8 +458,8 @@ error message instead of failing the whole response.
 
 **Motivation.** A single `docker compose up --build` must bring up the whole
 system reproducibly on any team member's machine, for development and
-demonstrations. No cloud environment is committed yet (see Architecture
-Constraints).
+demonstrations. The deployed environment uses the separate Dokploy Compose
+definition described below.
 
 ```mermaid
 flowchart LR
@@ -452,8 +484,8 @@ flowchart LR
 *Fig. 7.1 — Deployment, level 1: the local Docker Compose environment
 (flowchart). Each green box is one running container; the blue cylinder is the
 Docker volume that keeps the database files between restarts. Scope: the
-development / demo environment only; no cloud or staging environment is defined
-yet (see Architecture Constraints).*
+local development environment only; the Dokploy deployment is described in
+the next subsection.*
 
 Mapping of building blocks to infrastructure:
 
@@ -531,12 +563,13 @@ migration `0004`):
 
 | Predicate | Who | Used for |
 | --- | --- | --- |
-| `administra_tienda(t)` | the `admin_tienda` of store `t`, or the **system** principal | create/edit products, advance or cancel store orders |
-| `gestiona_inventario(t)` | the above, or the `responsable_inventario` of `t` | set or adjust stock |
+| `administra_tienda(t)` | the `admin_tienda` of store `t`, or the **system** principal | create/edit products |
+| `gestiona_inventario(t)` | the above, or the `responsable_inventario` of `t` | set/adjust stock and handle store order transitions/cancellation |
 | `supervisa_tienda(t)` | `admin_general`, or whoever manages `t` | reads: inactive products, store order queue, stock movements |
 
-The general admin is deliberately **read-only** on store data (ADR 0017). It
-keeps managing accounts, roles and stores. Scheduled jobs
+The general admin is deliberately **read-only** on product, stock and order
+operations (ADR 0017). Database policies allow account, role and store management,
+but there are no HTTP endpoints or UI for those administrative operations. Scheduled jobs
 (`app.tareas.vencer_pedidos`) run as a `sistema` principal that cannot be
 obtained through the API. The full role × endpoint matrix is in
 `docs/api/contrato-api.md` §5.1.
@@ -560,16 +593,17 @@ request.
 
 ## Idempotency, sagas and failure handling {#_concept_5}
 
-Order creation is designed to survive client retries and long-running manual
-payments: the client sends a unique `Idempotency-Key` header so a replayed
-`POST /api/orders` returns the stored response instead of duplicating the order
-or the stock reservation, and a choreographed saga between `orders` and
-`inventory` reserves stock on `PedidoCreado` and compensates it when a 24-hour
-TTL expires (`ExpiracionPagoAlcanzada`). Both patterns are design only; the
-order endpoint does not exist yet. The full failure-mode catalogue (F-01 … F-07)
-with its selected mitigation per failure is in
-[modos-fallo-s11.md](../modos-fallo-s11.md), and the step-by-step design with
-diagrams is in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md).
+Order creation implements UUID-based idempotency on `POST /orders`. Orders and
+stock changes use a shared local transaction; there is no event broker or
+durable choreographed saga. Explicit cancellation or the expiry command performs
+the compensation in a later transaction. The command cancels unpaid orders older
+than 24 hours; its scheduling is an operational check.
+
+The original S11 event-based design is preserved as history in
+[idempotencia-saga-s11.md](../idempotencia-saga-s11.md). The implemented transaction
+boundary is recorded in [ADR 0018](../adr/0018-transaccion-compartida-pedidos-inventario.md).
+[Failure modes](../modos-fallo-s11.md) distinguish implemented controls from
+unimplemented cache, retries, messaging, rate limiting and failover proposals.
 
 # Architecture Decisions {#section-design-decisions}
 
@@ -582,18 +616,24 @@ diagrams is in [idempotencia-saga-s11.md](../idempotencia-saga-s11.md).
 | [0005](../adr/0005-postgres-neon.md) | Database deployed on Neon | Superseded by 0007 |
 | [0006](../adr/0006-infra-como-codigo-terraform.md) | Terraform proposal for the former providers | Superseded without being applied |
 | [0007](../adr/0007-despliegue-dokploy.md) | Next.js, FastAPI and PostgreSQL deployed as one Dokploy Compose application | Implemented (2026-10-04) |
-| [0010](../adr/0010-no-extraer-modulos.md) | Keep the modular monolith; do not extract any module into an independent network service in the current phase | Proposed (2026-10-18) |
-| [0013](../adr/0013-migraciones-alembic-y-esquema.md) | Alembic migrations and the relational schema of the four modules; tests on PostgreSQL | Proposed (2026-10-22) |
-| [0014](../adr/0014-seguridad-rls.md) | PostgreSQL row-level security and a least-privilege application role | Proposed (2026-10-22) |
-| [0015](../adr/0015-gestor-paquetes-pnpm.md) | pnpm (pinned via `packageManager`, Corepack) as the frontend package manager instead of npm | Proposed (2026-10-22) |
-| [0016](../adr/0016-autenticacion-jwt.md) | JWT (HS256) access tokens carrying only the user id, roles read per request, Argon2id password hashes | Proposed (2026-10-24) |
-| [0017](../adr/0017-admin-general-supervisa.md) | One admin per store; the general admin only supervises (read-only on store data); `sistema` principal for scheduled jobs | Proposed (2026-10-24) |
+| [0008](../adr/0008-separar-catalogo-inventario.md) | Separate Catalog and Inventory ownership | Implemented; collective ratification pending |
+| [0009](../adr/0009-sin-componente-generativo.md) | No runtime generative component | Proposed; system has no generative dependency |
+| [0010](../adr/0010-no-extraer-modulos.md) | Keep the modular monolith; do not extract any module into an independent network service in the current phase | Implemented; collective ratification pending |
+| [0011](../adr/0011-sesion-localstorage.md) | Browser session in localStorage; future httpOnly cookie | Implemented current storage; migration pending |
+| [0012](../adr/0012-proxy-interno-api.md) | Same-origin proxy to the private API | Implemented; collective ratification pending |
+| [0013](../adr/0013-migraciones-alembic-y-esquema.md) | Alembic migrations and the relational schema of the four modules; tests on PostgreSQL | Implemented; collective ratification pending |
+| [0014](../adr/0014-seguridad-rls.md) | PostgreSQL row-level security and a least-privilege application role | Implemented; collective ratification pending |
+| [0015](../adr/0015-gestor-paquetes-pnpm.md) | pnpm (pinned via `packageManager`, Corepack) as the frontend package manager instead of npm | Implemented; collective ratification pending |
+| [0016](../adr/0016-autenticacion-jwt.md) | JWT (HS256) access tokens carrying only the user id, roles read per request, Argon2id password hashes | Implemented; collective ratification pending |
+| [0017](../adr/0017-admin-general-supervisa.md) | One admin per store; the general admin only supervises (read-only on store data); `sistema` principal for scheduled jobs | Implemented; collective ratification pending |
+| [0018](../adr/0018-transaccion-compartida-pedidos-inventario.md) | Shared Orders–Inventory transaction | Implemented; collective ratification pending |
 
 [0007](../adr/0007-despliegue-dokploy.md) is the current deployment decision.
 ADRs 0003–0006 remain available only as a record of earlier iterations.
 
-Decisions still open (candidates for future ADRs): the authentication mechanism
-and whether any module adopts a hexagonal shape internally.
+Authentication is implemented under ADR 0016. Formal collective ratification
+remains open for the ADRs marked proposed; it must not be inferred from code.
+Future changes include cookie-based sessions and any measured need to extract modules.
 
 # Quality Requirements {#section-quality-scenarios}
 
@@ -613,8 +653,8 @@ Response measure) are in `docs/escenarios-calidad.md`. Summary:
 | # | Quality goal | Scenario | Response measure | Covered in this increment |
 | --- | --- | --- | --- | --- |
 | 1 | Security | An inventory manager tries to change a product's price | 100% of the defined out-of-role operations are rejected (403) | Yes since API 0.4.0; since 0.5.0 also cross-store and general-admin writes (`backend/tests/test_admin_por_tienda.py`) |
-| 2 | Usability | A buyer completes a purchase | Flow completed in at most 4 screens or steps | Partially; the catalog view exists, cart and confirmation are missing |
-| 3 | Performance | An order reduces a product's stock | Change visible to another session in under 2 s on reload | Enabler in place: dynamic catalog read (`no-store`); order flow pending |
+| 2 | Usability | A buyer completes a purchase | Flow completed in at most 4 screens or steps | Catalog, cart and confirmation implemented; current screen/step count still needs measurement |
+| 3 | Performance | An order reduces a product's stock | Change visible to another session in under 2 s on reload | Order/stock transaction and dynamic reads implemented; cross-session timing below 2 s not yet measured |
 | 4 | Availability | About 5 buyers browse the catalog at the same time | All get correct catalog and stock responses and the local server remains healthy | Measured on 2026-11-08 against API 0.5.0 on PostgreSQL 17 with 5 concurrent simulated buyers: 6 runs, 30/30 loads correct, 0 errors, `/health` 200, worst load 41.78 ms. Meets the threshold locally; report in [medicion-escenario-4.md](../medicion-escenario-4.md) |
 
 # Risks and Technical Debts {#section-technical-risks}
@@ -633,11 +673,11 @@ flagged, and the limits of the quality measurements, each with its status.
 | Catalog | The set of products offered by the cafeteria, with description, price and available stock. |
 | Modular monolith | A single deployable backend split into modules with explicit boundaries per business capability (see ADR 0001). |
 | Module | A backend package matching one business capability (`identity`, `catalog`, `inventory`, `orders`); it owns its tables and its public contract. |
-| `shared` | A package reserved only for genuinely cross-cutting code (today, database access); never the place for a module's logic. |
+| `shared` | Cross-cutting database access, security context, HTTP errors, metrics and logging; no module-specific business logic. |
 | Vertical slice | One feature implemented across every layer (web, API and persistence) instead of one layer at a time. |
-| Seed / mocked data | Example data inserted automatically so the system is usable without a real integration. |
+| Seed / mocked data | Example data loaded explicitly, or by the opt-in seed service, without integration with cafeteria systems. |
 | `precio_centavos` | The product price stored as an integer number of cents (COP) to avoid floating-point rounding errors. |
 | ADR | Architecture Decision Record: a short document that records a decision, its context and its consequences. |
 | Deployment definition | The versioned Docker Compose file that declares the runtime services consumed by Dokploy (ADR 0007). |
 | C4 | A model for visualizing software architecture at four zoom levels: Context, Containers, Components and Code. |
-| Health check | The `GET /health` endpoint that Docker Compose uses to decide when a container is ready. |
+| Health check | Liveness uses `GET /health`; database readiness is checked separately by `GET /health/ready`. |

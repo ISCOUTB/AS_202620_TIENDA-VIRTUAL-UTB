@@ -1,5 +1,7 @@
 # Despliegue en Dokploy
 
+**Despliegue existente:** [https://tiendautb.iscoutb.dev/](https://tiendautb.iscoutb.dev/), publicado en el README y confirmado por el equipo el 2026-11-22. La sección «Crear el servicio» explica cómo reproducirlo; no indica que falte desplegar. Para adjuntar la comprobación final de estabilidad y flujos, seguir el [informe de cierre](cierre-proyecto.md).
+
 La fuente de producción es `deploy/compose.lab.yaml`. El stack ejecuta Next.js,
 FastAPI y PostgreSQL en una red privada; solo Next.js recibe tráfico público.
 

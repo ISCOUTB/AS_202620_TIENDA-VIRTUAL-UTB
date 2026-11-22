@@ -7,7 +7,7 @@
 ## Contexto
 
 Next.js consulta `GET /catalog/products` desde un componente de servidor
-(`frontend/app/page.tsx`) y necesita la respuesta para renderizar el catálogo.
+(hoy `frontend/lib/catalogo-servidor.ts`; antes `frontend/app/page.tsx`) y necesita la respuesta para renderizar el catálogo.
 FastAPI expone esa consulta y `GET /health`. Identidad, pedidos e inventario
 todavía son paquetes reservados; no existen integraciones por mensajería.
 El tipo `Product` del frontend se mantiene manualmente, por lo que un cambio

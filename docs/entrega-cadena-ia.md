@@ -1,5 +1,7 @@
 # Entrega: cadena completa del incremento Catálogo–Inventario
 
+> **Evidencia histórica del incremento de separación:** nombres de tablas, rutas y resultados corresponden al código de ese momento. La composición actual está en [catalogo-servidor.ts](../frontend/lib/catalogo-servidor.ts), las migraciones son Alembic y la medición fue sustituida por [escenario 4](medicion-escenario-4.md). El [informe final](cierre-proyecto.md) describe la entrega vigente.
+
 > **Fecha de verificación:** 2026-10-04. **Estado:** implementación candidata,
 > sin commit, push, migración real ni despliegue. Los ADR 0008 y 0009 requieren
 > revisión del equipo. Todos los enlaces son rutas del worktree actual.
@@ -14,7 +16,7 @@ real: dos lecturas HTTP, persistencia con dueño único y composición en la vis
 |---|---|
 | Aspecto y escenario | [AC-04](aspectos.md), [escenario 4](escenarios-calidad.md#4-disponibilidad--consultas-concurrentes-al-catálogo) |
 | Decisión | [ADR 0008](adr/0008-separar-catalogo-inventario.md), **propuesto** |
-| Código | [Catálogo](../backend/app/modules/catalog/models.py), [Inventario](../backend/app/modules/inventory/models.py), [composición web](../frontend/app/page.tsx) |
+| Código | [Catálogo](../backend/app/modules/catalog/models.py), [Inventario](../backend/app/modules/inventory/models.py), composición web histórica en `frontend/app/page.tsx` (hoy [catalogo-servidor.ts](../frontend/lib/catalogo-servidor.ts)) |
 | Contratos | `GET /catalog/products`, `GET /inventory`, [OpenAPI generado](api/openapi.json) |
 | Defecto cubierto | [Prueba de dueño único](../backend/tests/test_inventory.py) |
 | Erosión | [Auditoría S6 actualizada](violaciones-s6.md) y [mapa de contextos](bounded-contexts.md) |
@@ -88,7 +90,8 @@ el escenario académico en el entorno local indicado.
 
 ## 4. Migración y verificaciones generales
 
-La [migración SQL](../backend/migrations/0001_move_stock_to_inventory.sql)
+La migración SQL histórica `backend/migrations/0001_move_stock_to_inventory.sql`
+(retirada al adoptar Alembic)
 se ejecutó dos veces en un contenedor efímero oficial `postgres:17-alpine`.
 Partió de `catalog_products(id=1, existencias=37)`: produjo
 `inventory_stock(1,37)`, la consulta de la columna antigua devolvió `0` y la

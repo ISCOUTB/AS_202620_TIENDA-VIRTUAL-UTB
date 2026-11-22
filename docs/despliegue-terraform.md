@@ -1,11 +1,13 @@
 # Despliegue con Terraform — propuesta histórica
 
+> **Documento histórico:** propuesta sustituida sin aplicarse por el [ADR 0007](adr/0007-despliegue-dokploy.md). Los recursos y rutas de Terraform mencionados describen la propuesta original, no archivos vigentes ni tareas necesarias para el despliegue actual. Usar [Dokploy](despliegue-dokploy.md).
+
 > **Sustituido sin aplicarse el 2026-10-04.** La configuración asociada fue
 > retirada. Para el despliegue vigente use
 > [`despliegue-dokploy.md`](despliegue-dokploy.md).
 
 > **Estado: pendiente de aplicar.** La configuración está versionada en
-> [`infra/`](../infra) y validada (`fmt`, `validate`, `tflint` en verde), pero
+> `infra/` (directorio histórico retirado) y validada (`fmt`, `validate`, `tflint` en verde), pero
 > **aún no se ha ejecutado ningún `terraform apply`**: falta crear los cuatro
 > tokens de API. Hasta que eso ocurra, la infraestructura en producción sigue
 > siendo la que se desplegó el 2026-09-27 y se documentó en

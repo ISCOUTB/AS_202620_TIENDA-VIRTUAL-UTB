@@ -1,7 +1,7 @@
 # C4 — Contenedores (Nivel 2)
 
 > **Tipo:** diagrama de contenedores (C4 nivel 2). **Autor:** Equipo Tienda
-> Virtual UTB. **Fecha:** 2026-08-31. **Notación:** C4 model
+> Virtual UTB. **Fecha original:** 2026-08-31. **Revisión:** 2026-11-22. **Notación:** C4 model
 > (<https://c4model.com>), renderizado con Mermaid `C4Container`.
 > **Trazabilidad:** `docs/adr/0001-monolito-modular.md` e historial de git.
 
@@ -28,7 +28,7 @@ C4Container
 
     Rel(comprador, web, "Consulta el catálogo y aparta pedidos", "HTTPS")
     Rel(admin, web, "Administra su tienda", "HTTPS")
-    Rel(inventario, web, "Gestiona existencias de su tienda", "HTTPS")
+    Rel(inventario, web, "Gestiona existencias y pedidos de su tienda", "HTTPS")
     Rel(general, web, "Supervisa todas las tiendas", "HTTPS")
     Rel(web, api, "Catálogo, identidad, inventario y pedidos", "REST/JSON sobre HTTP · Bearer JWT")
     Rel(api, db, "Lee y escribe", "SQL (SQLAlchemy)")
@@ -40,11 +40,12 @@ C4Container
   por separado (no un contenedor Docker necesariamente); `ContainerDb` = almacén
   de datos. Cada flecha es una relación unidireccional etiquetada con propósito y
   protocolo. Desde la API 0.4.0 todos los flujos de
-  los roles están implementados; desde la 0.5.0 cada admin de tienda solo
+  los roles de compra y operación de tiendas están implementados; la gestión
+  de cuentas y roles no tiene pantalla ni endpoint. Desde la 0.5.0 cada admin de tienda solo
   escribe en la suya y el administrador general solo lee (ADR 0017).
 - **Alcance del diagrama.** Solo unidades desplegables y su comunicación; la
-  estructura interna de la API (componentes) se documenta en arc42 (*Building
-  Block View, Level 2*), no aquí.
+  estructura interna de la API se documenta en [componentes](component.md)
+  (nivel 3) y se amplía en arc42 (*Building Block View*).
 - **Cliente web (Next.js, :3000).** Componentes de servidor; la petición al
   catálogo se hace desde el servidor de Next.js hacia la API (`API_URL`), no
   desde el navegador.
@@ -54,8 +55,8 @@ C4Container
   `catalog` e `inventory` implementan lectura mediante contratos separados.
 - **Base de datos (PostgreSQL, :5432 interno).** Instancia única con un volumen
   `postgres_data` que conserva los datos entre reinicios.
-- El nivel 3 (componentes de la API) se documenta como *Building Block View,
-  Level 2* en `docs/arc42/arc42-template-EN.md`.
+- [Nivel 3: componentes de la API](component.md), con contratos públicos y
+  correspondencia con código y pruebas.
 - **Despliegue público:** Dokploy ejecuta las mismas tres unidades desde
   `deploy/compose.lab.yaml`. Solo el cliente web recibe un dominio; API y base
   permanecen en la red interna. La decisión está en el

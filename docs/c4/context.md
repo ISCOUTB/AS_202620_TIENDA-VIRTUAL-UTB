@@ -1,6 +1,6 @@
 # C4 — Contexto (Nivel 1)
 
-> **Tipo:** diagrama de contexto del sistema (C4 nivel 1). **Autor:** Equipo Tienda Virtual UTB. **Fecha:** 2026-08-31. **Notación:** C4 model (<https://c4model.com>), renderizado con Mermaid `C4Context`. **Trazabilidad:** `docs/adr/0001-monolito-modular.md` e historial de git.
+> **Tipo:** diagrama de contexto del sistema (C4 nivel 1). **Autor:** Equipo Tienda Virtual UTB. **Fecha original:** 2026-08-31. **Revisión:** 2026-11-22. **Notación:** C4 model (<https://c4model.com>), renderizado con Mermaid `C4Context`. **Trazabilidad:** `docs/adr/0001-monolito-modular.md` e historial de git.
 
 Actores y su interacción con el sistema Tienda Virtual UTB. En esta
 fase el sistema no depende de ningún sistema externo: la
@@ -25,7 +25,7 @@ C4Context
 
     Rel_D(comprador, sistema, "Realiza compras")
     Rel_D(admin, sistema, "Registra y edita productos, ajusta stock y atiende pedidos de su tienda")
-    Rel_D(inventario, sistema, "Gestiona existencias")
+    Rel_D(inventario, sistema, "Gestiona existencias y atiende pedidos de su tienda")
     Rel_D(general, sistema, "Supervisa inventario y pedidos de todas las tiendas")
 ```
 
@@ -37,7 +37,8 @@ C4Context
   implementado desde la API 0.4.0.
 - **Un admin por tienda (API 0.5.0).** Cada administrador de tienda gestiona
   solo los productos, el stock y los pedidos de su tienda. El administrador
-  general supervisa todas en solo lectura y gestiona cuentas y roles
+  general supervisa todas en solo lectura. La gestión de cuentas y roles
+  existe como política de base de datos, sin pantalla ni endpoint administrativo
   ([ADR 0017](../adr/0017-admin-general-supervisa.md)).
 
 - **Leyenda.** `Person` = rol humano (no un cargo). La caja resaltada (*Tienda Virtual UTB*) es el sistema en alcance. Cada flecha es una relación unidireccional etiquetada con su propósito; en el nivel 1 no se especifica protocolo (eso aparece desde el nivel 2, ver `container.md`).

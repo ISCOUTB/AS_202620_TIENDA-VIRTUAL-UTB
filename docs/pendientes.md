@@ -1,170 +1,63 @@
-# Pendientes
+# Pendientes de cierre y evolución
 
-**Última revisión: 2026-10-24.** El despliegue vigente es el stack de Dokploy
-descrito en [`despliegue-dokploy.md`](despliegue-dokploy.md).
+**Última revisión: 2026-11-22.** La aplicación ya está desplegada en [tiendautb.iscoutb.dev](https://tiendautb.iscoutb.dev/), dirección publicada en el README y confirmada por el equipo. La [matriz de cierre](cierre-proyecto.md) distingue documentación, implementación y evidencia de ejecución.
 
-## Despliegue
+## Funcionalidades implementadas
 
-- ~~**Subir la 0.5.0**~~: desplegada el 2026-10-24 en Dokploy, con API 0.5.0, migración `0004`,
-  el rol `tienda_app` reparado y 5 admins de tienda más el general sembrados.
-  Problemas y arreglos en el [runbook](despliegue-dokploy.md#subir-050).
-  Falta comprobar que `SEED_ON_DEPLOY` volvió a `false`.
-- **Cobertura del frontend en SonarCloud.** El secreto `SONAR_TOKEN` era
-  inválido (403) y se borró, así que el job `sonarcloud` se omite. Los PR los
-  sigue analizando el Automatic Analysis de SonarCloud. Para volver a subir
-  cobertura, el admin de la organización `isco-utb` debe desactivar Automatic
-  Analysis y crear un Scoped Organization Token como `SONAR_TOKEN`.
-- Crear el servicio Docker Compose en Dokploy con path
-  `./deploy/compose.lab.yaml` y definir `POSTGRES_PASSWORD`.
-- Configurar una copia periódica del volumen `postgres_data` hacia almacenamiento
-  externo y documentar una restauración de prueba.
-- Dar de baja manualmente los recursos anteriores en Render, Vercel y Neon
-  después de verificar Dokploy. La eliminación de sus archivos en este
-  repositorio no elimina recursos remotos ni cargos asociados.
-- Rotar o revocar cualquier credencial de Neon compartida anteriormente, aunque
-  el proveedor ya no forme parte del sistema.
+| Capacidad cerrada en código | Evidencia |
+|---|---|
+| Identidad, JWT y roles por tienda | [Identidad](../backend/app/modules/identity/router.py), [ADR 0016](adr/0016-autenticacion-jwt.md). |
+| Administración de productos y estado activo | [Catálogo](../backend/app/modules/catalog/router.py), [guía](api/administracion-catalogo.md). |
+| Lectura, escritura y ajustes de inventario | [Inventario](../backend/app/modules/inventory/router.py), [pruebas](../backend/tests/test_inventory_escrituras.py). |
+| Pedidos por tienda, idempotencia, cancelación y ciclo de vida | [Pedidos](../backend/app/modules/orders/service.py), [pruebas](../backend/tests/test_orders.py). |
+| Carrito, reserva, pedidos propios y administración conectados | [Reserva](../frontend/components/tienda/PanelPedido.tsx), [administración](../frontend/components/admin/PanelAdmin.tsx). |
+| Alembic, RLS y reglas entre módulos | [Migraciones](../backend/alembic/versions/), [arquitectura](../backend/tests/test_architecture.py). |
+| Medición de cinco compradores concurrentes | [Escenario 4](medicion-escenario-4.md), registrado el 2026-11-08. |
+| Dominio y despliegue Dokploy | [Compose](../deploy/compose.lab.yaml), [guía](despliegue-dokploy.md). |
 
-## Equipo y calidad
+Estas capacidades no quedan pendientes de implementación. Sus verificaciones finales se enumeran a continuación.
 
-- Crear `SONAR_TOKEN` si se mantendrá el análisis de SonarCloud en CI.
-- **SonarCloud no analiza las ramas de este repositorio.** La app de SonarCloud
-  sí está instalada y sí publica el check `SonarCloud Code Analysis` (aparece
-  en los commits de `main`), pero **Automatic Analysis solo analiza la rama por
-  defecto**: el historial de análisis del proyecto no tiene ni una sola rama
-  distinta de `main`, y `feat/tienda-virtual-frontend` daba
-  *Component not found on branch*. La causa es la opción de SonarCloud
-  «Disable Automatic Analysis for pull requests from the same repository».
-  Consecuencia: el gate **no se puede evaluar sobre un PR de este mismo
-  repositorio**; solo se evalúa tras fusionar a `main`.
-  **Estado tras el PR #1 (fusionado el 2026-10-21):** el token del repositorio
-  pertenece a la cuenta automática `pxtroniwnl-wokg8@github`, que **no es
-  miembro de la organización `isco-utb` ni tiene el permiso «Execute
-  analysis»**; por eso el job `sonarcloud` de CI falla y el Análisis Automático
-  tampoco volvió a reportar (el último análisis sigue siendo el del 2026-10-19,
-  previo a este trabajo). En `main` el único check rojo es `sonarcloud`;
-  `backend` y `frontend` están en verde.
-  Para que el gate vuelva a evaluarse hay que pasar al análisis desde CI:
-  1. Crear en SonarCloud un token con permiso de análisis
-     (*My Account → Security → Generate tokens*, marca *Execute analysis*),
-     desde una cuenta que **sea miembro de `isco-utb`**. Si es la misma cuenta
-     que administra la organización, la vía directa es *Scoped Organization
-     Tokens* → *Execute analysis for all projects in the organization* (solo
-     en planes Team o Enterprise).
-  2. Guardarlo como secreto del repositorio: `gh secret set SONAR_TOKEN`.
-  3. En SonarCloud → *Administration → General settings → Analysis Method*,
-     desactivar *Automatic Analysis* para que no analice dos veces el mismo
-     commit (el job de CI ya está listo: clave, fuentes, pruebas, cobertura
-     lcov y `fetch-depth: 0` para el cálculo de código nuevo).
-  Con eso el job `sonarcloud` publica el check y el estado del Quality Gate en
-  cada push, y se puede exigir que esté verde.
-- **Hallazgos de SonarCloud abiertos, con su solución.** El Quality Gate del
-  2026-10-19 está en `ERROR` por `new_security_rating = 3`; el resto de
-  condiciones (`new_reliability_rating`, `new_maintainability_rating`,
-  `new_duplicated_lines_density`, `new_security_hotspots_reviewed`) están en
-  `OK`.
+## Evidencia para la evaluación
 
-  | Regla | Dónde | Solución |
-  |---|---|---|
-  | `githubactions:S6505` (vulnerabilidad MAJOR) | `.github/workflows/tests.yml` | `npm ci --ignore-scripts` — **aplicado en este PR**; era el único hallazgo dentro del periodo de fuga y el que bloqueaba el gate. |
-  | `docker:S6505` (vulnerabilidad MAJOR) | `frontend/Dockerfile` | `RUN npm ci --ignore-scripts` — **aplicado en este PR**. |
-  | `python:S8409` (code smell MINOR) | `backend/app/modules/inventory/router.py` y `backend/app/modules/catalog/router.py` | Quitar el `response_model=...` de la ruta: FastAPI ya lo infiere de la anotación de retorno. **Aplicado el 2026-10-24.** En `main.py`, `/health` y `/health/ready` lo conservan porque no es redundante (devuelven `dict` y `JSONResponse`). |
-  | `python:S8410` (code smell MINOR) | `backend/app/modules/inventory/router.py`, `backend/app/modules/catalog/router.py` y `backend/app/main.py` | `def f(db: Annotated[Session, Depends(get_session)])` en lugar de `= Depends(...)` como valor por defecto. **Aplicado el 2026-10-24** (también en los routers nuevos). |
-  | `python:S9073` (code smell MAJOR) | `backend/tests/contract/test_openapi.py` | Partir `assert method == "get" and "{" not in path` en dos `assert`. **Aplicado el 2026-10-24.** |
-  | `python:S5778` (code smell MAJOR) | `backend/tests/contract/test_openapi.py` | Sacar la construcción del validador fuera del `with pytest.raises(...)`: dentro debe quedar una sola invocación. **Aplicado el 2026-10-24.** |
-  | `docker:S6505` / `docker:S8541` / `docker:S8544` (vulnerabilidades MAJOR) | `backend/Dockerfile` | `pip install --no-cache-dir --only-binary :all: --require-hashes -r requirements.txt` con un archivo de requisitos con hashes. |
-  | `githubactions:S8544` (vulnerabilidad MAJOR) | `.github/workflows/tests.yml` (job `backend`) | Igual que lo anterior, pero en el runner: `--require-hashes` sobre un archivo de requisitos con hashes. |
+- Registrar el hash final, el desplegado y la fecha límite oficial.
+- Identificar los hashes revisados en S10 y S16 y comparar el alcance.
+- Vincular el enunciado del desafío final con código, pruebas y ejecución.
+- Conservar un run de CI del commit final. El [PR #19](https://github.com/ISCOUTB/AS_202620_TIENDA-VIRTUAL-UTB/pull/19) reportó 48 fallos de Vitest en `api-client.test.ts`; reproducirlos y resolverlos o explicar el resultado vigente.
+- Repetir E2E tras el rediseño y los cambios de acceso de noviembre. Los resultados de octubre son históricos.
+- Completar AC-01 con resultados por rol, AC-02 con conteo de pasos y AC-03 con tiempo de propagación de stock. AC-04 ya tiene medición local.
+- Adjuntar comentarios humanos de revisión técnica en PR y aportes sustantivos de cada integrante.
+- Ratificar colectivamente los ADR que figuran como propuestas. Implementación y ratificación son estados distintos.
 
-  Quedan abiertos los tres de `--require-hashes` (`backend/Dockerfile` y el
-  job `backend` de CI): piden generar un archivo de requisitos con hashes
-  (p. ej. `uv pip compile --generate-hashes`) y mantenerlo al actualizar
-  dependencias.
+## Operación del despliegue existente
 
-- Registrar la prueba de carga concurrente de aproximadamente cinco sesiones.
-  Avance del 2026-10-24: las E2E de TestSprite (~30 navegadores) agotaban el
-  pool y colgaban la API; corregido con `RutaConSesion`
-  (`backend/app/shared/database.py`, cubierto por `tests/test_concurrencia.py`).
-  Ráfagas locales de 300 peticiones mixtas: 300/300 en 200.
-- ~~Definir migraciones con Alembic~~ — hecho el 2026-10-22
-  ([ADR 0013](adr/0013-migraciones-alembic-y-esquema.md)) junto con RLS
-  ([ADR 0014](adr/0014-seguridad-rls.md)). Queda por hacer en cada entorno
-  existente (local y Dokploy): definir `APP_DB_PASSWORD`, crear el rol de
-  aplicación en la base ya inicializada, **exportar los datos anteriores**
-  antes de que el servicio `migrate` aplique `0001_esquema_inicial` (borra
-  `catalog_products` e `inventory_stock`) y ejecutar la siembra (o
-  `SEED_ON_DEPLOY=true`). Pasos en el README.
-- Reforzar mediante pruebas las reglas de dependencia entre módulos.
-- ~~Implementar los endpoints de `identity`~~ — hecho el 2026-10-24
-  ([ADR 0016](adr/0016-autenticacion-jwt.md)): registro, login con JWT,
-  `/identity/me` y `contexto_actual` entrega el usuario a RLS. En cada entorno
-  hay que definir `JWT_SECRET` (la API no arranca sin ella) y, para el primer
-  administrador, `SEED_ADMIN_CORREO`/`SEED_ADMIN_PASSWORD` con
-  `SEED_ON_DEPLOY=true`.
-- ~~Escrituras de `inventory`~~ — hecho el 2026-10-24: `GET`/`PUT
-  /inventory/{productId}` y `POST /inventory/{productId}/adjust`, para
-  `responsable_inventario` o `admin_tienda` de la tienda (el `admin_general`
-  solo supervisa desde la 0.5.0, ADR 0017),
-  con movimiento `ajuste` y bloqueo optimista (409).
-- ~~Implementar los endpoints de `orders`~~ — hecho el 2026-10-24
-  ([implementación de la saga](idempotencia-saga-s11.md#4-implementación-2026-10-24)).
-  En Dokploy falta crear el *Schedule* de `python -m app.tareas.vencer_pedidos`
-  ([pasos](despliegue-dokploy.md#vencimiento-de-pedidos-sin-pago)).
+- Registrar fecha, hora y respuestas de salud, readiness, catálogo e inventario; realizar el recorrido de [cierre](cierre-proyecto.md).
+- Confirmar `SEED_ON_DEPLOY=false` tras la siembra; el seed puede actualizar productos demo.
+- Verificar el Schedule de `python -m app.tareas.vencer_pedidos` y conservar su ejecución. El comando ya está implementado y tiene pruebas.
+- Confirmar respaldo externo y documentar una restauración de prueba en un entorno aislado. Un volumen persistente no sustituye al respaldo.
+- Confirmar la baja de recursos antiguos de Render, Vercel y Neon y la revocación de credenciales antiguas. Borrar archivos no elimina recursos remotos.
+- Registrar costos reales de servidor y respaldo en [costos](costos-despliegue.md).
 
-## Datos de la cafetería (frontend)
+## Seguridad y calidad pendientes
 
-- **Precios de Antojos, Punto Fit y Alegría.** Hoy se publican como
-  «precio de referencia» y las tres tiendas quedan con `noindex`. Al
-  confirmarlos, el administrador de cada tienda marca «Precio confirmado» en
-  `/admin` (`PATCH /catalog/products/{id}`, `precio_confirmado: true`) y se
-  cambia `frontend/lib/tiendas.ts` (`indexable: true`), que sigue siendo
-  estático. Mientras sean de referencia, el `sitemap.xml` las excluye.
-- **Asignación de las 13 fotos.** Viven en `frontend/public/img/` como
-  `cafeteria-01.jpg` … `cafeteria-13.jpg` y no están asociadas a tiendas ni a
-  productos. El mapa está vacío en `frontend/lib/imagenes.ts`
-  (`FOTO_TIENDA`); mientras tanto cada tienda usa un campo de color con su
-  motivo. Al asignarlas se rellenan también los `alt` reales.
-- **Horario de la cafetería.** `lib/tiendas.ts` usa de lunes a viernes,
-  7:00 a. m. – 8:00 p. m., marcado como provisional. Afecta al estado
-  «abierto ahora» y a la pregunta frecuente correspondiente.
-- **Dirección exacta del punto.** El `PostalAddress` del JSON-LD solo declara
-  ciudad y país; falta la dirección del campus para completarlo.
-- **Carta de Almuerzo 02.** Sin productos: la página existe, no se indexa y
-  muestra «Carta en preparación».
-- **Dominio público.** `NEXT_PUBLIC_SITIO_URL` ya se pasa al build como
-  `build.args` desde `deploy/compose.lab.yaml` (con el dominio actual por
-  defecto). Cuando se registre el definitivo hay que cambiarlo allí y
-  **redesplegar** — la variable queda horneada en el bundle, así que un
-  reinicio no basta.
+- **Registro:** la interfaz redirige `/registro` y `/auth/crear-cuenta` al acceso, pero `POST /identity/register` sigue público. Aplicar una política coherente en ambas capas.
+- **Límite de intentos:** implementar las mitigaciones A-01 y A-03 de [amenazas](seguridad-amenazas-privacidad.md).
+- **Sesión y cabeceras:** JWT en `localStorage`; faltan cabeceras de seguridad y la migración a cookie `httpOnly` con protección CSRF del [ADR 0011](adr/0011-sesion-localstorage.md).
+- **Timeout:** catálogo SSR con límite de 3 s; proxy y cliente general sin timeout propio. Añadirlo y comprobar su respuesta al usuario.
+- **Privacidad:** resolver las diferencias de consentimiento, rectificación, supresión y retención señaladas en [arc42 sección 11](arc42/11-riesgos-y-deuda-tecnica.md), con código y pruebas.
+- **Dependencias:** llevar la auditoría reproducible a CI y revisar hallazgos vigentes. Los números del 2026-11-01 no son una auditoría actual.
+- **Sonar y cobertura:** existe [Quality Gate aprobado en PR #19](https://github.com/ISCOUTB/AS_202620_TIENDA-VIRTUAL-UTB/pull/19#issuecomment-7040896955). La afirmación antigua de que no se analiza ningún PR ya no describe esa evidencia. Verificar análisis y cobertura del commit final; el job omite pasos cuando no existe `SONAR_TOKEN`.
+- **Reproducibilidad Python:** evaluar requisitos con hashes para `pip --require-hashes`, todavía no incorporados.
 
-## Contrato que el frontend espera
+## Datos de la cafetería
 
-Ver [`api/tiendas-catalogo.md`](api/tiendas-catalogo.md). Resumen:
+- Confirmar precios de Antojos, Punto Fit y Alegría; actualizar `precio_confirmado` y la política estática de indexación cuando corresponda.
+- Asignar fotos reales a las portadas de tiendas: `FOTO_TIENDA` sigue vacío. Ya hay imágenes de referencia de productos y fotos de cafetería usadas en la portada.
+- Confirmar horario provisional y dirección exacta del campus.
+- Completar la carta de Almuerzo 02, actualmente sin productos.
 
-- ~~`ProductOut` necesita `tienda`, `categoria`, `presentacion` y
-  `precio_confirmado`~~ — hecho en la API `0.4.0` (migración `0003`).
-- `OrderItemRequest` necesita `notas` para los sabores. **Aplazado:** son
-  contenido de usuario y reabren el ADR 0011 (pasar la sesión a cookie
-  `httpOnly`); hacer ambas cosas juntas.
-- ~~`OrderCreateRequest` necesita `hora_recogida`~~ — hecho.
-- ~~Faltan `identity/*`, `orders` y los ajustes de inventario~~ — hechos en la
-  API `0.4.0` y conectados en el frontend el 2026-10-24: catálogo real sin
-  caché, «Mis pedidos» con cancelación en `/cuenta` y, en `/admin`,
-  inventario, cola de pedidos y alta/edición de productos.
+## Evolución no incluida en la entrega
 
-## Aplazado por decisión
-
-- **`notas` por ítem + sesión en cookie `httpOnly` (reabre el ADR 0011).**
-  Las notas son contenido de usuario que se imprime en el ticket; aceptarlas
-  con el token en `localStorage` amplía el impacto de un XSS. Se hacen juntas:
-  mover el JWT a una cookie `httpOnly` del proxy (ADR 0012) con protección
-  CSRF, y después añadir `notas` (≤ 140 caracteres) a `OrderItemRequest`.
-- **Asignación de roles desde la interfaz.** Hoy un `admin_general` asigna
-  `admin_tienda` y `responsable_inventario` directamente en la base
-  (`usuario_roles`); no hay endpoint ni pantalla para hacerlo. Desde la 0.5.0 es más
-  urgente: sin admin, una tienda no puede cambiar su stock
-  ([ADR 0017](adr/0017-admin-general-supervisa.md)).
-- **Comando para crear solo las cuentas de tienda.** `python -m app.seed`
-  también reescribe los productos demo. En una base de producción con
-  productos editados a mano conviene un comando que cree solo
-  `<tienda>` ([runbook 0.5.0](despliegue-dokploy.md#subir-050)).
-- **Cambio de contraseña.** Las cuentas sembradas (`SEED_ADMIN_*`,
-  `SEED_TIENDAS_PASSWORD`) no pueden cambiar su clave desde la aplicación.
+- Notas por ítem en contrato y formulario, junto con la revisión de sesión del ADR 0011.
+- Pantalla y endpoint de asignación de roles; hoy se realiza mediante siembra u operación de base de datos.
+- Comando para crear cuentas sin reescribir productos demo y cambio de contraseña desde la aplicación.
+- Redis, retries con backoff, mensajería/DLQ y réplicas solo si se adoptan las propuestas correspondientes; no están implementados.

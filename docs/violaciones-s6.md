@@ -1,8 +1,10 @@
 # Auditoría de violaciones de la semana 6
 
+> **Revisión de cierre 2026-11-22:** la tabla conserva los hallazgos originales, con el estado actual actualizado abajo. Los nombres y procedimientos históricos no sustituyen el esquema Alembic vigente.
+
 > **Fecha original:** 2026-09-06. **Auditoría actualizada:** 2026-10-04.
 > V1–V4 y V7 fueron corregidas en el incremento candidato; V6 se corrigió el
-> 2026-10-22 con Alembic (ADR 0013); V5 continúa.
+> 2026-10-22 con Alembic (ADR 0013); V5 tiene generación de tipos, con sincronización entre contratos por verificar.
 > La aceptación arquitectónica permanece pendiente del equipo (ADR 0008).
 
 ## Alcance real de las comprobaciones
@@ -18,11 +20,11 @@ ni `existencias`, y `Existencia` (Inventario) sí debe declarar `cantidad`.
 
 | # | Hallazgo original | Clasificación | Corrección o deuda actual | Estado |
 |---|---|---|---|---|
-| V1 | Catálogo poseía `existencias`. | Regla ADR | `Stock` define `inventory_stock`; `Product` ya no contiene la columna. Hay migración SQL y prueba de dueño único. | CORREGIDA |
-| V2 | El seed de Catálogo mezclaba productos y stock. | Deuda técnica | Cada módulo tiene seed e inicialización propios. | CORREGIDA |
-| V3 | `ProductOut` fusionaba datos de dos contextos. | Regla ADR | `ProductOut` y `StockOut` son contratos separados; Next.js compone por `product_id`. | CORREGIDA |
+| V1 | Catálogo poseía `existencias`. | Regla ADR | `Existencia` define `existencias.cantidad`; `Producto` no contiene stock. Alembic gestiona el esquema y una prueba verifica el dueño único. | CORREGIDA |
+| V2 | El seed de Catálogo mezclaba productos y stock. | Deuda técnica | `app.seed` coordina la siembra mediante los contratos públicos de cada módulo; la API no siembra al arrancar. | CORREGIDA |
+| V3 | `ProductOut` fusionaba datos de dos contextos. | Regla ADR | `ProductOut` y `StockAvailabilityOut` son contratos separados; Next.js compone por `product_id`. | CORREGIDA |
 | V4 | `main.py` importaba modelos y seed internos. | Regla ADR | Los paquetes exponen `initialize` y `router`; el composition root solo consume esa superficie. | CORREGIDA |
-| V5 | El frontend declara tipos HTTP manualmente. | Deuda técnica | Sigue vigente; el build y las pruebas de contrato reducen, pero no eliminan, el riesgo. | VIGENTE |
+| V5 | El frontend declara tipos HTTP manualmente. | Deuda técnica | `frontend/scripts/gen-api.mjs` genera `lib/api/generated/contract.ts` desde el YAML. Falta verificar de forma automática que YAML, JSON ejecutable y tipos permanezcan sincronizados. | MITIGADA |
 | V6 | `create_all` sustituye migraciones formales. | Deuda técnica | Alembic adoptado ([ADR 0013](adr/0013-migraciones-alembic-y-esquema.md)): `0001_esquema_inicial` crea el esquema, la API ya no ejecuta `create_all` ni siembra al arrancar, y las pruebas verifican `upgrade`/`downgrade` y que modelos y migraciones no difieran. El SQL manual anterior se eliminó. | CORREGIDA (2026-10-22) |
 | V7 | La prueba solo comprobaba que existieran paquetes. | Regla ADR | Ahora analiza imports AST y rechaza internos ajenos; su alcance limitado está declarado y la propiedad se prueba aparte. | CORREGIDA |
 
@@ -40,5 +42,5 @@ ni `existencias`, y `Existencia` (Inventario) sí debe declarar `cantidad`.
   fallaron; tras restaurar el código ambas pasaron.
 
 La evidencia exacta, incluida la migración probada en PostgreSQL 17, está en
-[`docs/entrega-cadena-ia.md`](entrega-cadena-ia.md). V5 permanece como deuda
-explícita (generación de tipos del frontend).
+[`docs/entrega-cadena-ia.md`](entrega-cadena-ia.md). La generación de tipos de
+V5 ya existe; queda verificar la sincronización entre contratos y tipos generados.

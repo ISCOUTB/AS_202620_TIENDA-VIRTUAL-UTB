@@ -18,8 +18,8 @@ dueño de la base (el `POSTGRES_USER` de la imagen, superusuario): un error de
 filtrado en cualquier consulta —un `WHERE` olvidado— expondría pedidos de otros
 compradores o permitiría editar productos de otra tienda.
 
-Los endpoints de identidad todavía no existen, pero las reglas de visibilidad
-ya están definidas por el modelo de roles: comprador, `admin_tienda` y
+En el contexto original del 2026-10-22 todavía no existían endpoints de
+identidad. Desde el 2026-10-24 están implementados (ADR 0016), sobre el modelo de roles: comprador, `admin_tienda` y
 `responsable_inventario` (por tienda) y `admin_general`.
 
 ## Alternativas consideradas
@@ -63,8 +63,10 @@ fija `app.usuario_id`, `app.roles`, `app.tiendas_admin`,
 `get_session` guarda el contexto en la sesión y un evento `after_begin` lo
 aplica al inicio de **cada** transacción; al terminar la transacción los
 valores desaparecen, así que una conexión devuelta al pool no arrastra el
-principal anterior. La dependencia `contexto_actual` devuelve hoy un anónimo;
-el punto de enganche del JWT está marcado como `TODO(identity)`.
+principal anterior. `contexto_actual` usa el resolvedor
+`identity.public.principal_desde_token`, registrado por `app.main`: valida JWT,
+consulta usuario activo y roles actuales, o devuelve anónimo si no hay token.
+Una credencial inválida se rechaza; el antiguo `TODO(identity)` quedó resuelto.
 
 Las políticas leen ese contexto con funciones `STABLE`: `seg_usuario_id()`,
 `seg_tiene_rol(text)`, `seg_es_admin_general()`,
@@ -82,7 +84,13 @@ Pequeñas, con `search_path` fijo, sin `EXECUTE` para `PUBLIC`:
 | `identidad_registrar_comprador(nombre, correo, hash)` | identity | Alta pública con el rol `comprador` en una sola transacción |
 | `inventario_descontar(producto_id, cantidad, pedido_id)` / `inventario_reponer(...)` | inventory | Checkout y compensación: el comprador no tiene `UPDATE` sobre `existencias`. Exigen usuario, no dejan stock negativo, suben `version` y registran el movimiento |
 
-### Políticas (ENABLE + FORCE RLS en las 12 tablas)
+### Políticas originales de la migración 0002
+
+La tabla siguiente conserva la decisión original. La migración `0004` del
+[ADR 0017](0017-admin-general-supervisa.md) restringe las escrituras del general
+y añade el principal sistema. Para los permisos actuales de API consultar la
+[matriz vigente](../api/contrato-api.md#51-matriz-de-permisos-por-rol-api-050-adr-0017).
+Las doce tablas mantienen ENABLE + FORCE RLS.
 
 `S` = SELECT, `I` = INSERT, `U` = UPDATE, `D` = DELETE. "Propio" = filas del
 usuario en contexto; "su tienda" = tienda en `app.tiendas_admin` (admin) o en
@@ -120,7 +128,7 @@ DDL.
 - Hay una variable de entorno más (`APP_DB_PASSWORD`) y un paso manual para
   bases ya inicializadas.
 - Cada transacción hace una ida y vuelta extra (`set_config`).
-- El futuro código de identidad no debe cargar entidades `Usuario` completas
+- El código de identidad no debe cargar entidades `Usuario` completas
   con el rol de aplicación (no puede leer `hash_contrasena`): usa la función
   de credenciales y columnas explícitas.
 - Las pruebas de RLS ejecutan como `tienda_app` con `SET LOCAL ROLE`; la API

@@ -1,5 +1,7 @@
 # Seguridad: amenazas, dependencias y privacidad
 
+> **Alcance de la evidencia:** esta es la línea base de seguridad del 2026-11-01. Las cifras de dependencias no representan una nueva auditoría del cierre. El estado de ejecución y las acciones pendientes se consolidan en [pendientes](pendientes.md) y [cierre](cierre-proyecto.md).
+
 Entrega con tres partes: (1) tabla de amenazas priorizadas con mitigación
 asignada, (2) resultado del análisis de dependencias y (3) sección de
 privacidad.
@@ -104,7 +106,7 @@ la página `/privacidad` (`frontend/app/(public)/privacidad/page.tsx`).
 | Contraseña | `usuarios.hash_contrasena`, Argon2id | Autenticación | Nadie: hash irreversible, nunca sale de la API | Indefinida |
 | Roles y tienda | `usuario_roles` | Autorización | Titular y administración | Indefinida |
 | Pedidos | `pedidos` (`usuario_id`, total, hora de recogida), `pedido_lineas` | Ejecutar el pedido | Titular y la tienda del pedido (RLS) | Indefinida; los `pendiente_pago` se cancelan a las 24 h (`app/tareas/vencer_pedidos.py`), pero no se borran |
-| Texto libre | `pedido_lineas.notas` (140), `pedido_historial.comentario` (200) | Indicaciones al mostrador | Titular y tienda | Indefinida; puede contener datos que el titular escriba |
+| Texto libre | Columnas `pedido_lineas.notas` (140) y `pedido_historial.comentario` (200) | Notas previstas y trazabilidad del pedido | Titular y tienda según RLS | Las notas por ítem no están expuestas en el contrato/formulario actual; no confundir columnas existentes con captura implementada. |
 | Sesión en el navegador | `localStorage`: `tvutb.token`, `tvutb.usuario` (nombre, correo) | Mantener la sesión | Solo el propio navegador | Se borra al cerrar sesión o al vencer (`frontend/lib/sesion.ts:108-110`) |
 | Registros técnicos | stdout de la API: método, ruta, estado y latencia (`shared/metrics.py:64-72`) | Diagnóstico y disponibilidad | Equipo con acceso a Dokploy | Lo que retenga Dokploy; no está configurado |
 

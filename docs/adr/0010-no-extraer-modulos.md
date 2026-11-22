@@ -1,5 +1,7 @@
 # ADR 0010: No extraer módulos a microservicios en la fase actual
 
+> **Actualización de implementación 2026-11-22:** Pedidos, idempotencia y compensación por cancelación/vencimiento ya existen. Las referencias a lógica todavía no construida describen el contexto del 2026-10-18. La decisión de conservar el monolito se mantiene; su ratificación colectiva continúa pendiente. Ver [ADR 0018](0018-transaccion-compartida-pedidos-inventario.md).
+
 - **Estado:** Propuesta — pendiente de ratificación
 - **Fecha:** 2026-10-18
 

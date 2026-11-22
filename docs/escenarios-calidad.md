@@ -1,5 +1,7 @@
 # Escenarios de calidad
 
+**Estado al 2026-11-22:** los flujos y controles descritos están implementados. AC-04 tiene medición local registrada; AC-01 necesita resultados actuales, AC-02 el conteo de pasos vigente y AC-03 la medición entre sesiones. La [tabla de aspectos](aspectos.md) enlaza código, pruebas y evidencia por escenario. Los umbrales siguientes se conservan sin modificarlos para adaptarlos a los resultados.
+
 Cuatro escenarios de calidad, uno por cada atributo del
 [árbol de utilidad](arbol-utilidad.md), con el formato estándar de escenario
 (Fuente / Estímulo / Ambiente / Artefacto / Respuesta / Medida de

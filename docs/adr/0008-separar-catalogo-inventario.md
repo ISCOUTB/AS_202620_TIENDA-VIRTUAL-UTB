@@ -1,5 +1,7 @@
 # ADR 0008: Separar la propiedad de Catálogo e Inventario
 
+> **Estado de implementación al 2026-11-22:** separación aplicada. Desde el ADR 0013 las tablas actuales son `productos` y `existencias`, con migraciones Alembic; V6 ya está corregida. Los nombres `catalog_products` e `inventory_stock` y la deuda de Alembic de este texto corresponden al contexto original de octubre. La ratificación colectiva sigue pendiente.
+
 - **Estado:** Propuesta — pendiente de revisión y ratificación del equipo
 - **Fecha:** 2026-10-04
 - **Origen:** la persona solicitante eligió implementar dos contratos y una

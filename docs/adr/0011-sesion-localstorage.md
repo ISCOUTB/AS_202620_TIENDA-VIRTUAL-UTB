@@ -1,4 +1,4 @@
-# ADR 0011: Sesión del frontend en almacenamiento local, con migración a cookie httpOnly cuando exista el módulo `identity`
+# ADR 0011: Sesión del frontend en almacenamiento local y migración pendiente a cookie httpOnly
 
 - **Estado:** Propuesta — pendiente de ratificación
 - **Fecha:** 2026-10-21
@@ -14,12 +14,13 @@ de diseño en `docs/openapi/tienda-virtual.yaml` ya define las rutas
 `POST /identity/login`, `POST /identity/register` y `GET /identity/me`, y el
 `POST /orders` exige `bearerAuth`.
 
-Sin embargo, el módulo `identity` del backend está vacío: no hay endpoint que
-emita un token ni cookie. El frontend, por tanto, no puede depender de una
-cookie `httpOnly` que alguien tenga que emitir en el servidor.
+En el contexto original del 2026-10-21, Identidad todavía no emitía tokens.
+Desde el 2026-10-24 el login JWT está implementado (ADR 0016) y el frontend lo
+consume. El token sigue en `localStorage`; la cookie `httpOnly` no está implementada.
 
-La pregunta es dónde guardar el token mientras el backend no existe, y cómo
-evitar que esa decisión provisional se convierta en deuda permanente.
+La pregunta original era dónde guardar el token durante la construcción del
+backend. La deuda actual es migrar ese almacenamiento conservando la interfaz
+de sesión que consumen los componentes.
 
 Restricciones relevantes:
 
@@ -93,13 +94,14 @@ Se adopta la **alternativa C**, con estas condiciones:
 - El middleware evita el parpadeo de contenido protegido sin necesidad de
   conocer el token.
 - La degradación a modo demostración es explícita y visible, no silenciosa.
-- Cuando `identity` exista, el cambio queda acotado a `lib/sesion.ts`: el resto
-  de la aplicación ya consume `useSesion()`.
+- La integración con Identidad ya está en `lib/sesion.ts`; los componentes
+  siguen consumiendo `useSesion()`.
 
 **Negativas y riesgos**
 
-- Un XSS podría leer el token. Se mitiga con: ausencia de HTML de usuario,
-  `Content-Security-Policy` en el despliegue y tokens de vida corta.
+- Un XSS podría leer el token. React escapa la salida y el JWT tiene caducidad;
+  el stack versionado no configura `Content-Security-Policy`. Esa cabecera y
+  la cookie `httpOnly` son mitigaciones pendientes, no controles acreditados.
 - La cookie pista puede quedar desincronizada del `localStorage` si el usuario
   borra solo las cookies; en ese caso se le pide entrar de nuevo, lo que es
   seguro aunque molesto.

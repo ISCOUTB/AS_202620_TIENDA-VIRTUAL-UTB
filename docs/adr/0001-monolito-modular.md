@@ -1,5 +1,10 @@
 # ADR 0001: Adoptar un monolito modular para el backend
 
+> **Estado de implementación al 2026-11-22:** los cuatro módulos tienen
+> comportamiento y la prueba AST de `backend/tests/test_architecture.py`
+> verifica sus límites de importación. Los pasos futuros del texto original
+> describen el punto de partida de agosto. Ver [cierre](../cierre-proyecto.md).
+
 - **Estado:** Aceptada
 - **Fecha:** 2026-08-21
 

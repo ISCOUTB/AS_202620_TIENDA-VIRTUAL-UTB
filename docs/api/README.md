@@ -3,27 +3,22 @@
 Consulta la [documentación del contrato y sus diagramas](contrato-api.md) para
 entender las operaciones, los campos de respuesta y el propósito de `GET /health`.
 
-La corrección de S7 incorpora al [administrador de la tienda y su flujo de gestión](administracion-catalogo.md)
-como diseño previsto: actores, diagramas, operaciones propuestas y alcance pendiente.
+La [administración del catálogo](administracion-catalogo.md) está implementada:
+incluye creación, edición, activación y permisos por tienda.
 
 ## Archivos para entregar
 
 | Requisito | Evidencia |
 |---|---|
-| Contrato OpenAPI versionado | [openapi.json](openapi.json): formato OpenAPI `3.1.0`, versión de API `0.3.1`. |
-| Pruebas de contrato | [test_openapi.py](../../backend/tests/contract/test_openapi.py): documento, sincronización, respuestas HTTP y rupturas simuladas. |
-| Pruebas en el pipeline | [tests.yml](../../.github/workflows/tests.yml): paso específico y reporte JUnit descargable. |
-| Justificación de integración | [ADR 0002](../adr/0002-contrato-integracion-http.md). |
+| Contrato ejecutable | [openapi.json](openapi.json), OpenAPI `3.1.0`, API `0.5.0`, 20 operaciones HTTP. |
+| Contrato del frontend | [tienda-virtual.yaml](../openapi/tienda-virtual.yaml), fuente de [tipos generados](../../frontend/lib/api/generated/contract.ts). |
+| Pruebas de contrato | [test_openapi.py](../../backend/tests/contract/test_openapi.py): documento, sincronización y respuestas HTTP. |
+| Pipeline | [tests.yml](../../.github/workflows/tests.yml): pruebas sobre PostgreSQL y reporte JUnit. |
+| Decisión | [ADR 0002](../adr/0002-contrato-integracion-http.md). |
 
-El contrato describe las cinco operaciones implementadas —`GET /catalog/products`,
-`GET /inventory`, `GET /health`, `GET /health/ready` y `GET /metrics`— todas
-con respuesta `200 application/json` (la de readiness también documenta `503`),
-sin autenticación ni parámetros en el alcance actual. `/health/ready` y
-`/metrics` se añadieron en `0.2.1`; la lectura de inventario y la separación de
-contratos forman parte de `0.3.0`; `0.3.1` añade a `ProductOut` los campos
-opcionales `tienda` e `imagen_url` (cambio compatible).
-No se documentan operaciones futuras como si ya estuvieran implementadas.
-JSON y YAML son formatos válidos para OpenAPI; este proyecto exporta JSON.
+La API expone identidad, catálogo, inventario, pedidos, salud y métricas.
+Las operaciones protegidas usan Bearer JWT y roles por tienda; los parámetros,
+entradas y errores se detallan en el [contrato](contrato-api.md).
 
 ## Reproducir las pruebas
 
@@ -58,13 +53,11 @@ eso eliminaría la referencia contra la cual se detectan cambios no revisados.
 
 ## Resultado y cierre de la evidencia
 
-Validación local del 2026-09-15: **11 pruebas aprobadas**, de las cuales **6 son
-de contrato**, con Python 3.12.10 y SQLite en memoria. Se observaron avisos de
-deprecación de dependencias; no hubo fallos. En esta máquina se utilizaron
-dependencias aisladas en `.contract-tools/`, excluidas de Git.
+La validación del 2026-09-15 (11 pruebas, 6 de contrato, SQLite) corresponde al
+contrato inicial. Desde el ADR 0013 las pruebas requieren PostgreSQL y el
+contrato creció a las operaciones actuales. Las [E2E de octubre](../pruebas-e2e-testsprite.md)
+son evidencia histórica, no una nueva corrida del commit de cierre.
 
-La ejecución remota de GitHub Actions queda pendiente de subir los cambios.
-Para cerrar la entrega, el equipo debe revisar el ADR, incorporar los archivos
-a Git y conservar el enlace de la ejecución de **Pruebas**, el commit asociado
-y el artefacto **pruebas-contrato**. Una ejecución local no acredita que GitHub
-Actions ya haya corrido.
+El workflow ya está versionado. Para la entrega final conservar el enlace de
+la ejecución de **Pruebas**, el commit y el artefacto **pruebas-contrato**;
+registrar el resultado real según la [matriz de cierre](../cierre-proyecto.md).

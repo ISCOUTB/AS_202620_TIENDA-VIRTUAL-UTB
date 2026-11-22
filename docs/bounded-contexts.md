@@ -1,7 +1,7 @@
 # Mapa de contextos (bounded contexts) — Tienda Virtual UTB
 
 > **Tipo:** mapa de contextos delimitados (estilo DDD). **Autor:** Equipo Tienda
-> Virtual UTB. **Fecha:** 2026-09-06. **Notación:** context mapping con Mermaid
+> Virtual UTB. **Fecha original:** 2026-09-06. **Revisión:** 2026-11-22. **Notación:** context mapping con Mermaid
 > (`flowchart LR`) inspirado en *Domain-Driven Design Distilled* (Vaughn Vernon).
 > **Trazabilidad:** [`docs/adr/0001-monolito-modular.md`](adr/0001-monolito-modular.md),
 > [`docs/arc42/arc42-template-EN.md`](arc42/arc42-template-EN.md) y
@@ -34,18 +34,24 @@ flowchart LR
     DB[("Base única PostgreSQL<br/>tablas con dueño por módulo")]
     WEB["Cliente web (Next.js)<br/>consume contratos públicos"]
 
+    WEB --> I
     WEB --> C
+    WEB --> INV
     WEB --> O
-    C -.-> INV
-    O -.-> INV
+    O --> C
+    O --> INV
+    INV --> C
     I --> C
-    I --> O
-    I --> INV
+    S["Seguridad transversal<br/>resolvedor de identidad y contexto"]
+    C --> S
+    INV --> S
+    O --> S
+    S --> I
 
     C --> DB
     INV --> DB
     O --> DB
-    DB --> I
+    I --> DB
 
     classDef owner fill:#d5e8d4,stroke:#2d6a2d,color:#000000
     class I,C,INV,O owner
@@ -54,11 +60,11 @@ flowchart LR
 ```
 
 > _Fig. 1 — Mapa de contextos delimitados de la Tienda Virtual UTB (flowchart)._
-> Flecha sólida `A --> B` = A consume el contrato público de B. Flecha punteada
-> `.->` = colaboración prevista para un incremento futuro. `catalog` e
-> `inventory` implementan lectura; identidad y pedidos siguen pendientes. La
-> única persistencia es la base PostgreSQL compartida;
-> el dueño de cada tabla se lista en la tabla de módulos.
+> Flecha sólida `A --> B` = A consume servicios de B; las flechas hacia DB
+> representan persistencia. Los cuatro módulos están implementados. El contexto
+> de seguridad usa el resolvedor público de Identidad; Identidad consulta IDs de
+> tiendas mediante `catalog.public` para roles globales. Los datos se guardan en
+> PostgreSQL y cada tabla tiene el dueño indicado abajo.
 
 ### Lectura del mapa
 
@@ -85,13 +91,13 @@ sección *Stakeholders* de arc42), no un integrante del equipo. La columna
 el estado real del código (las discrepancias son violaciones listadas en
 `docs/violaciones-s6.md`).
 
-**Leyenda de la columna Estado:** `IMPLEMENTADO` = tiene comportamiento en el
-incremento actual; `SOLO ESQUEMA` = tablas y modelos creados, sin endpoints.
+**Leyenda:** `IMPLEMENTADO` significa que el módulo tiene comportamiento y
+endpoints; no implica que todas las extensiones futuras estén entregadas.
 
 | Contexto delimitado | Módulo | Dueño (rol) | Tablas que posee (objetivo) | Tabla hoy (real) | Contrato público | Estado |
 |---|---|---|---|---|---|---|
 | Identidad y Acceso | `backend/app/modules/identity/` | Sistema (auth propia) / rol de admin | `usuarios`, `roles`, `usuario_roles` | Las tres (migración `0001_esquema_inicial`) | Registro, login, perfil; JWT y roles | IMPLEMENTADO |
-| Catálogo | `backend/app/modules/catalog/` | Administrador de la tienda | `tiendas`, `categorias`, `productos`, `imagenes_producto` | Las cuatro | `GET /catalog/products` → `ProductOut` | IMPLEMENTADO |
+| Catálogo | `backend/app/modules/catalog/` | Administrador de la tienda | `tiendas`, `categorias`, `productos`, `imagenes_producto` | Las cuatro | Consulta, detalle, tiendas, creación y edición; `public.py` para consumidores internos | IMPLEMENTADO |
 | Inventario | `backend/app/modules/inventory/` | Responsable de inventario | `existencias` (`producto_id`, `cantidad`, `version`), `movimientos_existencias` | Las dos | Consulta, escritura por producto y ajustes; contrato público para pedidos | IMPLEMENTADO (lectura y escritura) |
 | Pedidos | `backend/app/modules/orders/` | Administrador de la tienda / comprador | `pedidos`, `pedido_lineas`, `pedido_historial` | Las tres | `POST /orders`, consultas, cancelación y cambio de estado; vencimiento por comando | IMPLEMENTADO |
 
