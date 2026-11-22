@@ -99,9 +99,10 @@
 | Dos animaciones CSS | **GSAP** con reglas fijas y movimiento reducido |
 | Estados de carga ad hoc | **Esqueletos** con tokens del tema, sin salto de maquetación |
 
-Sobrevive: la disciplina de tokens, la honestidad con precios no confirmados
-(«Referencia», `noindex`), «Agotado» nunca se esconde, el horario calculado en
-el servidor y el modo demostración cuando la API no responde.
+Sobrevive: la disciplina de tokens, la política de indexación, «Agotado» nunca
+se esconde, el horario calculado en el servidor y el modo demostración cuando
+la API no responde. Los precios se muestran sin etiquetas de referencia o
+confirmación, según el ajuste de presentación del 2026-11-22.
 
 ## 1. La idea
 
@@ -318,5 +319,5 @@ La búsqueda de la portada filtra el catálogo del propio frontend
 2. Recolorear el logo UTB fuera de su versión blanca por filtro.
 3. Animar propiedades de maquetación o animar sin `matchMedia`.
 4. Íconos de librería, emojis, texto de relleno.
-5. Inventar precios sin marcarlos como referencia o esconder un agotado.
+5. Inventar precios o esconder un agotado.
 6. Fingir un pedido o un endpoint que no existe.

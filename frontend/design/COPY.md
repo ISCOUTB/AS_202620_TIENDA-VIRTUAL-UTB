@@ -37,7 +37,7 @@ adjetivo. Si algo no está listo, se dice.
 
 - **Propuesta:** cinco puntos de la cafetería, un solo pase.
 - **Beneficio:** apartas sin fila y recoges cuando puedas.
-- **Prueba:** existencias reales y precios confirmados se muestran como son.
+- **Prueba:** precios y existencias del catálogo se muestran directamente.
 - **Frontera:** se paga en el mostrador; en línea solo se reserva.
 
 ## 3. Titulares por sección
@@ -85,7 +85,7 @@ contorno.
 | Antes de abrir | «Cerrado · abre hoy a las 7:00 a. m.» |
 | Cerrado | «Cerrado · abre mañana a las 7:00 a. m.» |
 | Agotado | «Agotado» + «Sin unidades» (botón deshabilitado) |
-| Precio sin confirmar | «Precio de referencia» |
+| Precio | Mostrar el importe, sin etiquetas de referencia o confirmación. |
 | Carrito vacío | «Está vacío. Puedes mezclar productos de varias tiendas.» |
 | Sin pedidos | «Todavía no tienes pedidos.» |
 | Carta vacía | «Este punto todavía no publica su carta.» |
@@ -116,8 +116,8 @@ pasó y qué hacer.
 | `/tiendas/antojos` | Antojos — Tienda de barrio | La tienda de barrio dentro de la cafetería: mecatos, fritos, galletas y gaseosas. |
 | `/tiendas/punto-fit` | Punto Fit — Fresco y ligero | Fruta, granolas, helados de yogur griego, pastas y wraps en el campus. |
 | `/tiendas/alegria` | Alegría — Helados y sándwiches | Helados, sándwiches, chocolatinas Jett, jugos y tés. |
-| `/tiendas/almuerzo-01` | Almuerzo 01 — Línea oriental | Pollo frito con arepitas, arroces, chow mein y agridulce con precios confirmados. |
-| `/tiendas/almuerzo-02` | Almuerzo 02 — Por definir | El segundo punto de almuerzo del campus, abriendo pronto. |
+| `/tiendas/almuerzo-01` | Almuerzo 01 — Línea oriental | Pollo frito con arepitas, arroces, chow mein y agridulce. |
+| `/tiendas/almuerzo-02` | Almuerzo 02 — Línea oriental | El segundo punto de almuerzo del campus, abriendo pronto. |
 | `/auth/ingresar` | Ingresar | Entra con tu correo institucional para apartar y recoger. *(noindex)* |
 | `/auth/crear-cuenta` | Crear mi pase | Crea tu cuenta con el correo institucional. *(noindex)* |
 | `/pedidos` | Mis pedidos | Lo que tienes por apartar y tus pedidos con su hora de recogida. *(noindex)* |

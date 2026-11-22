@@ -34,9 +34,8 @@ export function PanelCuenta() {
 
         {modo === "demo" ? (
           <p className="mt-5 rounded-sm bg-aviso-suave px-4 py-3 text-sm leading-snug text-aviso">
-            <strong className="font-bold">Modo demostración.</strong> La
-            tienda no respondió al entrar: esta sesión vive solo en tu navegador
-            y no crea pedidos reales.
+            La tienda no respondió al entrar. Vuelve a iniciar sesión cuando
+            esté disponible para poder reservar productos.
           </p>
         ) : null}
 
@@ -49,9 +48,6 @@ export function PanelCuenta() {
         </div>
 
         <div className="mt-8 flex flex-wrap items-center gap-2">
-          <Badge tono={modo === "demo" ? "muestra" : "abierto"}>
-            {modo === "demo" ? "Demostración" : "Cuenta real"}
-          </Badge>
           <Badge tono="abierto">Activo</Badge>
           <Badge tono="neutro">Rol: {rol}</Badge>
         </div>

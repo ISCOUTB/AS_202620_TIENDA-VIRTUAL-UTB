@@ -111,8 +111,7 @@ export function Footer({ className = "" }: { className?: string }) {
           </div>
           <div className="md:col-span-5">
             <p>
-              Fotografía: equipo de la cafetería UTB. Los precios marcados como
-              referencia no son definitivos.
+              Fotografía: equipo de la cafetería UTB.
             </p>
             <p className="mt-1">
               © {new Date().getFullYear()} Universidad Tecnológica de Bolívar,

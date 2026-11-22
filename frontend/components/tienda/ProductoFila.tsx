@@ -56,11 +56,6 @@ export function ProductoFila({ producto }: { producto: Producto }) {
 
         <div className="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-2.5">
           <span className="cifra text-[0.9375rem] font-bold text-tinta">{formatoPrecio(producto.precioCentavos)}</span>
-          {producto.esMuestra ? (
-            <span className="rounded-pill bg-aviso-suave px-2 py-0.5 text-[0.6875rem] font-semibold text-aviso">
-              Referencia
-            </span>
-          ) : null}
           {esParaCompartir(producto) ? (
             <span className="rounded-pill bg-primario-suave px-2 py-0.5 text-[0.6875rem] font-semibold text-enlace">
               Para compartir

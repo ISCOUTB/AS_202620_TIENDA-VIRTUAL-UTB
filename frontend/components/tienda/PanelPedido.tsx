@@ -63,7 +63,6 @@ export function PanelPedido() {
   const n = unidades(carrito);
   const total = totalCentavos(carrito, productos);
   const hora = carrito.horaRecogida;
-  const muestra = carrito.lineas.some((l) => productoPorId(productos, l.productoId)?.esMuestra);
   const tiendas = Array.from(
     new Set(
       carrito.lineas
@@ -269,11 +268,6 @@ export function PanelPedido() {
                       <p className="cifra mt-0.5 text-[0.8125rem] text-tenue">
                         {formatoPrecio(p.precioCentavos * linea.cantidad)} · {nombreTienda(p.tienda)}
                       </p>
-                      {p.esMuestra ? (
-                        <Badge tono="muestra" className="mt-1">
-                          Referencia
-                        </Badge>
-                      ) : null}
                     </div>
                     <Cantidad
                       variante="linea"
@@ -312,7 +306,6 @@ export function PanelPedido() {
             <div className="mt-4 flex items-start gap-2.5 rounded-sm bg-suave px-3.5 py-3 text-[0.8125rem] leading-relaxed text-tenue lg:text-sm">
               <Icono nombre="info" tamano={18} className="mt-0.5 shrink-0" />
               <span>
-                {muestra ? "Incluye precios de referencia: la tienda los confirma al entregar. " : ""}
                 Pagas en el mostrador al recoger. Llegas, dices tu nombre y te
                 vas.
               </span>

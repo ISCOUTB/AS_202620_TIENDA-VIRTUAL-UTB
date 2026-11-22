@@ -128,10 +128,7 @@ export default function PaginaTerminos() {
             <h2>6. Precios y disponibilidad</h2>
             <p>
               Los precios se expresan en pesos colombianos (COP) e incluyen los
-              impuestos aplicables. Los productos marcados como{" "}
-              <strong>«precio de referencia»</strong> todavía no tienen tarifa
-              confirmada por la tienda; el valor definitivo se informa en el
-              mostrador antes de pagar.
+              impuestos aplicables.
             </p>
             <p>
               La información de existencias refleja el inventario del sistema en

@@ -133,7 +133,6 @@ export function PanelAdmin() {
   const { tiendas, filas, administrables, supervisables, soloSupervisa } = vista;
   const activos = filas.filter((f) => f.producto.activo !== false);
   const agotados = activos.filter((f) => f.existencias === 0);
-  const muestras = activos.filter((f) => f.producto.precio_confirmado === false);
   const valorInventario = activos.reduce(
     (total, f) => total + f.producto.precio_centavos * f.existencias,
     0,
@@ -187,18 +186,13 @@ export function PanelAdmin() {
         ) : null}
       </Revelar>
 
-      <Revelar className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <Revelar className="mt-6 grid gap-4 sm:grid-cols-3">
         <Kpi rotulo="Productos a la venta" valor={String(activos.length)} nota={`${filas.length - activos.length} inactivos.`} />
         <Kpi
           rotulo="Agotados"
           valor={String(agotados.length)}
           nota="Se muestran al cliente como «Agotado», nunca ocultos."
           tono={agotados.length > 0 ? "alerta" : "neutro"}
-        />
-        <Kpi
-          rotulo="Precios sin confirmar"
-          valor={String(muestras.length)}
-          nota="Marcados como referencia en la tienda."
         />
         <Kpi
           rotulo="Valor del inventario"

@@ -33,7 +33,6 @@ export function FormProducto({
   const [pesos, setPesos] = useState(producto ? String(producto.precio_centavos / 100) : "");
   const [categoria, setCategoria] = useState(producto?.categoria ?? "");
   const [presentacion, setPresentacion] = useState(producto?.presentacion ?? "");
-  const [confirmado, setConfirmado] = useState(producto?.precio_confirmado ?? true);
   const [activo, setActivo] = useState(producto?.activo ?? true);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +51,6 @@ export function FormProducto({
       precio_centavos: precio * 100,
       categoria: categoria.trim() || null,
       presentacion: presentacion.trim() || null,
-      precio_confirmado: confirmado,
       activo,
     };
     setEnviando(true);
@@ -145,10 +143,6 @@ export function FormProducto({
       </div>
 
       <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-        <label className="flex min-h-11 items-center gap-2">
-          <input type="checkbox" checked={confirmado} onChange={(e) => setConfirmado(e.target.checked)} className="h-4 w-4" />
-          Precio confirmado por la tienda
-        </label>
         <label className="flex min-h-11 items-center gap-2">
           <input type="checkbox" checked={activo} onChange={(e) => setActivo(e.target.checked)} className="h-4 w-4" />
           A la venta

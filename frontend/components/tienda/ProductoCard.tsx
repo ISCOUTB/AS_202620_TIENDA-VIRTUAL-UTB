@@ -114,7 +114,7 @@ export function ProductoCard({
           {nombre}
         </h3>
         <p className={`text-xs leading-snug text-tenue ${vertical ? "line-clamp-1" : "line-clamp-2 sm:line-clamp-1"}`}>
-          {vertical && producto.esMuestra ? "Precio de referencia" : producto.descripcion}
+          {producto.descripcion}
         </p>
         {!vertical && producto.sabores?.length ? (
           <p className="text-[0.8125rem] leading-snug text-tenue">
@@ -137,9 +137,6 @@ export function ProductoCard({
               // En móvil se ve aquí; desde `sm` se ve sobre la foto (que es
               // decorativa) y aquí queda solo para lectores de pantalla.
               <span className="text-xs font-semibold text-tenue sm:sr-only">{existencias}</span>
-            ) : null}
-            {!vertical && producto.esMuestra ? (
-              <span className="text-xs font-semibold text-aviso">Referencia</span>
             ) : null}
           </div>
 

@@ -103,11 +103,6 @@ const PREGUNTAS = [
     respuesta:
       "Se usan para gestionar tus pedidos y avisarte de la disponibilidad. No se comparten con terceros ni se usan para publicidad.",
   },
-  {
-    pregunta: "¿Los precios son definitivos?",
-    respuesta:
-      "Los de la línea oriental están confirmados. Los de Antojos, Punto Fit y Alegría se muestran como referencia mientras la tienda los confirma.",
-  },
 ];
 
 export default function ComoFunciona() {

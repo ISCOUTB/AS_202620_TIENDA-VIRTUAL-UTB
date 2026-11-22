@@ -2,7 +2,6 @@
 
 import { useCarrito, totalCentavos, unidades, porTienda, abrirPedido } from "@/lib/carrito";
 import { formatoHora, formatoPrecio } from "@/lib/formato";
-import { productoPorId } from "@/lib/catalogo";
 import { nombreTienda, paletaTienda } from "@/lib/tiendas";
 import { Boton } from "@/components/ui/Boton";
 import { Esqueleto } from "@/components/ui/Esqueleto";
@@ -92,9 +91,6 @@ export function CarritoPendiente() {
           </div>
 
           <p className="text-[0.8125rem] leading-relaxed text-tenue">
-            {carrito.lineas.some((l) => productoPorId(productos, l.productoId)?.esMuestra)
-              ? "Incluye precios de referencia: la tienda los confirma en el mostrador. "
-              : ""}
             Aún no está apartado: al confirmar pasa a «Apartados» y pagas en el
             mostrador al recoger.
           </p>

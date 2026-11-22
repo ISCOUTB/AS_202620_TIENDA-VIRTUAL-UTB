@@ -78,7 +78,6 @@ export const TIENDAS: Tienda[] = [
       "Gaseosas y jugos Hit fríos",
       "Dulces que ya no se consiguen en otros lados",
     ],
-    nota: "Los precios de esta tienda están por confirmar. Se muestran valores de referencia.",
   },
   {
     slug: "punto-fit",
@@ -98,7 +97,6 @@ export const TIENDAS: Tienda[] = [
       "Granola con yogur griego",
       "Hatsu, tés y helados de yogur",
     ],
-    nota: "Los precios de esta tienda están por confirmar. Se muestran valores de referencia.",
   },
   {
     slug: "alegria",
@@ -118,7 +116,6 @@ export const TIENDAS: Tienda[] = [
       "Sándwiches armados en el mostrador",
       "Jugos y tés para acompañar",
     ],
-    nota: "Los precios de esta tienda están por confirmar. Se muestran valores de referencia.",
   },
   {
     slug: "almuerzo-01",
@@ -142,10 +139,10 @@ export const TIENDAS: Tienda[] = [
   {
     slug: "almuerzo-02",
     nombre: "Almuerzo 02",
-    categoria: "Por definir",
+    categoria: "Línea oriental",
     tagline: "El segundo punto de almuerzo del campus, abriendo pronto.",
     descripcion:
-      "El segundo restaurante de almuerzos de la cafetería UTB. Su carta y su nombre están por definir; mientras tanto se publica la información general del punto y se avisa por correo cuando abra.",
+      "El segundo restaurante de almuerzos de la cafetería UTB. Una segunda línea oriental para almorzar en el campus. Su carta estará disponible próximamente.",
     acento: "azul",
     tratamiento: "numerada",
     motivo: "La bandeja",

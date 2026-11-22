@@ -152,7 +152,6 @@ export function TablaInventario({
                     <p className="flex flex-wrap items-center gap-2 font-semibold">
                       {p.nombre}
                       {p.activo === false ? <Badge tono="cerrado">Inactivo</Badge> : null}
-                      {p.precio_confirmado === false ? <Badge tono="muestra">Referencia</Badge> : null}
                     </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-2 text-[0.8125rem] text-tenue">
                       <span aria-hidden="true" className={`h-2 w-2 rounded-full ${paleta.relleno}`} />

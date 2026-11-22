@@ -75,7 +75,6 @@ export default async function PaginaTienda({
   const paleta = paletaTienda(tienda.slug);
   const estado = estadoHorario(tienda.horario);
   const portada = portadaTienda(tienda.slug);
-  const hayMuestra = productos.some((p) => p.esMuestra);
   const haySabores = productos.some((p) => p.sabores?.length);
   const otras = TIENDAS.filter((t) => t.slug !== tienda.slug);
 
@@ -139,13 +138,6 @@ export default async function PaginaTienda({
                 Recoges en La Placita
               </li>
               <li className="inline-flex h-8 shrink-0 items-center rounded-pill bg-suave px-3">Pago en el mostrador</li>
-              {productos.length > 0 ? (
-                <li
-                  className={`inline-flex h-8 items-center rounded-pill px-3 ${hayMuestra ? "bg-aviso-suave text-aviso" : "bg-ok-suave text-ok"}`}
-                >
-                  {hayMuestra ? "Precios de referencia" : "Precios confirmados"}
-                </li>
-              ) : null}
             </ul>
           </div>
         </Revelar>
@@ -174,7 +166,7 @@ export default async function PaginaTienda({
                 <p className="mt-5 text-lg font-semibold">Este punto todavía no publica su carta.</p>
                 <p className="mx-auto mt-2 max-w-[44ch] text-sm text-tenue">
                   Está en montaje dentro de la cafetería. Cuando abra, sus
-                  productos aparecen aquí con precios confirmados.
+                  productos aparecen aquí.
                 </p>
                 <div className="mt-6">
                   <Boton href="/tiendas" variante="primario">
@@ -184,11 +176,8 @@ export default async function PaginaTienda({
               </div>
             )}
 
-            {productos.length > 0 && (hayMuestra || haySabores) ? (
+            {productos.length > 0 && haySabores ? (
               <p className="mt-8 max-w-[62ch] text-[0.8125rem] leading-relaxed text-tenue">
-                {hayMuestra
-                  ? "Los productos marcados como referencia todavía no tienen precio confirmado por la tienda. "
-                  : ""}
                 {haySabores ? "El sabor de los snacks y helados se elige en el mostrador al recoger." : ""}
               </p>
             ) : null}
