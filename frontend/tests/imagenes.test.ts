@@ -10,11 +10,11 @@ import {
 import { PRODUCTOS } from "@/lib/catalogo";
 
 describe("FOTO_CAFETERIA", () => {
-  it("son trece y con numeración estable", () => {
-    expect(FOTO_CAFETERIA).toHaveLength(13);
+  it("son dieciséis y con numeración estable", () => {
+    expect(FOTO_CAFETERIA).toHaveLength(16);
     expect(FOTO_CAFETERIA[0].src).toBe("/img/cafeteria-01.jpg");
-    expect(FOTO_CAFETERIA[12].src).toBe("/img/cafeteria-13.jpg");
-    expect(new Set(FOTO_CAFETERIA.map((f) => f.src)).size).toBe(13);
+    expect(FOTO_CAFETERIA[15].src).toBe("/img/cafeteria-16.jpg");
+    expect(new Set(FOTO_CAFETERIA.map((f) => f.src)).size).toBe(16);
   });
 
   it("toda foto trae texto alternativo", () => {

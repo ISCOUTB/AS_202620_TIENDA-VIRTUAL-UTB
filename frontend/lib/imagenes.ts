@@ -1,7 +1,7 @@
 /**
  * Imágenes — ÚNICO lugar donde viven las rutas de fotos.
  *
- * Las 13 fotos originales se movieron de `src/` (donde vivían junto al
+ * Las 13 fotos originales (y 3 nuevas de mostradores) se movieron de `src/` (donde vivían junto al
  * código) a `public/img/` con nombres ASCII y numeración estable:
  *   src/WhatsApp Image 2026-10-21 at 7.56.05 AM (1).jpeg → cafeteria-01.jpg
  *   … y así hasta cafeteria-13.jpg
@@ -20,12 +20,22 @@ export type Foto = { src: string; alt: string };
 
 const RUTA = "/img";
 
-/** Las 13 fotos de la cafetería, en orden estable. */
-export const FOTO_CAFETERIA: Foto[] = Array.from({ length: 13 }, (_, i) => {
+/**
+ * Las 16 fotos de la cafetería, en orden estable. Las tres últimas (14-16)
+ * son fotos frontales de los mostradores, en horizontal y bien encuadradas:
+ * por eso son las que usa la portada.
+ */
+const ALT_ESPECIFICO: Record<string, string> = {
+  "14": "Mostrador de El Asao en la cafetería UTB",
+  "15": "Mostrador de Alegría en la cafetería UTB",
+  "16": "Mostrador de Alegría en la cafetería UTB, vista frontal",
+};
+
+export const FOTO_CAFETERIA: Foto[] = Array.from({ length: 16 }, (_, i) => {
   const n = String(i + 1).padStart(2, "0");
   return {
     src: `${RUTA}/cafeteria-${n}.jpg`,
-    alt: `Foto de la cafetería UTB (${n})`,
+    alt: ALT_ESPECIFICO[n] ?? `Foto de la cafetería UTB (${n})`,
   };
 });
 
@@ -147,8 +157,8 @@ export function fotoProducto(slug: string): string | null {
 const PORTADA_TIENDA: Record<SlugTienda, { indice: number; encuadre: string }> = {
   antojos: { indice: 1, encuadre: "object-[center_30%]" },
   "punto-fit": { indice: 2, encuadre: "object-[25%_35%]" },
-  alegria: { indice: 2, encuadre: "object-[85%_35%]" },
-  "almuerzo-01": { indice: 10, encuadre: "object-center" },
+  alegria: { indice: 14, encuadre: "object-center" },
+  "almuerzo-01": { indice: 13, encuadre: "object-center" },
   "almuerzo-02": { indice: 12, encuadre: "object-[center_60%]" },
 };
 

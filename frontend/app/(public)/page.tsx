@@ -62,13 +62,13 @@ export default async function Inicio() {
 
   const diapositivas: Diapositiva[] = [
     {
-      foto: FOTO_CAFETERIA[12],
+      foto: FOTO_CAFETERIA[13],
       rotulo: "Cafetería La Placita · Campus UTB",
       titular: ["Cinco tiendas,", "una sola cuenta."],
       texto:
         "Aparta en Antojos, Punto Fit, Alegría y los dos almuerzos con tu correo institucional. Eliges la hora, pasas y pagas en el mostrador.",
       accion: { href: "/tiendas", texto: "Ver las tiendas" },
-      encuadre: "object-[center_62%]",
+      encuadre: "object-[center_8%]",
     },
     {
       foto: FOTO_CAFETERIA[1],
@@ -78,19 +78,19 @@ export default async function Inicio() {
       encuadre: "object-[center_35%]",
     },
     {
-      foto: FOTO_CAFETERIA[2],
-      rotulo: "Punto Fit · Alegría",
+      foto: FOTO_CAFETERIA[15],
+      rotulo: "Alegría · Helados, sándwiches y más",
       titular: ["Aparta ahora,", "recoge después."],
       accion: { href: "/como-funciona", texto: "Cómo funciona" },
-      encuadre: "object-[center_40%]",
+      encuadre: "object-[center_55%]",
     },
   ];
 
   // Triple banner: tres fotos que anuncian una tienda cada una.
   const triple: Array<{ foto: Foto; slug: SlugTienda; encuadre: string }> = [
     { foto: FOTO_CAFETERIA[0], slug: "antojos", encuadre: "object-[center_40%]" },
-    { foto: FOTO_CAFETERIA[6], slug: "punto-fit", encuadre: "object-center" },
-    { foto: FOTO_CAFETERIA[10], slug: "almuerzo-01", encuadre: "object-center" },
+    { foto: FOTO_CAFETERIA[14], slug: "alegria", encuadre: "object-center" },
+    { foto: FOTO_CAFETERIA[13], slug: "almuerzo-01", encuadre: "object-center" },
   ];
 
   return (
