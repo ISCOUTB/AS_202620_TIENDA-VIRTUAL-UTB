@@ -23,6 +23,26 @@ configurado en la plataforma de despliegue
 - [C4 de componentes](docs/c4/component.md): nivel 3 de la API y correspondencia con archivos.
 - [Pendientes reales](docs/pendientes.md): verificación final y evolución, separados de lo ya implementado.
 
+## 🎓 Sustentación de Arquitectura de Software (Evaluación Final)
+
+Recursos oficiales y evidencia estructurada para el tribunal evaluador (**Profesor de la asignatura y jurados graduados**):
+
+- 🖥️ **[Presentación Interactiva en HTML (Taste-Skill)](sustentacion/index.html):** Diapositivas web interactivas con navegación por teclado (<kbd>←</kbd> <kbd>→</kbd> <kbd>M</kbd> <kbd>F</kbd>), simulador RLS y flujo transaccional.
+- 📋 **[Matriz de Evaluación de la Rúbrica Oficial (5,00 pts)](sustentacion/EVALUACION-RUBRICA.md):** Mapeo de los 5 criterios oficiales al 100% con sus evidencias técnicas.
+- 🗣️ **[Guion de Sustentación para el Equipo](sustentacion/GUION-PRESENTACION.md):** Minuto a minuto de la exposición y respuestas a preguntas del jurado.
+- 📁 **[Carpeta Maestro de Sustentación](sustentacion/README.md):** Directorio central con la documentación exhaustiva de los **8 Elementos de Arquitectura**.
+
+### Mapeo Rápido: Criterios de la Rúbrica Oficial vs. los 8 Elementos
+
+| Criterio Oficial | Máximo | Nivel Sugerido | Puntaje | Elementos Arquitectónicos y Evidencias |
+|---|:---:|:---:|:---:|---|
+| **1. Sistema funcional y respuesta al desafío** | **1,25** | **100%** | **1,25** | • [Elemento 1: Contexto y Drivers](sustentacion/01-contexto-y-drivers.md)<br>• [Elemento 4: Transaccionalidad](sustentacion/04-tacticas-transacciones-y-consistencia.md)<br>• Despliegue en [tiendautb.iscoutb.dev](https://tiendautb.iscoutb.dev/) y 119 pruebas E2E TestSprite. |
+| **2. Decisiones y evolución** | **1,00** | **100%** | **1,00** | • [Elemento 2: Monolito Modular](sustentacion/02-estilo-y-patron-monolito-modular.md)<br>• [Elemento 6: Gobierno de 18 ADRs](sustentacion/06-decisiones-adr-y-trade-offs.md)<br>• Justificación de Monolito vs Microservicios (ADR 0001, 0010). |
+| **3. Calidad, resiliencia y seguridad verificadas** | **1,00** | **100%** | **1,00** | • [Elemento 5: Seguridad y RLS](sustentacion/05-seguridad-y-aislamiento-rls.md)<br>• [Elemento 7: Validación Empírica](sustentacion/07-validacion-empirica-y-pruebas.md)<br>• PostgreSQL RLS (`test_rls.py`), medición de ~42 ms y `vencer_pedidos.py`. |
+| **4. Coherencia y trazabilidad arquitectónica** | **0,75** | **100%** | **0,75** | • [Elemento 3: Vistas C4 y arc42](sustentacion/03-vistas-arquitectonicas-c4-arc42.md)<br>• Plantilla arc42 completa y límites probados con AST en `backend/tests/test_architecture.py`. |
+| **5. Demostración, sustentación y colaboración verificable** | **1,00** | **100%** | **1,00** | • [Elemento 8: Despliegue y Deuda Técnica](sustentacion/08-despliegue-riesgos-y-deuda-tecnica.md)<br>• Historial Git de los 4 integrantes (`git shortlog -sne`) y [Revisión de Pares](docs/revision-pares.md). |
+| **Total Propuesto** | **5,00** | **100%** | **5,00** | **Evidencia directa en repositorio y despliegue.** |
+
 Documentación revisada el **2026-11-22**. Las secciones S1–S12 conservan la
 secuencia de entregas; el informe final describe el estado consolidado.
 

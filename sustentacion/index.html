@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tienda Virtual UTB — Sustentación de Arquitectura de Software</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Montserrat:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /*
+     * Sistema de Diseño: «Editorial & Vidrio UTB»
+     * Basado en SPEC v5 y tokens.css del proyecto
+     */
+    :root {
+      --azul-marca: #093ad8;
+      --azul-hover: #0730b8;
+      --azul-claro: #80c0ff;
+      --sabana-1: #0a3fe0;
+      --sabana-2: #0018c9;
+      --sabana-noche-1: #0a2fb0;
+      --sabana-noche-2: #030b45;
+      --fondo-noche: #07090e;
+      --tinta-blanca: #ffffff;
+      --tinta-tenue: #94a3b8;
+      --tinta-grafito: #e2e8f0;
+      --vidrio: rgba(255, 255, 255, 0.07);
+      --vidrio-hover: rgba(255, 255, 255, 0.12);
+      --vidrio-borde: rgba(255, 255, 255, 0.15);
+      --vidrio-foco: rgba(56, 189, 248, 0.5);
+      
+      /* Tiendas UTB */
+      --t-antojos: #ff9f0a;
+      --t-fit: #30d158;
+      --t-alegria: #ff375f;
+      --t-almuerzo-1: #0a84ff;
+      --t-almuerzo-2: #bf5af2;
+
+      --font-display: 'Montserrat', sans-serif;
+      --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
+      --font-mono: 'Fira Code', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--fondo-noche);
+      color: var(--tinta-blanca);
+      font-family: var(--font-body);
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+      -webkit-font-smoothing: antialiased;
+      position: relative;
+    }
+
+    /* Fondo ambiental con orbes de luz dinámicos */
+    .ambient-canvas {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 50%, #080d1a 0%, #04060a 100%);
+    }
+    .light-orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.55;
+      animation: floatOrb 18s ease-in-out infinite alternate;
+    }
+    .orb-1 {
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, var(--sabana-1) 0%, transparent 70%);
+      top: -150px;
+      left: -100px;
+      animation-duration: 22s;
+    }
+    .orb-2 {
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, #0284c7 0%, transparent 70%);
+      bottom: -120px;
+      right: -80px;
+      animation-duration: 26s;
+    }
+    .orb-3 {
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, #0018c9 0%, transparent 70%);
+      top: 40%;
+      left: 55%;
+      animation-duration: 19s;
+    }
+    @keyframes floatOrb {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(50px, 30px) scale(1.1); }
+      100% { transform: translate(-30px, 60px) scale(0.95); }
+    }
+
+    .progress-track {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.05);
+      z-index: 100;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 10%;
+      background: linear-gradient(90deg, #0a84ff, #38bdf8, #30d158);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Barra Superior Cápsula */
+    header.nav-capsula {
+      position: fixed;
+      top: 14px;
+      left: 2rem;
+      right: 2rem;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      border-radius: 9999px;
+      background: rgba(13, 22, 40, 0.65);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--vidrio-borde);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      z-index: 50;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.85rem;
+      text-decoration: none;
+    }
+    .logo-cube {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #0a3fe0, #0018c9);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      font-size: 0.85rem;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(10, 63, 224, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+    .brand-title {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 0.88rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #fff;
+    }
+
+    .nav-badge-pill {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      color: var(--azul-claro);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .live-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      background: rgba(48, 209, 88, 0.12);
+      border: 1px solid rgba(48, 209, 88, 0.35);
+      padding: 0.25rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.76rem;
+      font-family: var(--font-mono);
+      color: #4ade80;
+      text-decoration: none;
+      transition: all 0.2s ease;
+    }
+    .live-status:hover {
+      background: rgba(48, 209, 88, 0.22);
+      border-color: rgba(48, 209, 88, 0.6);
+      transform: translateY(-1px);
+    }
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #4ade80;
+      animation: pulseLive 1.8s infinite;
+    }
+    @keyframes pulseLive { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.85); } }
+
+    /* Escenario Principal */
+    main.deck-stage {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: calc(100vh - 80px - 70px);
+      margin-top: 80px;
+      z-index: 10;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 2.2rem 4rem;
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.98) translateY(16px);
+      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow-y: auto;
+    }
+
+    .slide.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1) translateY(0);
+    }
+
+    .slide-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--azul-claro);
+      margin-bottom: 0.5rem;
+    }
+    .slide-heading {
+      font-family: var(--font-display);
+      font-size: 2.35rem;
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.65rem;
+      background: linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .slide-lead {
+      font-size: 1.05rem;
+      color: var(--tinta-tenue);
+      max-width: 960px;
+      line-height: 1.55;
+      margin-bottom: 1.8rem;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; width: 100%; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.3rem; width: 100%; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.1rem; width: 100%; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.9rem; width: 100%; }
+
+    .card-vidrio {
+      background: var(--vidrio);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--vidrio-borde);
+      border-radius: 20px;
+      padding: 1.5rem;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .card-vidrio:hover {
+      background: var(--vidrio-hover);
+      border-color: rgba(128, 192, 255, 0.4);
+      transform: translateY(-3px);
+      box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.5);
+    }
+    .card-vidrio::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+    }
+
+    .card-title {
+      font-family: var(--font-display);
+      font-size: 0.96rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #fff;
+    }
+    .card-text {
+      font-size: 0.88rem;
+      color: var(--tinta-tenue);
+      line-height: 1.6;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .chip-azul { background: rgba(10, 132, 255, 0.15); color: #60a5fa; border: 1px solid rgba(10, 132, 255, 0.35); }
+    .chip-verde { background: rgba(48, 209, 88, 0.15); color: #4ade80; border: 1px solid rgba(48, 209, 88, 0.35); }
+    .chip-ambar { background: rgba(255, 159, 10, 0.15); color: #fbbf24; border: 1px solid rgba(255, 159, 10, 0.35); }
+    .chip-rosa { background: rgba(255, 55, 95, 0.15); color: #f43f5e; border: 1px solid rgba(255, 55, 95, 0.35); }
+    .chip-morado { background: rgba(191, 90, 242, 0.15); color: #c084fc; border: 1px solid rgba(191, 90, 242, 0.35); }
+
+    pre.code-card {
+      background: rgba(3, 7, 18, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 1.1rem 1.3rem;
+      font-family: var(--font-mono);
+      font-size: 0.81rem;
+      line-height: 1.55;
+      color: #e2e8f0;
+      overflow-x: auto;
+    }
+    .tok-kw { color: #f43f5e; font-weight: 600; }
+    .tok-fn { color: #38bdf8; }
+    .tok-str { color: #4ade80; }
+    .tok-comm { color: #64748b; font-style: italic; }
+
+    footer.deck-hud {
+      position: fixed;
+      bottom: 12px;
+      left: 2rem;
+      right: 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      border-radius: 9999px;
+      background: rgba(13, 22, 40, 0.7);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--vidrio-borde);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+      z-index: 50;
+    }
+
+    .hud-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .hud-btn {
+      background: var(--vidrio);
+      border: 1px solid var(--vidrio-borde);
+      color: #fff;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .hud-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: var(--azul-claro);
+      color: var(--azul-claro);
+      transform: scale(1.08);
+    }
+    .hud-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
+
+    .counter-tag {
+      font-family: var(--font-mono);
+      font-size: 0.85rem;
+      color: var(--tinta-tenue);
+      margin: 0 0.5rem;
+    }
+    .counter-tag span.active-num {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .key-hints {
+      display: flex;
+      align-items: center;
+      gap: 1.25rem;
+      font-size: 0.78rem;
+      color: var(--tinta-tenue);
+    }
+    kbd {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 6px;
+      padding: 0.15rem 0.45rem;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: #fff;
+    }
+
+    .sim-panel {
+      background: rgba(5, 11, 24, 0.75);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 16px;
+      padding: 1.2rem;
+      margin-top: 1rem;
+    }
+
+    /* Modal de Vista General */
+    .overview-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(4, 7, 14, 0.92);
+      backdrop-filter: blur(20px);
+      z-index: 200;
+      display: none;
+      flex-direction: column;
+      padding: 3rem 4rem;
+      overflow-y: auto;
+    }
+    .overview-backdrop.open { display: flex; }
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1.3rem;
+      margin-top: 1.5rem;
+    }
+    .overview-card {
+      background: var(--vidrio);
+      border: 1px solid var(--vidrio-borde);
+      border-radius: 16px;
+      padding: 1.4rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .overview-card:hover {
+      border-color: var(--azul-claro);
+      transform: translateY(-4px);
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .overview-card.active {
+      border-color: var(--azul-claro);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
+    }
+
+    /* Pestañas Interactivas para C4 */
+    .c4-tab-btn {
+      background: var(--vidrio);
+      border: 1px solid var(--vidrio-borde);
+      color: var(--tinta-tenue);
+      padding: 0.45rem 1rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .c4-tab-btn:hover { color: #fff; border-color: var(--azul-claro); }
+    .c4-tab-btn.active {
+      background: rgba(10, 132, 255, 0.25);
+      border-color: #0a84ff;
+      color: #fff;
+    }
+
+    @keyframes flowPulse {
+      0% { stroke-dashoffset: 40; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .pulse-line {
+      stroke-dasharray: 8, 8;
+      animation: flowPulse 2s linear infinite;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Fondo Ambiental con Orbes -->
+  <div class="ambient-canvas">
+    <div class="light-orb orb-1"></div>
+    <div class="light-orb orb-2"></div>
+    <div class="light-orb orb-3"></div>
+  </div>
+
+  <!-- Barra de Progreso Superior -->
+  <div class="progress-track">
+    <div id="progressFill" class="progress-fill"></div>
+  </div>
+
+  <!-- Barra Superior Cápsula -->
+  <header class="nav-capsula">
+    <a href="#" class="brand-logo">
+      <div class="logo-cube">U</div>
+      <div class="brand-title">Tienda Virtual UTB</div>
+    </a>
+    <div class="nav-badge-pill">
+      <span id="navSectionTitle">Sustentación de Arquitectura de Software</span>
+    </div>
+    <div>
+      <a href="https://tiendautb.iscoutb.dev/" target="_blank" class="live-status">
+        <span class="live-dot"></span>
+        <span>tiendautb.iscoutb.dev</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Escenario de Diapositivas -->
+  <main class="deck-stage">
+
+    <!-- SLIDE 0: HERO VIBRANTE (Sin tabla de rúbrica, con la esencia visual de la web) -->
+    <section class="slide active" data-index="0" data-title="Portada · Arquitectura">
+      <div class="slide-eyebrow">
+        <span>Defensa de Arquitectura</span>
+        <span>·</span>
+        <span>Universidad Tecnológica de Bolívar</span>
+      </div>
+      <h1 class="slide-heading" style="font-size: 3rem; margin-bottom: 0.8rem;">
+        Tienda Virtual UTB
+      </h1>
+      <p class="slide-lead" style="font-size: 1.2rem; max-width: 880px;">
+        Diseño, justificación y verificación de una arquitectura de software desacoplada, resiliente y transaccionalmente segura para las 5 cafeterías del campus.
+      </p>
+
+      <!-- Los 5 Puntos de Venta del Campus con sus Colores Oficiales -->
+      <div style="margin-bottom: 2rem;">
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--azul-claro); font-family: var(--font-display); font-weight: 700; margin-bottom: 0.8rem;">
+          Puntos de Venta Operando en el Sistema
+        </div>
+        <div class="grid-5">
+          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(255, 159, 10, 0.4); text-align: center;">
+            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🥟</div>
+            <div style="font-weight: 700; font-size: 0.88rem; color: #ff9f0a;">Antojos</div>
+            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Snacks y fritos</div>
+          </div>
+          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(48, 209, 88, 0.4); text-align: center;">
+            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🥗</div>
+            <div style="font-weight: 700; font-size: 0.88rem; color: #30d158;">Punto Fit</div>
+            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Saludable y batidos</div>
+          </div>
+          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(255, 55, 95, 0.4); text-align: center;">
+            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">☕</div>
+            <div style="font-weight: 700; font-size: 0.88rem; color: #ff375f;">Alegría</div>
+            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Café y repostería</div>
+          </div>
+          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(10, 132, 255, 0.4); text-align: center;">
+            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🍲</div>
+            <div style="font-weight: 700; font-size: 0.88rem; color: #60a5fa;">Almuerzo 01</div>
+            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Menú del día</div>
+          </div>
+          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(191, 90, 242, 0.4); text-align: center;">
+            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🍱</div>
+            <div style="font-weight: 700; font-size: 0.88rem; color: #c084fc;">Almuerzo 02</div>
+            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Menú ejecutivo</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Resumen de Decisiones Clave -->
+      <div class="grid-3" style="margin-bottom: 1.8rem;">
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Monolito Modular</span>
+            <span class="chip chip-azul">ADR 0001 · 0010</span>
+          </div>
+          <div class="card-text">
+            Rechazo de microservicios prematuros por la <em>Ley de Conway</em>. 4 Bounded Contexts independientes con barreras de importación protegidas por AST.
+          </div>
+        </div>
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Aislamiento RLS</span>
+            <span class="chip chip-verde">ADR 0014</span>
+          </div>
+          <div class="card-text">
+            Seguridad en profundidad con <strong>PostgreSQL Row Level Security</strong>. El motor de base de datos aísla físicamente los pedidos de cada tienda.
+          </div>
+        </div>
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Transacción ACID</span>
+            <span class="chip chip-ambar">ADR 0018</span>
+          </div>
+          <div class="card-text">
+            Reserva y descuento de existencias con bloqueo pesimista en un solo proceso. Garantía estricta de cero sobreventa bajo concurrencia.
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(10, 63, 224, 0.12); border: 1px solid rgba(128, 192, 255, 0.25); border-radius: 16px; padding: 1rem 1.6rem;">
+        <div>
+          <div style="font-weight: 700; font-size: 0.95rem; color: #fff;">Equipo: Alejandro Patron · Jasen Yukopila · Levis Ortiz · Shalom Arrieta</div>
+          <div style="font-size: 0.82rem; color: var(--tinta-tenue);">Navega con las flechas del teclado o los controles inferiores.</div>
+        </div>
+        <button onclick="deck.next()" class="hud-btn" style="width: auto; height: auto; padding: 0.6rem 1.4rem; border-radius: 9999px; font-weight: 700; gap: 0.6rem; font-size: 0.85rem;">
+          Iniciar Recorrido <kbd>→</kbd>
+        </button>
+      </div>
+    </section>
+
+    <!-- SLIDE 1: Elemento 1 · Contexto y Drivers ATAM -->
+    <section class="slide" data-index="1" data-title="1. Contexto y Árbol ATAM">
+      <div class="slide-eyebrow">Elemento 1 de 8 · Drivers Arquitectónicos</div>
+      <h2 class="slide-heading">Justificación: ¿Por qué estos 4 Atributos de Calidad?</h2>
+      <p class="slide-lead">
+        El campus no necesitaba "una página web bonita"; necesitaba resolver congestiones severas en descansos de 15 minutos con cobro físico en mostrador.
+      </p>
+
+      <div class="grid-4" style="margin-bottom: 1.5rem;">
+        <div class="card-vidrio" style="border-left: 4px solid #f43f5e;">
+          <div class="card-title">
+            <span>Seguridad (AC-01)</span>
+            <span class="chip chip-rosa">IN: H · RA: M</span>
+          </div>
+          <div class="card-text">
+            <strong>Justificación:</strong> Cada cafetería es una concesión privada independiente. Si el personal de Antojos pudiera alterar precios o stock de Punto Fit, generaría disputas comerciales graves.
+          </div>
+          <div style="margin-top: 0.8rem; font-size: 0.78rem; color: #f43f5e; font-weight: 600;">
+            ✔ 100% de operaciones fuera de rol rechazadas con 403.
+          </div>
+        </div>
+
+        <div class="card-vidrio" style="border-left: 4px solid #60a5fa;">
+          <div class="card-title">
+            <span>Usabilidad (AC-02)</span>
+            <span class="chip chip-azul">IN: H · RA: L</span>
+          </div>
+          <div class="card-text">
+            <strong>Justificación:</strong> Los estudiantes compran entre clases en menos de 3 minutos. Un flujo complejo de 8 pantallas provocaría abandono del carrito.
+          </div>
+          <div style="margin-top: 0.8rem; font-size: 0.78rem; color: #60a5fa; font-weight: 600;">
+            ✔ Máximo 4 pasos: Catálogo → Carrito → Hora → Reserva.
+          </div>
+        </div>
+
+        <div class="card-vidrio" style="border-left: 4px solid #fbbf24;">
+          <div class="card-title">
+            <span>Rendimiento (AC-03)</span>
+            <span class="chip chip-ambar">IN: H · RA: M</span>
+          </div>
+          <div class="card-text">
+            <strong>Justificación:</strong> Si un estudiante reserva la última empanada, otra persona no puede verla disponible al recargar su teléfono segundos después.
+          </div>
+          <div style="margin-top: 0.8rem; font-size: 0.78rem; color: #fbbf24; font-weight: 600;">
+            ✔ Stock reflejado en &lt; 2,0 s mediante lecturas no-store.
+          </div>
+        </div>
+
+        <div class="card-vidrio" style="border-left: 4px solid #4ade80;">
+          <div class="card-title">
+            <span>Disponibilidad (AC-04)</span>
+            <span class="chip chip-verde">IN: M · RA: M</span>
+          </div>
+          <div class="card-text">
+            <strong>Justificación:</strong> A las 12:00 m el tráfico se multiplica por 20. El catálogo no puede caerse ni responder errores 500 durante el almuerzo.
+          </div>
+          <div style="margin-top: 0.8rem; font-size: 0.78rem; color: #4ade80; font-weight: 600;">
+            ✔ 5 usuarios concurrentes atendidos en ~42 ms con 0 errores.
+          </div>
+        </div>
+      </div>
+
+      <div class="sim-panel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+          <span style="font-weight: 700; font-size: 0.9rem; color: #fff;">Tensión Arquitectónica Clave (Trade-off Fundamental)</span>
+          <span class="chip chip-morado">Seguridad vs Sobrecosto</span>
+        </div>
+        <div style="font-size: 0.85rem; color: var(--tinta-tenue); line-height: 1.5;">
+          <strong>Alternativa A:</strong> Crear 5 bases de datos PostgreSQL separadas (1 por tienda) ➔ Costo de infraestructura y mantenimiento quintuplicado.<br>
+          <strong>Solución Adoptada:</strong> 1 sola base de datos PostgreSQL 17 gobernada por <strong>Row Level Security (RLS)</strong> ➔ Mismo aislamiento absoluto con cero costo adicional.
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Elemento 2 · Estilo Monolito Modular -->
+    <section class="slide" data-index="2" data-title="2. Monolito Modular vs Microservicios">
+      <div class="slide-eyebrow">Elemento 2 de 8 · Estilo Arquitectónico</div>
+      <h2 class="slide-heading">Justificación: ¿Por qué NO Microservicios?</h2>
+      <p class="slide-lead">
+        En arquitectura de software, elegir la solución más compleja sin justificación se llama <em>sobreingeniería</em>. Demostramos por qué el Monolito Modular es la decisión correcta.
+      </p>
+
+      <div class="grid-2" style="margin-bottom: 1.5rem;">
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Microservicios Distribuidos</span>
+            <span class="chip chip-rosa">Descartado</span>
+          </div>
+          <div class="card-text" style="font-size: 0.84rem;">
+            ❌ <strong>Latencia de red:</strong> Checkout requiriendo llamadas HTTP encadenadas.<br>
+            ❌ <strong>Fallos parciales:</strong> El pedido se crea pero el inventario se cae en la red.<br>
+            ❌ <strong>Consistencia eventual:</strong> Requiere Sagas asíncronas y colas complejas.<br>
+            ❌ <strong>Sobrecarga para 4 personas:</strong> Monitorear 4 contenedores, 4 pipelines y Service Mesh.
+          </div>
+        </div>
+
+        <div class="card-vidrio" style="border-color: rgba(48, 209, 88, 0.4);">
+          <div class="card-title">
+            <span>Monolito Modular en FastAPI</span>
+            <span class="chip chip-verde">Implementado (ADR 0001 · 0010)</span>
+          </div>
+          <div class="card-text" style="font-size: 0.84rem;">
+            ✔ <strong>Llamadas en memoria:</strong> Latencia interna de checkout inferior a 1 milisegundo.<br>
+            ✔ <strong>Transaccionalidad ACID atómica:</strong> O se descuenta el stock o se revierte el pedido.<br>
+            ✔ <strong>Despliegue en 1 comando:</strong> Un solo contenedor en Dokploy.<br>
+            ✔ <strong>Preparado para evolucionar:</strong> Módulos con Bounded Contexts listos para extracción futura.
+          </div>
+        </div>
+      </div>
+
+      <div class="card-vidrio">
+        <div class="card-title">
+          <span>Barrera Automatizada: El Aislamiento se Prueba con AST</span>
+          <span class="chip chip-azul">test_architecture.py</span>
+        </div>
+        <div class="grid-2" style="margin-top: 0.6rem; align-items: center;">
+          <pre class="code-card"><code><span class="tok-comm"># backend/tests/test_architecture.py (Validación AST continua)</span>
+<span class="tok-keyword">for</span> owner <span class="tok-keyword">in</span> MODULES:
+    <span class="tok-keyword">for</span> source <span class="tok-keyword">in</span> (MODULES_ROOT / owner).rglob(<span class="tok-str">"*.py"</span>):
+        tree = ast.parse(source.read_text())
+        <span class="tok-keyword">for</span> imported, imported_names <span class="tok-keyword">in</span> _imports(tree):
+            <span class="tok-comm"># Prohíbe importar modelos privados de otros dominios:</span>
+            <span class="tok-keyword">assert</span> is_public_contract(imported), <span class="tok-str">"Violación de módulo!"</span></code></pre>
+          <div style="font-size: 0.85rem; color: var(--tinta-tenue); line-height: 1.6;">
+            Si un desarrollador comete el error de importar <code>Existencia</code> desde el router de <code>orders</code>, la prueba de AST <strong>falla en el pipeline de GitHub Actions</strong> antes de fusionar. Los límites son reglas ejecutables, no dibujos en una pizarra.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Elemento 3 · Vistas C4 Interactivas y arc42 -->
+    <section class="slide" data-index="3" data-title="3. Vistas C4 Interactivas y arc42">
+      <div class="slide-eyebrow">Elemento 3 de 8 · Representación Visual</div>
+      <h2 class="slide-heading">Vistas de Arquitectura: Explorador C4 Interactivo</h2>
+      <p class="slide-lead">
+        Explora los diagramas reales del sistema. Haz clic en las pestañas para ver el Contexto, los Contenedores en Dokploy, los Componentes de la API y las 12 secciones de arc42.
+      </p>
+
+      <!-- Selector de Pestañas C4 -->
+      <div style="display: flex; gap: 0.6rem; margin-bottom: 1rem;">
+        <button id="tabBtnC1" onclick="cambiarC4Tab('c1')" class="c4-tab-btn active">Nivel 1: Contexto</button>
+        <button id="tabBtnC2" onclick="cambiarC4Tab('c2')" class="c4-tab-btn">Nivel 2: Contenedores</button>
+        <button id="tabBtnC3" onclick="cambiarC4Tab('c3')" class="c4-tab-btn">Nivel 3: Componentes API</button>
+        <button id="tabBtnArc42" onclick="cambiarC4Tab('arc42')" class="c4-tab-btn">Estructura arc42</button>
+      </div>
+
+      <!-- Contenedor del Diagrama Interactivo -->
+      <div id="c4DisplayArea" class="sim-panel" style="min-height: 260px; padding: 1.2rem;">
+        <!-- Se inyecta por JS dinámicamente -->
+      </div>
+
+      <div id="c4Caption" style="margin-top: 0.8rem; font-size: 0.82rem; color: var(--tinta-tenue);">
+        <!-- Explicación dinámica -->
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Elemento 4 · Consistencia Transaccional y Tácticas -->
+    <section class="slide" data-index="4" data-title="4. Tácticas y Consistencia ACID">
+      <div class="slide-eyebrow">Elemento 4 de 8 · Consistencia y Resiliencia</div>
+      <h2 class="slide-heading">Táctica: Transacción ACID vs. Sobreventa</h2>
+      <p class="slide-lead">
+        Demostración interactiva: cómo el bloqueo pesimista en PostgreSQL 17 impide que dos estudiantes compren el último producto al mismo milisegundo.
+      </p>
+
+      <div class="sim-panel" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <div>
+            <div style="font-weight: 800; font-size: 1rem; color: #fff;">Simulador de Reserva Concurrente (1 unidad en stock)</div>
+            <div style="font-size: 0.8rem; color: var(--tinta-tenue);">Estudiante A y Estudiante B pulsan «Confirmar Reserva» exactamente al mismo tiempo.</div>
+          </div>
+          <button id="btnSimular" onclick="simularTransaccion()" class="hud-btn" style="width: auto; height: auto; padding: 0.5rem 1.2rem; border-radius: 9999px; font-weight: 700; gap: 0.5rem; font-size: 0.82rem;">
+            ▶ Ejecutar Simulación
+          </button>
+        </div>
+
+        <div class="grid-2" style="gap: 1.2rem;">
+          <div id="panelUserA" class="card-vidrio" style="padding: 1rem; border-color: rgba(255, 255, 255, 0.1);">
+            <div style="font-weight: 700; font-size: 0.88rem; color: #60a5fa; margin-bottom: 0.3rem;">Estudiante A (Hilo 1)</div>
+            <div id="statusA" style="font-size: 0.8rem; color: var(--tinta-tenue); font-family: var(--font-mono);">Esperando inicio...</div>
+          </div>
+          <div id="panelUserB" class="card-vidrio" style="padding: 1rem; border-color: rgba(255, 255, 255, 0.1);">
+            <div style="font-weight: 700; font-size: 0.88rem; color: #f43f5e; margin-bottom: 0.3rem;">Estudiante B (Hilo 2)</div>
+            <div id="statusB" style="font-size: 0.8rem; color: var(--tinta-tenue); font-family: var(--font-mono);">Esperando inicio...</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Sondas de Salud Desacopladas</span>
+            <span class="chip chip-verde">Liveness vs Readiness</span>
+          </div>
+          <div class="card-text">
+            • <code>/health</code>: Responde 200 inmediatamente confirmando que el proceso Python está vivo.<br>
+            • <code>/health/ready</code>: Ejecuta un <code>SELECT 1</code> real en PostgreSQL. Si la BD está caída, devuelve 503 impidiendo tráfico a un contenedor roto.
+          </div>
+        </div>
+
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Recuperación de Reservas Huérfanas</span>
+            <span class="chip chip-ambar">vencer_pedidos.py</span>
+          </div>
+          <div class="card-text">
+            Si un usuario aparta un almuerzo y nunca lo recoge, un comando programado cancela las reservas mayores a 24 horas y restituye el stock al inventario automáticamente.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: Elemento 5 · Seguridad y PostgreSQL RLS -->
+    <section class="slide" data-index="5" data-title="5. Seguridad y Aislamiento RLS">
+      <div class="slide-eyebrow">Elemento 5 de 8 · Seguridad en Profundidad</div>
+      <h2 class="slide-heading">Justificación: Aislamiento Multitienda con RLS</h2>
+      <p class="slide-lead">
+        No confiamos la seguridad exclusivamente a los filtros de Python. El motor de PostgreSQL fuerza las políticas de aislamiento a nivel de kernel de datos.
+      </p>
+
+      <div class="sim-panel" style="margin-bottom: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+          <div style="font-weight: 700; font-size: 0.95rem; color: #fff;">Simulador de Consulta bajo PostgreSQL RLS (ADR 0014)</div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button onclick="cambiarRolSimulado('antojos')" id="btnRolAntojos" class="hud-btn" style="width: auto; height: auto; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.76rem; font-weight: 700; background: rgba(255, 159, 10, 0.25); border-color: #ff9f0a;">
+              Admin Antojos (ID 1)
+            </button>
+            <button onclick="cambiarRolSimulado('puntofit')" id="btnRolFit" class="hud-btn" style="width: auto; height: auto; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.76rem; font-weight: 700;">
+              Admin Punto Fit (ID 2)
+            </button>
+            <button onclick="cambiarRolSimulado('supervisor')" id="btnRolSupervisor" class="hud-btn" style="width: auto; height: auto; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.76rem; font-weight: 700;">
+              Supervisor General (ADR 0017)
+            </button>
+          </div>
+        </div>
+
+        <div style="background: rgba(3, 7, 18, 0.85); border-radius: 12px; padding: 1rem; font-family: var(--font-mono); font-size: 0.82rem;">
+          <div style="color: #64748b; margin-bottom: 0.4rem;">-- Consulta ejecutada en la base de datos:</div>
+          <div style="color: #38bdf8; margin-bottom: 0.6rem;">SELECT id, tienda, producto, estado FROM pedidos;</div>
+          <div style="color: #4ade80; margin-bottom: 0.4rem;">-- Filas devueltas por PostgreSQL tras aplicar RLS:</div>
+          <div id="tablaSimulada" style="color: #e2e8f0; line-height: 1.6;">
+            [101] · Tienda 1 (Antojos) · Combo Empanada + Jugo · Pendiente Pago<br>
+            [102] · Tienda 1 (Antojos) · Arepa con Queso · En Preparación<br>
+            <span style="color: #94a3b8; font-style: italic;">(2 filas visibles · 3 filas de otras tiendas ocultadas por RLS)</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Política Nativa en PostgreSQL 17</span>
+            <span class="chip chip-verde">Migración Alembic 0002</span>
+          </div>
+          <pre class="code-card" style="font-size: 0.78rem;"><code><span class="tok-keyword">CREATE POLICY</span> pedidos_tienda_admin <span class="tok-keyword">ON</span> pedidos
+  <span class="tok-keyword">FOR ALL TO</span> tienda_app
+  <span class="tok-keyword">USING</span> (
+    tienda_id = <span class="tok-fn">current_setting</span>(<span class="tok-str">'app.current_store_id'</span>, <span class="tok-keyword">true</span>)::int
+    <span class="tok-keyword">OR</span> <span class="tok-fn">current_setting</span>(<span class="tok-str">'app.is_supervisor'</span>, <span class="tok-keyword">true</span>) = <span class="tok-str">'true'</span>
+  );</code></pre>
+        </div>
+
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Supervisor en Solo Lectura</span>
+            <span class="chip chip-morado">ADR 0017</span>
+          </div>
+          <div class="card-text">
+            El administrador general tiene visibilidad de las 5 cafeterías para control de colas y métricas institucionales, pero <strong>no tiene permisos de edición ni alteración de pedidos</strong> para evitar interferencias comerciales en tiendas concesionadas.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Elemento 6 · Decisiones ADR en Lenguaje Claro y Humano -->
+    <section class="slide" data-index="6" data-title="6. 18 ADRs Explicados en Claro">
+      <div class="slide-eyebrow">Elemento 6 de 8 · Decisiones y Trade-offs Reales</div>
+      <h2 class="slide-heading">Las 4 Decisiones Críticas explicadas sin rodeos</h2>
+      <p class="slide-lead">
+        Documentamos 18 ADRs en el repositorio. Cada decisión fue una elección consciente donde preferimos resolver el problema real antes que adoptar tecnologías complejas de moda.
+      </p>
+
+      <div class="grid-2" style="margin-bottom: 1.5rem;">
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Monolito en vez de Microservicios</span>
+            <span class="chip chip-azul">ADR 0001 · 0010</span>
+          </div>
+          <div class="card-text" style="font-size: 0.86rem;">
+            <strong>El dilema:</strong> Éramos cuatro personas programando para cinco cafeterías. Partir la aplicación en cuatro microservicios significaba llamadas HTTP internas que podían fallar a mitad de camino y cuatro veces más trabajo de despliegue.<br>
+            <strong>La decisión:</strong> Un monolito modular. Las funciones se llaman en memoria en milisegundos y todo corre en un solo contenedor.<br>
+            <strong>Lo que asumimos:</strong> Los módulos no se pueden escalar por separado en máquinas distintas, algo innecesario para la carga del campus.
+          </div>
+        </div>
+
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Aislamiento en Base de Datos (RLS)</span>
+            <span class="chip chip-verde">ADR 0014</span>
+          </div>
+          <div class="card-text" style="font-size: 0.86rem;">
+            <strong>El dilema:</strong> Si solo filtras tiendas con un <code>WHERE tienda_id = X</code> en Python, el día que alguien olvide esa línea en una consulta nueva, un administrador verá los pedidos de la cafetería de al lado.<br>
+            <strong>La decisión:</strong> Dejarle el filtro a PostgreSQL mediante Row Level Security. Si la sesión es de Antojos, la base de datos físicamente no devuelve filas de Punto Fit.<br>
+            <strong>Lo que asumimos:</strong> Tuvimos que configurar variables de contexto al abrir cada sesión de base de datos.
+          </div>
+        </div>
+
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Supervisor solo para mirar, no para editar</span>
+            <span class="chip chip-morado">ADR 0017</span>
+          </div>
+          <div class="card-text" style="font-size: 0.86rem;">
+            <strong>El dilema:</strong> La administración de la universidad quería un superusuario, pero cada punto de comida es un concesionario privado independiente.<br>
+            <strong>La decisión:</strong> El administrador general tiene una pantalla donde ve todas las colas y métricas, pero no tiene botones para cambiar precios ni pedidos ajenos.<br>
+            <strong>Lo que asumimos:</strong> Si una tienda comete un error en su carta, debe corregirlo su propio personal.
+          </div>
+        </div>
+
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Transacción directa en vez de colas asíncronas</span>
+            <span class="chip chip-ambar">ADR 0018</span>
+          </div>
+          <div class="card-text" style="font-size: 0.86rem;">
+            <strong>El dilema:</strong> Descontar existencias con colas tipo Kafka suena moderno, pero si dos personas piden el último almuerzo a la vez, una cola tarda segundos en procesar y permite vender dos veces lo mismo.<br>
+            <strong>La decisión:</strong> Bloqueo transaccional directo en PostgreSQL con <code>FOR UPDATE</code>. O hay existencias y se crea el pedido, o se cancela todo al instante.<br>
+            <strong>Lo que asumimos:</strong> Pedidos e inventario dependen de la misma base de datos.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7: Elemento 7 · Validación Empírica y Pruebas -->
+    <section class="slide" data-index="7" data-title="7. Medición Empírica y Pruebas">
+      <div class="slide-eyebrow">Elemento 7 de 8 · Evidencia Numérica</div>
+      <h2 class="slide-heading">Validación Empírica del Escenario 4 (AC-04)</h2>
+      <p class="slide-lead">
+        No asumimos que el sistema soporta la hora pico: medimos la concurrencia con el script automatizado <code>measure_catalog_availability.py</code>.
+      </p>
+
+      <div class="grid-3" style="margin-bottom: 1.5rem;">
+        <div class="card-vidrio" style="border-color: rgba(48, 209, 88, 0.4);">
+          <div class="card-title">
+            <span>Resultados de Concurrencia</span>
+            <span class="chip chip-verde">30/30 Cargas OK</span>
+          </div>
+          <div class="card-text">
+            • <strong>5 usuarios simultáneos</strong> (6 corridas).<br>
+            • <strong>0 errores</strong> (0 timeouts, 0 5xx).<br>
+            • Latencia promedio: <strong>32,8 ms</strong>.<br>
+            • Peor caso observado: <strong>41,78 ms</strong>.<br>
+            • Salud post-carga: <code>/health</code> en 1,12 ms.
+          </div>
+        </div>
+
+        <div class="card-vidrio" style="border-color: rgba(10, 132, 255, 0.4);">
+          <div class="card-title">
+            <span>119 Pruebas E2E (TestSprite)</span>
+            <span class="chip chip-azul">testsprite_tests/</span>
+          </div>
+          <div class="card-text">
+            • TC001–TC080: Flujos completos de compra.<br>
+            • TC015: Admin solo gestiona su local.<br>
+            • TC029: El inventario nunca baja de cero.<br>
+            • TC038: Bloqueo de compradores a /admin.
+          </div>
+        </div>
+
+        <div class="card-vidrio" style="border-color: rgba(191, 90, 242, 0.4);">
+          <div class="card-title">
+            <span>Contratos OpenAPI 3.1</span>
+            <span class="chip chip-morado">test_openapi.py</span>
+          </div>
+          <div class="card-text">
+            • Contrato exportado en <code>openapi.json</code>.<br>
+            • Validación estricta de esquemas en CI.<br>
+            • Sincronización entre Pydantic y TypeScript.
+          </div>
+        </div>
+      </div>
+
+      <div class="sim-panel" style="padding: 1.2rem;">
+        <div style="font-weight: 700; font-size: 0.88rem; color: #fff; margin-bottom: 0.8rem;">
+          Latencia Observada en las 6 Corridas del Escenario 4 (Umbral: Cero Errores)
+        </div>
+        <div style="display: flex; align-items: flex-end; gap: 1.5rem; height: 120px; padding: 0 1rem; border-bottom: 1px solid var(--vidrio-borde);">
+          <div style="flex: 1; text-align: center;">
+            <div style="height: 85px; background: linear-gradient(180deg, #38bdf8, #0a84ff); border-radius: 6px 6px 0 0;"></div>
+            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C1: 41,7 ms</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="height: 68px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
+            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C2: 33,8 ms</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="height: 68px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
+            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C3: 33,8 ms</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="height: 60px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
+            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C4: 30,6 ms</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="height: 72px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
+            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C5: 35,3 ms</div>
+          </div>
+          <div style="flex: 1; text-align: center;">
+            <div style="height: 64px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
+            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C6: 31,9 ms</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: Elemento 8 · Despliegue, Deuda Técnica y Colaboración por Áreas -->
+    <section class="slide" data-index="8" data-title="8. Despliegue y Equipo">
+      <div class="slide-eyebrow">Elemento 8 de 8 · Operatividad y Trabajo en Equipo</div>
+      <h2 class="slide-heading">Despliegue Dokploy y Organización del Equipo</h2>
+      <p class="slide-lead">
+        El sistema está en producción institucional y el trabajo se dividió por áreas técnicas especializadas entre los cuatro integrantes.
+      </p>
+
+      <div class="grid-2" style="margin-bottom: 1.5rem;">
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Producción en Dokploy</span>
+            <span class="chip chip-verde">tiendautb.iscoutb.dev</span>
+          </div>
+          <div class="card-text">
+            • <strong>Dominio Institucional:</strong> TLS wildcard renovado con Let's Encrypt.<br>
+            • <strong>Compose Declarativo:</strong> <code>deploy/compose.lab.yaml</code> orquestando Next.js, FastAPI y Postgres 17.<br>
+            • <strong>Red Aislada:</strong> La BD no expone puertos a Internet.<br>
+            • <strong>Secretos Seguros:</strong> Variables inyectadas en Dokploy sin contraseñas en Git.
+          </div>
+        </div>
+
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>Radar de Deuda Técnica (arc42 §11)</span>
+            <span class="chip chip-ambar">Gestión Madura</span>
+          </div>
+          <div class="card-text">
+            • <strong style="color: #4ade80;">Resuelto:</strong> Migraciones con Alembic (ADR 0013) y políticas RLS.<br>
+            • <strong style="color: #fbbf24;">Asumido:</strong> Host único de Dokploy (si el servidor físico cae, todo se detiene; adecuado para escala de campus).<br>
+            • <strong style="color: #f43f5e;">Pendiente:</strong> Endpoint de borrado formal de datos personales (hábeas data).
+          </div>
+        </div>
+      </div>
+
+      <!-- Organización del Equipo por Secciones/Áreas (Sin conteo de commits) -->
+      <div class="card-vidrio">
+        <div class="card-title">Áreas de Trabajo y Aporte Técnico por Integrante</div>
+        <div class="grid-4" style="margin-top: 0.6rem;">
+          <div style="background: rgba(255,255,255,0.04); padding: 1rem; border-radius: 14px; border: 1px solid rgba(10, 132, 255, 0.3);">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #60a5fa; margin-bottom: 0.3rem;">Alejandro Patron</div>
+            <div style="font-size: 0.78rem; color: var(--tinta-tenue); line-height: 1.5;">
+              • Backend: Módulo de Identidad y seguridad.<br>
+              • Implementación de RLS en PostgreSQL.<br>
+              • Despliegue en Dokploy y contratos OpenAPI.
+            </div>
+          </div>
+          <div style="background: rgba(255,255,255,0.04); padding: 1rem; border-radius: 14px; border: 1px solid rgba(48, 209, 88, 0.3);">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #4ade80; margin-bottom: 0.3rem;">Jasen Yukopila</div>
+            <div style="font-size: 0.78rem; color: var(--tinta-tenue); line-height: 1.5;">
+              • Frontend: Arquitectura Next.js y SSR.<br>
+              • Sistema de diseño, tokens y vidrio.<br>
+              • Flujo interactivo del carrito y pase.
+            </div>
+          </div>
+          <div style="background: rgba(255,255,255,0.04); padding: 1rem; border-radius: 14px; border: 1px solid rgba(255, 159, 10, 0.3);">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #fbbf24; margin-bottom: 0.3rem;">Levis Ortiz</div>
+            <div style="font-size: 0.78rem; color: var(--tinta-tenue); line-height: 1.5;">
+              • Backend: Módulo de Pedidos y estados.<br>
+              • Panel de administración de colas en mostrador.<br>
+              • Documentación de cierre y trazabilidad.
+            </div>
+          </div>
+          <div style="background: rgba(255,255,255,0.04); padding: 1rem; border-radius: 14px; border: 1px solid rgba(191, 90, 242, 0.3);">
+            <div style="font-weight: 800; font-size: 0.95rem; color: #c084fc; margin-bottom: 0.3rem;">Shalom Arrieta</div>
+            <div style="font-size: 0.78rem; color: var(--tinta-tenue); line-height: 1.5;">
+              • Frontend: Componentes de UI y vitrinas.<br>
+              • Pruebas automatizadas y consistencia.<br>
+              • Auditoría de revisión arquitectónica de pares.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: Cierre y Preguntas Difíciles del Jurado -->
+    <section class="slide" data-index="9" data-title="Tribunal · Preguntas Clave">
+      <div class="slide-eyebrow">Sesión de Defensa · Tribunal Evaluador</div>
+      <h2 class="slide-heading">Preparados para las Preguntas del Jurado</h2>
+      <p class="slide-lead">
+        Respuestas técnicas y concisas a las preguntas conceptuales que formularán los jurados graduados.
+      </p>
+
+      <div class="grid-2">
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>"¿Por qué no usaron Microservicios?"</span>
+            <span class="chip chip-azul">Jurado #1</span>
+          </div>
+          <div class="card-text">
+            <strong>Respuesta:</strong> Por la <em>Ley de Conway</em>. Para 4 desarrolladores y 5 locales de cafetería, un monolito modular con contratos <code>public.py</code> y validación AST nos da la misma modularidad lógica sin latencia de red, sin 2-Phase Commit y con una sola base de datos PostgreSQL.
+          </div>
+        </div>
+
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>"¿Cómo evitan la sobreventa bajo concurrencia?"</span>
+            <span class="chip chip-verde">Jurado #2</span>
+          </div>
+          <div class="card-text">
+            <strong>Respuesta:</strong> Con el ADR 0018: Pedidos e Inventario comparten la misma transacción ACID en PostgreSQL con bloqueo pesimista en existencias (<code>FOR UPDATE</code>). Si no hay stock, se revierte toda la operación inmediatamente en memoria.
+          </div>
+        </div>
+
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>"¿Cómo garantizan que un admin no vea otra tienda?"</span>
+            <span class="chip chip-ambar">Jurado #3</span>
+          </div>
+          <div class="card-text">
+            <strong>Respuesta:</strong> Con el ADR 0014: no confiamos solo en la capa web. Configuramos Row Level Security (RLS) en PostgreSQL con el rol <code>tienda_app</code> y <code>SET LOCAL app.current_store_id</code>. Cualquier intento de consulta sin ese filtro es rechazado por el propio motor.
+          </div>
+        </div>
+
+        <div class="card-vidrio">
+          <div class="card-title">
+            <span>"¿Dónde está la medición del Atributo de Calidad?"</span>
+            <span class="chip chip-morado">Jurado #4 y #5</span>
+          </div>
+          <div class="card-text">
+            <strong>Respuesta:</strong> En <code>docs/medicion-escenario-4.md</code> y el script <code>backend/scripts/measure_catalog_availability.py</code>. Medimos 5 usuarios concurrentes en 6 corridas: 30 de 30 cargas completadas con 0 errores y latencia de ~42 ms.
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- HUD Inferior Flotante -->
+  <footer class="deck-hud">
+    <div class="hud-controls">
+      <button id="prevBtn" class="hud-btn" onclick="deck.prev()" title="Anterior (Flecha Izquierda)">←</button>
+      <div class="counter-tag">
+        <span id="currentNum" class="active-num">01</span> / <span id="totalNum">10</span>
+      </div>
+      <button id="nextBtn" class="hud-btn" onclick="deck.next()" title="Siguiente (Flecha Derecha o Espacio)">→</button>
+      <button class="hud-btn" onclick="deck.toggleOverview()" title="Mapa de diapositivas (Tecla M)">☰</button>
+      <button class="hud-btn" onclick="deck.toggleFullscreen()" title="Pantalla completa (Tecla F)">⛶</button>
+    </div>
+
+    <div class="key-hints">
+      <span>Navegar: <kbd>←</kbd> <kbd>→</kbd> <kbd>Espacio</kbd></span>
+      <span>Índice: <kbd>M</kbd></span>
+      <span>Pantalla completa: <kbd>F</kbd></span>
+      <span>Sección: <kbd>1</kbd>–<kbd>9</kbd></span>
+    </div>
+
+    <div>
+      <a href="https://github.com/ISCOUTB/AS_202620_TIENDA-VIRTUAL-UTB" target="_blank" style="color: var(--tinta-tenue); text-decoration: none; font-size: 0.8rem; font-family: var(--font-mono); display: flex; align-items: center; gap: 0.4rem;">
+        <span>GitHub</span> ↗
+      </a>
+    </div>
+  </footer>
+
+  <!-- Modal de Vista General -->
+  <div id="overviewModal" class="overview-backdrop" onclick="if(event.target === this) deck.toggleOverview()">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h2 style="font-family: var(--font-display); font-size: 1.6rem; font-weight: 800;">Mapa de Sustentación</h2>
+        <p style="font-size: 0.85rem; color: var(--tinta-tenue);">Haz clic en cualquier sección para saltar directamente.</p>
+      </div>
+      <button class="hud-btn" onclick="deck.toggleOverview()">✕</button>
+    </div>
+    <div id="overviewGrid" class="overview-grid"></div>
+  </div>
+
+  <script>
+    class PresentationDeck {
+      constructor() {
+        this.slides = document.querySelectorAll('.slide');
+        this.currentIndex = 0;
+        this.total = this.slides.length;
+        this.progressFill = document.getElementById('progressFill');
+        this.currentNum = document.getElementById('currentNum');
+        this.totalNum = document.getElementById('totalNum');
+        this.navSectionTitle = document.getElementById('navSectionTitle');
+        this.prevBtn = document.getElementById('prevBtn');
+        this.nextBtn = document.getElementById('nextBtn');
+        this.overviewModal = document.getElementById('overviewModal');
+        this.overviewGrid = document.getElementById('overviewGrid');
+
+        this.init();
+      }
+
+      init() {
+        this.totalNum.textContent = String(this.total).padStart(2, '0');
+        this.renderOverview();
+        this.bindShortcuts();
+        this.updateState();
+        cambiarC4Tab('c1'); // Inicializar C4 Nivel 1
+      }
+
+      goTo(index) {
+        if (index < 0 || index >= this.total) return;
+        this.slides[this.currentIndex].classList.remove('active');
+        this.currentIndex = index;
+        this.slides[this.currentIndex].classList.add('active');
+        this.updateState();
+        if (this.overviewModal.classList.contains('open')) {
+          this.toggleOverview();
+        }
+      }
+
+      next() { if (this.currentIndex < this.total - 1) this.goTo(this.currentIndex + 1); }
+      prev() { if (this.currentIndex > 0) this.goTo(this.currentIndex - 1); }
+
+      updateState() {
+        const slide = this.slides[this.currentIndex];
+        const title = slide.getAttribute('data-title') || 'Sustentación';
+        this.navSectionTitle.textContent = title;
+        this.currentNum.textContent = String(this.currentIndex + 1).padStart(2, '0');
+
+        const pct = ((this.currentIndex + 1) / this.total) * 100;
+        this.progressFill.style.width = pct + '%';
+
+        this.prevBtn.disabled = this.currentIndex === 0;
+        this.nextBtn.disabled = this.currentIndex === this.total - 1;
+
+        document.querySelectorAll('.overview-card').forEach((card, idx) => {
+          if (idx === this.currentIndex) card.classList.add('active');
+          else card.classList.remove('active');
+        });
+      }
+
+      renderOverview() {
+        this.overviewGrid.innerHTML = '';
+        this.slides.forEach((slide, idx) => {
+          const title = slide.getAttribute('data-title') || `Sección ${idx + 1}`;
+          const card = document.createElement('div');
+          card.className = `overview-card ${idx === this.currentIndex ? 'active' : ''}`;
+          card.innerHTML = `
+            <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--azul-claro); margin-bottom: 0.4rem;">DIAPOSITIVA ${String(idx).padStart(2, '0')}</div>
+            <div style="font-weight: 700; font-size: 0.95rem; line-height: 1.3;">${title}</div>
+          `;
+          card.onclick = () => this.goTo(idx);
+          this.overviewGrid.appendChild(card);
+        });
+      }
+
+      toggleOverview() {
+        this.overviewModal.classList.toggle('open');
+      }
+
+      toggleFullscreen() {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          if (document.exitFullscreen) document.exitFullscreen().catch(() => {});
+        }
+      }
+
+      bindShortcuts() {
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape' && this.overviewModal.classList.contains('open')) {
+            this.toggleOverview();
+            return;
+          }
+          if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+            e.preventDefault();
+            this.next();
+          } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+            e.preventDefault();
+            this.prev();
+          } else if (e.key.toLowerCase() === 'm') {
+            this.toggleOverview();
+          } else if (e.key.toLowerCase() === 'f') {
+            this.toggleFullscreen();
+          } else if (e.key >= '0' && e.key <= '9') {
+            const num = parseInt(e.key, 10);
+            if (num < this.total) this.goTo(num);
+          }
+        });
+      }
+    }
+
+    // Funciones del Explorador C4 Interactivo
+    function cambiarC4Tab(tab) {
+      const area = document.getElementById('c4DisplayArea');
+      const caption = document.getElementById('c4Caption');
+      
+      document.querySelectorAll('.c4-tab-btn').forEach(btn => btn.classList.remove('active'));
+
+      if (tab === 'c1') {
+        document.getElementById('tabBtnC1').classList.add('active');
+        caption.innerHTML = '<strong>C4 Nivel 1 (Contexto):</strong> Muestra los actores del campus (Comprador, Administrador de Tienda, Responsable de Inventario, Supervisor) interactuando con la Tienda Virtual UTB. Sin pasarelas externas ni SSO institucional en alcance.';
+        area.innerHTML = `
+          <div style="display: flex; justify-content: space-around; align-items: center; gap: 1rem; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; gap: 0.6rem;">
+              <div style="background: rgba(255,255,255,0.06); border: 1px solid #38bdf8; border-radius: 12px; padding: 0.6rem 1rem; text-align: center; width: 180px;">
+                <div style="font-weight: 700; color: #38bdf8; font-size: 0.82rem;">👤 Comprador</div>
+                <div style="font-size: 0.72rem; color: #94a3b8;">Estudiante / Docente</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.06); border: 1px solid #4ade80; border-radius: 12px; padding: 0.6rem 1rem; text-align: center; width: 180px;">
+                <div style="font-weight: 700; color: #4ade80; font-size: 0.82rem;">👤 Admin Tienda</div>
+                <div style="font-size: 0.72rem; color: #94a3b8;">1 por tienda física</div>
+              </div>
+              <div style="background: rgba(255,255,255,0.06); border: 1px solid #c084fc; border-radius: 12px; padding: 0.6rem 1rem; text-align: center; width: 180px;">
+                <div style="font-weight: 700; color: #c084fc; font-size: 0.82rem;">👤 Supervisor</div>
+                <div style="font-size: 0.72rem; color: #94a3b8;">Solo lectura global</div>
+              </div>
+            </div>
+            
+            <div style="font-size: 1.5rem; color: #38bdf8;">➔</div>
+
+            <div style="background: rgba(10, 63, 224, 0.25); border: 2px solid #0a84ff; border-radius: 20px; padding: 1.8rem 2.2rem; text-align: center; width: 340px; box-shadow: 0 0 24px rgba(10, 132, 255, 0.3);">
+              <div style="font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; color: #fff; margin-bottom: 0.4rem;">Tienda Virtual UTB</div>
+              <div style="font-size: 0.8rem; color: #94a3b8; line-height: 1.4;">Sistema de comercio electrónico para reservar y gestionar productos en 5 cafeterías del campus.</div>
+              <div style="margin-top: 0.8rem; display: flex; justify-content: center; gap: 0.4rem;">
+                <span class="chip chip-azul" style="font-size: 0.68rem;">docs/c4/context.md</span>
+              </div>
+            </div>
+          </div>
+        `;
+      } else if (tab === 'c2') {
+        document.getElementById('tabBtnC2').classList.add('active');
+        caption.innerHTML = '<strong>C4 Nivel 2 (Contenedores):</strong> Describe las tres piezas desplegadas en Dokploy: Cliente Web en Next.js 15 SSR, Backend en FastAPI modular y PostgreSQL 17 relacional en red aislada.';
+        area.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 1rem;">
+            <div style="background: rgba(10, 132, 255, 0.15); border: 1px solid #0a84ff; border-radius: 14px; padding: 1rem; flex: 1; text-align: center;">
+              <div style="font-weight: 800; font-size: 0.9rem; color: #60a5fa;">Frontend (Next.js 15)</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; margin: 0.4rem 0;">Catálogo SSR, carrito, panel /admin y proxy interno /api/proxy</div>
+              <span class="chip chip-azul" style="font-size: 0.68rem;">Puerto 3000</span>
+            </div>
+
+            <div style="color: #38bdf8; font-weight: 700; font-size: 1.2rem;">➔</div>
+
+            <div style="background: rgba(48, 209, 88, 0.15); border: 1px solid #4ade80; border-radius: 14px; padding: 1rem; flex: 1; text-align: center;">
+              <div style="font-weight: 800; font-size: 0.9rem; color: #4ade80;">API (FastAPI Monolito)</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; margin: 0.4rem 0;">identity, catalog, inventory, orders y observabilidad en JSON</div>
+              <span class="chip chip-verde" style="font-size: 0.68rem;">Puerto 8000</span>
+            </div>
+
+            <div style="color: #4ade80; font-weight: 700; font-size: 1.2rem;">➔</div>
+
+            <div style="background: rgba(255, 159, 10, 0.15); border: 1px solid #ff9f0a; border-radius: 14px; padding: 1rem; flex: 1; text-align: center;">
+              <div style="font-weight: 800; font-size: 0.9rem; color: #fbbf24;">Base de Datos (Postgres 17)</div>
+              <div style="font-size: 0.75rem; color: #94a3b8; margin: 0.4rem 0;">Alembic migraciones, rol tienda_app y políticas RLS activas</div>
+              <span class="chip chip-ambar" style="font-size: 0.68rem;">Red Docker Interna</span>
+            </div>
+          </div>
+        `;
+      } else if (tab === 'c3') {
+        document.getElementById('tabBtnC3').classList.add('active');
+        caption.innerHTML = '<strong>C4 Nivel 3 (Componentes API):</strong> Módulos dentro del mismo proceso Python que se comunican exclusivamente mediante contratos públicos <code>*.public</code>, validados por AST en <code>test_architecture.py</code>.';
+        area.innerHTML = `
+          <div class="grid-4" style="gap: 0.8rem;">
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--vidrio-borde); border-radius: 12px; padding: 0.8rem;">
+              <div style="font-weight: 700; color: #60a5fa; font-size: 0.85rem;">identity/</div>
+              <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 0.2rem;">Login, JWT, perfil y roles por tienda. Expone <code>identity.public</code>.</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--vidrio-borde); border-radius: 12px; padding: 0.8rem;">
+              <div style="font-weight: 700; color: #4ade80; font-size: 0.85rem;">catalog/</div>
+              <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 0.2rem;">Tiendas, productos y precios. Expone <code>catalog.public</code>.</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--vidrio-borde); border-radius: 12px; padding: 0.8rem;">
+              <div style="font-weight: 700; color: #fbbf24; font-size: 0.85rem;">inventory/</div>
+              <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 0.2rem;">Existencias, bloqueos y kardex. Expone <code>inventory.public</code>.</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid var(--vidrio-borde); border-radius: 12px; padding: 0.8rem;">
+              <div style="font-weight: 700; color: #c084fc; font-size: 0.85rem;">orders/</div>
+              <div style="font-size: 0.73rem; color: #94a3b8; margin-top: 0.2rem;">Checkout transaccional, estados y cola de atención.</div>
+            </div>
+          </div>
+          <div style="margin-top: 0.8rem; background: rgba(5,8,14,0.7); border-radius: 10px; padding: 0.7rem 1rem; font-family: var(--font-mono); font-size: 0.76rem; color: #e2e8f0;">
+            orders/service.py ➔ invoca <strong>inventory.public.descontar_existencias()</strong> en la misma transacción de BD.
+          </div>
+        `;
+      } else if (tab === 'arc42') {
+        document.getElementById('tabBtnArc42').classList.add('active');
+        caption.innerHTML = '<strong>Estructura arc42 (12 Secciones):</strong> El repositorio documenta formalmente la arquitectura completa en <code>docs/arc42/arc42-template-EN.md</code> y <code>docs/arc42/11-riesgos-y-deuda-tecnica.md</code>.';
+        area.innerHTML = `
+          <div class="grid-3" style="gap: 0.6rem; font-size: 0.78rem;">
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§1. Introducción y Metas</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§2. Restricciones</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§3. Contexto y Alcance</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§4. Estrategia de Solución</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§5. Vista de Bloques</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§6. Vista de Ejecución</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§7. Vista de Despliegue</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§8. Conceptos Transversales</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§9. Decisiones (ADRs)</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§10. Calidad (ATAM)</div>
+            <div style="background: rgba(10,132,255,0.15); padding: 0.6rem 0.8rem; border-radius: 8px; font-weight: 700; color: #60a5fa;">§11. Riesgos y Deuda</div>
+            <div style="background: rgba(255,255,255,0.04); padding: 0.6rem 0.8rem; border-radius: 8px;">§12. Glosario</div>
+          </div>
+        `;
+      }
+    }
+
+    // Simulaciones Interactivas
+    function simularTransaccion() {
+      const statusA = document.getElementById('statusA');
+      const statusB = document.getElementById('statusB');
+      const btn = document.getElementById('btnSimular');
+      btn.disabled = true;
+
+      statusA.innerHTML = '<span style="color: #38bdf8;">Ejecutando SELECT ... FOR UPDATE en existencia...</span>';
+      statusB.innerHTML = '<span style="color: #fbbf24;">En cola de espera de lock en PostgreSQL...</span>';
+
+      setTimeout(() => {
+        statusA.innerHTML = '<span style="color: #4ade80;">✔ Lock adquirido ➔ Stock descontado de 1 a 0 ➔ COMMIT OK (201 Created)</span>';
+        statusB.innerHTML = '<span style="color: #38bdf8;">Lock adquirido ➔ Comprobando existencia: cantidad = 0...</span>';
+        
+        setTimeout(() => {
+          statusB.innerHTML = '<span style="color: #f43f5e;">✖ Error: StockInsuficienteError ➔ ROLLBACK automático ➔ (409 Conflict)</span>';
+          btn.disabled = false;
+        }, 900);
+      }, 800);
+    }
+
+    function cambiarRolSimulado(rol) {
+      const tabla = document.getElementById('tablaSimulada');
+      const bAntojos = document.getElementById('btnRolAntojos');
+      const bFit = document.getElementById('btnRolFit');
+      const bSupervisor = document.getElementById('btnRolSupervisor');
+
+      bAntojos.style.background = 'var(--vidrio)';
+      bAntojos.style.borderColor = 'var(--vidrio-borde)';
+      bFit.style.background = 'var(--vidrio)';
+      bFit.style.borderColor = 'var(--vidrio-borde)';
+      bSupervisor.style.background = 'var(--vidrio)';
+      bSupervisor.style.borderColor = 'var(--vidrio-borde)';
+
+      if (rol === 'antojos') {
+        bAntojos.style.background = 'rgba(255, 159, 10, 0.25)';
+        bAntojos.style.borderColor = '#ff9f0a';
+        tabla.innerHTML = `
+          [101] · Tienda 1 (Antojos) · Combo Empanada + Jugo · Pendiente Pago<br>
+          [102] · Tienda 1 (Antojos) · Arepa con Queso · En Preparación<br>
+          <span style="color: #94a3b8; font-style: italic;">(2 filas visibles · 3 filas de otras tiendas bloqueadas por RLS)</span>
+        `;
+      } else if (rol === 'puntofit') {
+        bFit.style.background = 'rgba(48, 209, 88, 0.25)';
+        bFit.style.borderColor = '#30d158';
+        tabla.innerHTML = `
+          [103] · Tienda 2 (Punto Fit) · Bowl de Frutas Silvestres · Pagado<br>
+          [104] · Tienda 2 (Punto Fit) · Batido Verde Detox · Listo<br>
+          <span style="color: #94a3b8; font-style: italic;">(2 filas visibles · 3 filas de otras tiendas bloqueadas por RLS)</span>
+        `;
+      } else if (rol === 'supervisor') {
+        bSupervisor.style.background = 'rgba(191, 90, 242, 0.25)';
+        bSupervisor.style.borderColor = '#bf5af2';
+        tabla.innerHTML = `
+          [101] · Tienda 1 (Antojos) · Combo Empanada · Pendiente<br>
+          [102] · Tienda 1 (Antojos) · Arepa con Queso · En Preparación<br>
+          [103] · Tienda 2 (Punto Fit) · Bowl de Frutas · Pagado<br>
+          [104] · Tienda 2 (Punto Fit) · Batido Detox · Listo<br>
+          [105] · Tienda 3 (Alegría) · Capuchino Vainilla · Entregado<br>
+          <span style="color: #c084fc; font-style: italic;">(5 filas visibles · Modo Supervisión activo: Solo Lectura, controles de edición deshabilitados)</span>
+        `;
+      }
+    }
+
+    const deck = new PresentationDeck();
+  </script>
+</body>
+</html>
