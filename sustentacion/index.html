@@ -1,503 +1,241 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tienda Virtual UTB — Sustentación de Arquitectura de Software</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Montserrat:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    /*
-     * Sistema de Diseño: «Editorial & Vidrio UTB»
-     * Basado en SPEC v5 y tokens.css del proyecto
-     */
     :root {
-      --azul-marca: #093ad8;
-      --azul-hover: #0730b8;
-      --azul-claro: #80c0ff;
-      --sabana-1: #0a3fe0;
-      --sabana-2: #0018c9;
-      --sabana-noche-1: #0a2fb0;
-      --sabana-noche-2: #030b45;
-      --fondo-noche: #07090e;
-      --tinta-blanca: #ffffff;
-      --tinta-tenue: #94a3b8;
-      --tinta-grafito: #e2e8f0;
-      --vidrio: rgba(255, 255, 255, 0.07);
-      --vidrio-hover: rgba(255, 255, 255, 0.12);
-      --vidrio-borde: rgba(255, 255, 255, 0.15);
-      --vidrio-foco: rgba(56, 189, 248, 0.5);
-      
-      /* Tiendas UTB */
-      --t-antojos: #ff9f0a;
-      --t-fit: #30d158;
-      --t-alegria: #ff375f;
-      --t-almuerzo-1: #0a84ff;
-      --t-almuerzo-2: #bf5af2;
-
-      --font-display: 'Montserrat', sans-serif;
-      --font-body: 'Plus Jakarta Sans', system-ui, sans-serif;
-      --font-mono: 'Fira Code', monospace;
+      color-scheme: dark;
+      --bg: #080a0e; --fg: #f5f7fb; --muted: #c0c6d1; --soft: #9aa4b2;
+      --line: #39414d; --accent: #b4c7ff; --green: #b4d7bd; --surface:#11161e; --code:#cbd5e1;
+      --deck-top:72px; --deck-bottom:66px;
+      --font-display: 'Manrope', sans-serif; --font-body: 'Manrope', sans-serif;
+      --font-mono: 'DM Mono', monospace;
+      --fondo-noche: var(--bg); --tinta-blanca: var(--fg); --tinta-grafito: var(--fg);
+      --tinta-tenue: var(--muted); --azul-claro: var(--accent); --azul-marca: var(--accent);
+      --vidrio: transparent; --vidrio-borde: var(--line);
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      background-color: var(--fondo-noche);
-      color: var(--tinta-blanca);
-      font-family: var(--font-body);
-      height: 100vh;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      user-select: none;
-      -webkit-font-smoothing: antialiased;
-      position: relative;
+    body[data-theme="light"] {
+      color-scheme: light;
+      --bg:#f5f7fa; --fg:#142033; --muted:#35445a; --soft:#56657a;
+      --line:#c6cfdb; --accent:#234f9b; --green:#28613e; --surface:#e8edf4; --code:#26364b;
+      --fondo-noche:var(--bg); --tinta-blanca:var(--fg); --tinta-grafito:var(--fg);
+      --tinta-tenue:var(--muted); --azul-claro:var(--accent); --azul-marca:var(--accent);
+      --vidrio:transparent; --vidrio-borde:var(--line);
     }
-
-    /* Fondo ambiental con orbes de luz dinámicos */
-    .ambient-canvas {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      overflow: hidden;
-      background: radial-gradient(circle at 50% 50%, #080d1a 0%, #04060a 100%);
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height:100%; background: var(--bg) !important; color: var(--fg) !important; }
+    body { overflow:hidden; font-family: var(--font-body); user-select: text; }
+    .ambient-canvas, .light-orb { display: none !important; }
+    .progress-track { position: fixed; inset: 0 0 auto; z-index: 30; height: 2px; background: var(--line); }
+    .progress-fill { height: 100%; background: var(--accent); box-shadow: none; transition: width .25s ease; }
+    .nav-capsula { position: fixed; z-index: 20; inset: 18px 4vw auto; height: 36px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: 0 !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; }
+    .brand-logo { display: flex; gap: .65rem; align-items: center; color: var(--fg); text-decoration: none; }
+    .logo-cube { display: grid; place-items: center; width: 25px; height: 25px; background: transparent !important; border: 1px solid var(--line) !important; border-radius: 50% !important; color: var(--accent); box-shadow: none !important; }
+    .brand-title { font-size: .84rem; font-weight: 600; letter-spacing: .01em; color: var(--fg); }
+    .nav-badge-pill, .live-status { padding: 0 !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; color: var(--muted); font: 500 .76rem var(--font-mono); }
+    .live-status { text-decoration: none; } .live-dot { display: none; }
+    .theme-toggle { display:flex; align-items:center; gap:.45rem; padding:.45rem .7rem !important; border:1px solid var(--line) !important; color:var(--fg) !important; font-size:.72rem !important; white-space:nowrap; }
+    .deck-stage { width:100%; height:100svh; padding: var(--deck-top) 8vw var(--deck-bottom); overflow:hidden; }
+    .slide { display: none; width:100%; max-width:1120px; min-height:calc(100svh - var(--deck-top) - var(--deck-bottom)); margin:0 auto; padding:.45rem 0; animation: appear .35s ease both; }
+    .slide.active { display: flex; flex-direction: column; justify-content: center; overflow:hidden; }
+    @keyframes appear { from { opacity: .3; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+    .slide-eyebrow { margin: 0 0 .55rem; color: var(--accent) !important; font: 500 .78rem var(--font-mono); letter-spacing: .11em; text-transform: uppercase; }
+    .slide-heading { max-width: 980px; margin: 0 0 .55rem !important; color: var(--fg) !important; font: 600 clamp(2.1rem, 5vw, 4.25rem)/1.04 var(--font-display) !important; letter-spacing: -.055em; }
+    .slide-lead { max-width: 820px; margin: 0 0 1rem !important; color: var(--muted) !important; font: 400 clamp(1.05rem, 1.7vw, 1.25rem)/1.55 var(--font-body) !important; }
+    .slide :is(.card-vidrio, .sim-panel, .card-title, .card-text) { background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; backdrop-filter: none !important; }
+    .card-vidrio, .sim-panel { padding: .8rem 0 !important; color: var(--fg); }
+    .card-vidrio { border-top: 1px solid var(--line) !important; }
+    .card-title { display: flex; justify-content: space-between; gap: .8rem; align-items: baseline; margin-bottom: .45rem; padding: 0 !important; color: var(--fg); font-size: .92rem; font-weight: 600; }
+    .card-text { padding: 0 !important; color: var(--muted); font-size: .94rem; line-height: 1.7; }
+    .card-text strong, .slide strong { color: var(--fg); }
+    .slide :is(.chip, .nav-badge-pill, .live-status) { background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; color: var(--soft) !important; font: 500 .64rem var(--font-mono); padding: 0 !important; }
+    .grid-2, .grid-3, .grid-4, .grid-5 { display: grid; gap: 1rem 2rem; }
+    .grid-2 { grid-template-columns: repeat(2, minmax(0,1fr)); } .grid-3 { grid-template-columns: repeat(3,minmax(0,1fr)); }
+    .grid-4 { grid-template-columns: repeat(4,minmax(0,1fr)); } .grid-5 { grid-template-columns: repeat(5,minmax(0,1fr)); }
+    .quality-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 0 3rem; margin: .3rem 0 2rem; }
+    .quality-item { display: grid; grid-template-columns: 150px 1fr; gap: 1rem; padding: 1rem 0; border-top: 1px solid var(--line); }
+    .compact-quality { grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 2rem; margin:.4rem 0; }
+    .compact-quality .quality-item { grid-template-columns:110px 1fr; padding:.6rem 0; }
+    .quality-item b { color: var(--fg); font-size: .94rem; font-weight: 600; } .quality-item span { color: var(--muted); font-size: .92rem; line-height: 1.6; }
+    .module-map { margin: 1rem 0 1.5rem; padding: 0 !important; background: transparent !important; border: 0 !important; box-shadow: none !important; }
+    .module-map-label { margin: .65rem 0; color: var(--soft); font: 500 .78rem var(--font-mono); }
+    .module-map-row { display: grid; grid-template-columns: repeat(4,1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .module-map-item { display: flex; flex-direction: column; gap: .45rem; padding: 1rem; border-right: 1px solid var(--line); }
+    .module-map-item:last-child { border: 0; } .module-map-item strong { font: 500 .9rem var(--font-mono); color: var(--accent); }
+    .module-map-item span { color: var(--muted); font-size: .72rem; }
+    .code-card, pre { overflow: hidden; overflow-wrap:anywhere; white-space:pre-wrap; padding: .8rem 0 !important; background: transparent !important; border: 0 !important; border-top: 1px solid var(--line) !important; border-radius: 0 !important; color: var(--code) !important; font: .78rem/1.65 var(--font-mono); }
+    code { color: var(--code); font-family: var(--font-mono); font-size: .92em; }
+    .hud-btn, button { cursor: pointer; color: var(--accent) !important; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; font: 500 .76rem var(--font-mono); padding: .5rem 0 !important; }
+    .hud-btn:hover, button:hover { color: var(--fg) !important; }
+    .c4-tab-btn { margin-right: 1rem; border-bottom: 1px solid transparent !important; color: var(--muted) !important; }
+    .c4-tab-btn.active { color: var(--fg) !important; border-bottom-color: var(--accent) !important; }
+    #c4DisplayArea { min-height: 190px; padding: .65rem 0 !important; border-top: 1px solid var(--line) !important; border-bottom: 1px solid var(--line) !important; }
+    #c4DisplayArea * { box-shadow: none !important; border-radius: 0 !important; }
+    .cover-architecture { margin-top: 1.1rem; }
+    .cover-flow, .architecture-flow { display: flex; align-items: center; justify-content: space-between; gap: .75rem; padding: 1.1rem 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+    .flow-node { min-width: 120px; padding: .9rem !important; background: var(--surface) !important; border: 1px solid var(--soft) !important; border-radius: 2px !important; box-shadow: none !important; }
+    .flow-node strong { display: block; color: var(--fg); font: 600 .95rem var(--font-mono); white-space: nowrap; }
+    .flow-node small { display: block; margin-top: .5rem; color: var(--muted); font-size: .8rem; line-height: 1.5; }
+    .flow-arrow { color: var(--accent); font: 600 .86rem var(--font-mono); white-space: nowrap; }
+    .cover-note { color: var(--muted); font-size: .9rem; line-height: 1.65; }
+    .architecture-flow { gap: 1rem; padding: 1.4rem 0; }
+    .architecture-flow.six-step { display:grid; gap:.8rem; }
+    .sequence-row { display:grid; grid-template-columns:minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1fr); align-items:center; gap:.8rem; }
+    .sequence-turn { padding:.15rem 0; color:var(--accent); text-align:center; font:.8rem var(--font-mono); }
+    .flow-outcomes { display:flex; flex-wrap:wrap; justify-content:space-between; gap:1rem; margin-top:1rem; color:var(--muted); font-size:.9rem; }
+    .flow-heading { margin:0 0 1rem; color:var(--soft); font:500 .78rem var(--font-mono); letter-spacing:.05em; }
+    .hud-controls { display:flex; align-items:center; gap:.55rem; }
+    .key-hints { display:flex; gap:1rem; color:var(--soft); font: .72rem var(--font-mono); }
+    .counter-tag { color:var(--fg); font: .82rem var(--font-mono); }
+    .domain-boundary { position:relative; margin:1.2rem 0; padding:2rem 1.3rem 1.3rem; border:1px solid #5a6574; }
+    .boundary-label { position:absolute; top:-.7rem; left:1rem; padding:0 .5rem; background:var(--bg); color:var(--accent); font:.78rem var(--font-mono); }
+    .domain-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; }
+    .domain-node { min-height:100px; padding:1rem; border:1px solid var(--soft); background:var(--surface); }
+    .domain-node strong { display:block; color:var(--accent); font:600 1rem var(--font-mono); }
+    .domain-node span { display:block; margin-top:.55rem; color:var(--muted); font-size:.85rem; line-height:1.45; }
+    .domain-identity { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin-bottom:1rem; padding:.8rem 1rem; border-left:3px solid var(--accent); background:var(--surface); }
+    .domain-identity strong { color:var(--accent); font:600 .95rem var(--font-mono); }
+    .domain-identity span { color:var(--muted); font-size:.86rem; }
+    .domain-call-map { display:grid; grid-template-columns:minmax(0,1fr) minmax(180px,.8fr) minmax(0,1fr); gap:1.2rem; align-items:center; }
+    .provider-stack { display:grid; gap:.8rem; }
+    .contract-lines { display:grid; gap:1.2rem; color:var(--accent); font:.82rem var(--font-mono); text-align:center; }
+    .contract-lines div { padding:.7rem .2rem; border-bottom:1px solid var(--accent); }
+    .order-node { min-height:130px; display:flex; flex-direction:column; justify-content:center; border-left:3px solid var(--accent); }
+    .domain-links { display:grid; grid-template-columns:1fr auto 1fr auto 1fr; align-items:center; gap:.65rem; max-width:760px; margin:1.2rem auto 0; text-align:center; }
+    .domain-link { padding:.65rem; border-bottom:1px solid var(--accent); color:var(--fg); font:.8rem var(--font-mono); }
+    .diagram-caption { margin-top:.8rem; color:var(--muted); font-size:.85rem; text-align:center; }
+    .sequence-diagram { margin:1rem 0 1.5rem; padding:1rem 0; border-block:1px solid var(--line); }
+    .sequence-diagram svg { display:block; width:100%; height:auto; min-height:250px; }
+    .sequence-diagram text { fill:var(--fg); font-family:var(--font-mono); font-size:18px; }
+    .sequence-diagram .subtext { fill:var(--muted); font-size:15px; }
+    .sequence-diagram .lifeline { stroke:#657182; stroke-width:1.5; stroke-dasharray:5 6; }
+    .sequence-diagram .call { stroke:var(--accent); stroke-width:2; marker-end:url(#arrow); }
+    .sequence-diagram .return { stroke:#a8cdb3; stroke-width:2; stroke-dasharray:6 5; marker-end:url(#arrowGreen); }
+    .sequence-diagram.running .call { stroke-dasharray:8 7; animation: packet .55s linear infinite; }
+    @keyframes packet { to { stroke-dashoffset:-15; } }
+    .sequence-diagram .lock { fill:var(--surface); stroke:var(--soft); stroke-width:1; }
+    .simulation-control { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:.7rem; }
+    .simulation-title { color:var(--fg); font-size:.9rem; font-weight:600; }
+    .simulation-title small { display:block; margin-top:.2rem; color:var(--muted); font-size:.78rem; font-weight:400; }
+    .simulation-play { padding:.55rem .8rem !important; border:1px solid var(--accent) !important; color:var(--accent) !important; }
+    .simulation-play:disabled { opacity:.55; cursor:wait; }
+    .simulator-lanes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1rem; margin-top:.6rem; }
+    .simulator-lane { min-width:0; padding:.65rem .8rem; border-left:2px solid var(--line); background:var(--surface); }
+    .simulator-lane strong { display:block; color:var(--fg); font:.78rem var(--font-mono); }
+    .simulator-lane span { display:block; margin-top:.25rem; color:var(--muted); font:.76rem/1.45 var(--font-mono); }
+    .diagram-action { display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:.8rem; }
+    .diagram-action [id^="status"] { color:var(--muted); font:.82rem var(--font-mono); line-height:1.6; }
+    .metric-layout { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(230px,.8fr); gap:3rem; align-items:center; margin:1rem 0; }
+    .metric-chart { display:grid; gap:.7rem; }
+    .bar-row { display:grid; grid-template-columns:42px 1fr 82px; align-items:center; gap:.8rem; color:var(--muted); font:.9rem var(--font-mono); }
+    .bar-track { height:16px; border-left:1px solid var(--soft); background:var(--surface); }
+    .bar-fill { height:100%; background:linear-gradient(90deg,#7799ed,#b4c7ff); }
+    .metric-summary { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+    .metric-value { padding:1rem 0; border-top:1px solid var(--line); }
+    .metric-value strong { display:block; color:var(--fg); font:600 clamp(1.5rem,3vw,2.2rem) var(--font-display); }
+    .metric-value span { color:var(--muted); font-size:.9rem; }
+    .deployment-zone { display:grid; grid-template-columns:150px repeat(2,minmax(0,1fr)); align-items:center; gap:1rem; margin:1rem 0; padding:1.3rem; border:1px solid #566171; }
+    .deployment-zone.private { border-style:dashed; border-color:var(--soft); }
+    .zone-label { color:var(--soft); font:.76rem var(--font-mono); text-transform:uppercase; }
+    .deploy-node { padding:.9rem; border-left:3px solid var(--accent); background:var(--surface); }
+    .deploy-node strong { display:block; color:var(--fg); font:.95rem var(--font-mono); }
+    .deploy-node small { display:block; margin-top:.35rem; color:var(--muted); font-size:.8rem; }
+    .component-map { display:grid; gap:.55rem; margin:1rem 0; }
+    .component-row { display:grid; grid-template-columns:155px minmax(0,1fr); align-items:stretch; gap:1rem; }
+    .component-layer { padding:.75rem 0; color:var(--soft); font:.74rem var(--font-mono); text-transform:uppercase; }
+    .component-nodes { display:flex; align-items:center; gap:.7rem; min-width:0; }
+    .component-node { flex:1; min-width:0; padding:.8rem; border-left:3px solid var(--accent); background:var(--surface); }
+    .component-node strong { display:block; color:var(--fg); font:.9rem var(--font-mono); }
+    .component-node small { display:block; margin-top:.35rem; color:var(--muted); font-size:.82rem; line-height:1.45; }
+    .component-connector { color:var(--accent); font:.74rem var(--font-mono); text-align:center; }
+    .component-fanout { display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:.8rem; margin:.3rem 0 .3rem 170px; }
+    .component-contract { padding:.7rem; border-bottom:1px solid var(--accent); color:var(--muted); font:.78rem var(--font-mono); text-align:center; }
+    .component-provider-stack { flex:1; display:grid; gap:.45rem; }
+    .component-note { margin:.8rem 0; color:var(--muted); font-size:.88rem; line-height:1.6; }
+    .interaction-routes { display:grid; gap:.7rem; margin:1rem 0; }
+    .interaction-route { display:grid; grid-template-columns:145px minmax(0,1fr); align-items:center; gap:1rem; padding:.8rem 0; border-top:1px solid var(--line); }
+    .route-label { color:var(--soft); font:.76rem var(--font-mono); text-transform:uppercase; }
+    .route-flow { display:flex; align-items:center; gap:.6rem; }
+    .route-node { flex:1; min-width:0; padding:.75rem; border-left:3px solid var(--accent); background:var(--surface); }
+    .route-node strong { display:block; color:var(--fg); font:.85rem var(--font-mono); }
+    .route-node small { display:block; margin-top:.3rem; color:var(--muted); font-size:.78rem; line-height:1.4; }
+    .route-arrow { color:var(--accent); font:.73rem var(--font-mono); text-align:center; }
+    .theme-toggle:hover { background:var(--surface) !important; }
+    body[data-theme="light"] .overview-backdrop { background:rgba(245,247,250,.97) !important; }
+    body[data-theme="light"] .progress-track { background:#dce3ec; }
+    body[data-theme="light"] .sequence-diagram .return { stroke:#28613e; }
+    body[data-theme="light"] .sequence-diagram .call { stroke:#234f9b; }
+    body[data-theme="light"] #arrow path { fill:#234f9b; }
+    body[data-theme="light"] #arrowGreen path { fill:#28613e; }
+    body[data-theme="light"] .sequence-diagram rect[fill] { fill:#dcecdf; stroke:#28613e; }
+    body[data-theme="light"] .code-card, body[data-theme="light"] pre { color:var(--code) !important; }
+    .overview-backdrop { background: rgba(8,10,14,.96) !important; backdrop-filter: blur(8px); }
+    .overview-backdrop { display: none; position: fixed; z-index: 40; inset: 0; padding: 8vh 9vw; overflow: auto; }
+    .overview-backdrop.open { display: block; }
+    .overview-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 0 2rem; margin-top: 2rem; }
+    .overview-card { background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; border-top: 1px solid var(--line) !important; }
+    .overview-card { padding: 1rem 0; color: var(--muted); cursor: pointer; }
+    .overview-card.active { color: var(--accent); }
+    .decision-list { width: 100%; margin: 1rem 0 2rem; border-collapse: collapse; text-align: left; }
+    .decision-list th { padding: .7rem .8rem .7rem 0; border-bottom: 1px solid var(--line); color: var(--soft); font: 500 .65rem var(--font-mono); }
+    .decision-list td { padding: 1rem .9rem 1rem 0; border-bottom: 1px solid var(--line); color: var(--muted); font-size: .9rem; line-height: 1.6; vertical-align: top; }
+    .decision-list td:first-child { color: var(--fg); font-weight: 600; }
+    .decision-list small { color: var(--soft); font: .63rem var(--font-mono); }
+    #c4DisplayArea .grid-3 > div { min-height:3rem; padding:.8rem !important; border-top:1px solid var(--line); color:var(--fg); font-size:.9rem; }
+    .deck-hud { position: fixed; z-index: 20; inset: auto 4vw 18px; display: flex; align-items: center; justify-content: space-between; background: transparent !important; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; }
+    .deck-hud button { padding: .25rem .5rem !important; }
+    .kbd-hint, .hud-counter, .hud-label { color: var(--muted); font: .66rem var(--font-mono); }
+    .slide [style*="background"] { background-color: transparent !important; background-image: none !important; }
+    .slide [style*="border-radius"] { border-radius: 0 !important; }
+    .slide [style*="box-shadow"] { box-shadow: none !important; }
+    .slide [style*="backdrop-filter"] { backdrop-filter: none !important; }
+    .slide [style*="border:"] { border-color: var(--line) !important; }
+    .slide [style*="border-color"] { border-color: var(--line) !important; }
+    .slide [style*="color"] { color: var(--muted) !important; }
+    .slide :is(h1,h2,h3,strong,b,.slide-heading) { color: var(--fg) !important; }
+    .slide :is(.flow-node strong, .module-map-item strong) { color: var(--accent) !important; }
+    .live-status, .nav-capsula a { color: var(--muted); }
+    .deck-hud :is(.hud-btn, button) { min-width: 2rem; }
+    @media (max-width: 760px) {
+      :root { --deck-top:66px; --deck-bottom:60px; }
+      .deck-stage { padding: var(--deck-top) 5vw var(--deck-bottom); } .nav-capsula { inset-inline: 5vw; }
+      .nav-badge-pill { display: none; } .slide { min-height:calc(100svh - var(--deck-top) - var(--deck-bottom)); }
+      .nav-capsula > div:last-of-type { display:none; }
+      .grid-2, .grid-3, .grid-4, .grid-5, .quality-grid { grid-template-columns: 1fr; }
+      .quality-item { grid-template-columns: 115px 1fr; }
+      .module-map-row { grid-template-columns: repeat(2,1fr); } .module-map-item:nth-child(2) { border-right: 0; }
+      .cover-flow, .architecture-flow { align-items: flex-start; flex-direction: column; gap: .35rem; }
+      .flow-arrow { padding-left: .3rem; } .flow-node strong { white-space: normal; }
+      .deck-hud { inset-inline: 6vw; } .kbd-hint { display: none; }
+      .overview-grid { grid-template-columns: 1fr; }
+      .metric-layout { grid-template-columns: 1fr; gap:1.2rem; }
+      .deployment-zone { grid-template-columns:1fr; padding:1rem; }
+      .sequence-diagram svg { min-height:0; }
+      .domain-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .domain-links { grid-template-columns:1fr; }
+      .domain-links .flow-arrow { transform:rotate(90deg); }
+      .domain-call-map { grid-template-columns:1fr; }
+      .contract-lines { gap:.2rem; }
+      .domain-identity { align-items:flex-start; flex-direction:column; }
+      .component-row { grid-template-columns:1fr; gap:.3rem; }
+      .component-nodes { flex-direction:column; align-items:stretch; }
+      .component-connector { transform:rotate(90deg); }
+      .component-provider-stack { width:100%; }
+      .interaction-route { grid-template-columns:1fr; gap:.4rem; }
+      .route-flow { align-items:stretch; flex-direction:column; }
+      .route-arrow { transform:rotate(90deg); }
+      .component-fanout { grid-template-columns:1fr; margin:.3rem 0; }
+      .sequence-row { grid-template-columns:1fr; text-align:center; }
+      .sequence-row .flow-arrow { transform:rotate(90deg); }
+      .simulator-lanes { grid-template-columns:1fr; gap:.35rem; }
+      .simulation-control { align-items:flex-start; flex-direction:column; }
     }
-    .light-orb {
-      position: absolute;
-      border-radius: 50%;
-      filter: blur(100px);
-      opacity: 0.55;
-      animation: floatOrb 18s ease-in-out infinite alternate;
-    }
-    .orb-1 {
-      width: 600px;
-      height: 600px;
-      background: radial-gradient(circle, var(--sabana-1) 0%, transparent 70%);
-      top: -150px;
-      left: -100px;
-      animation-duration: 22s;
-    }
-    .orb-2 {
-      width: 550px;
-      height: 550px;
-      background: radial-gradient(circle, #0284c7 0%, transparent 70%);
-      bottom: -120px;
-      right: -80px;
-      animation-duration: 26s;
-    }
-    .orb-3 {
-      width: 400px;
-      height: 400px;
-      background: radial-gradient(circle, #0018c9 0%, transparent 70%);
-      top: 40%;
-      left: 55%;
-      animation-duration: 19s;
-    }
-    @keyframes floatOrb {
-      0% { transform: translate(0, 0) scale(1); }
-      50% { transform: translate(50px, 30px) scale(1.1); }
-      100% { transform: translate(-30px, 60px) scale(0.95); }
-    }
-
-    .progress-track {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.05);
-      z-index: 100;
-    }
-    .progress-fill {
-      height: 100%;
-      width: 10%;
-      background: linear-gradient(90deg, #0a84ff, #38bdf8, #30d158);
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
-      transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Barra Superior Cápsula */
-    header.nav-capsula {
-      position: fixed;
-      top: 14px;
-      left: 2rem;
-      right: 2rem;
-      height: 56px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.5rem;
-      border-radius: 9999px;
-      background: rgba(13, 22, 40, 0.65);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--vidrio-borde);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-      z-index: 50;
-    }
-
-    .brand-logo {
-      display: flex;
-      align-items: center;
-      gap: 0.85rem;
-      text-decoration: none;
-    }
-    .logo-cube {
-      width: 28px;
-      height: 28px;
-      background: linear-gradient(135deg, #0a3fe0, #0018c9);
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
-      font-size: 0.85rem;
-      color: #fff;
-      box-shadow: 0 4px 12px rgba(10, 63, 224, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-    .brand-title {
-      font-family: var(--font-display);
-      font-weight: 800;
-      font-size: 0.88rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      color: #fff;
-    }
-
-    .nav-badge-pill {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      padding: 0.25rem 0.75rem;
-      border-radius: 9999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-      color: var(--azul-claro);
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-
-    .live-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.45rem;
-      background: rgba(48, 209, 88, 0.12);
-      border: 1px solid rgba(48, 209, 88, 0.35);
-      padding: 0.25rem 0.85rem;
-      border-radius: 9999px;
-      font-size: 0.76rem;
-      font-family: var(--font-mono);
-      color: #4ade80;
-      text-decoration: none;
-      transition: all 0.2s ease;
-    }
-    .live-status:hover {
-      background: rgba(48, 209, 88, 0.22);
-      border-color: rgba(48, 209, 88, 0.6);
-      transform: translateY(-1px);
-    }
-    .live-dot {
-      width: 7px;
-      height: 7px;
-      background: #4ade80;
-      border-radius: 50%;
-      box-shadow: 0 0 8px #4ade80;
-      animation: pulseLive 1.8s infinite;
-    }
-    @keyframes pulseLive { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.85); } }
-
-    /* Escenario Principal */
-    main.deck-stage {
-      position: relative;
-      flex: 1;
-      width: 100%;
-      height: calc(100vh - 80px - 70px);
-      margin-top: 80px;
-      z-index: 10;
-    }
-
-    .slide {
-      position: absolute;
-      inset: 0;
-      padding: 2.2rem 4rem;
-      display: flex;
-      flex-direction: column;
-      opacity: 0;
-      pointer-events: none;
-      transform: scale(0.98) translateY(16px);
-      transition: opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
-      overflow-y: auto;
-    }
-
-    .slide.active {
-      opacity: 1;
-      pointer-events: auto;
-      transform: scale(1) translateY(0);
-    }
-
-    .slide-eyebrow {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.6rem;
-      font-family: var(--font-display);
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--azul-claro);
-      margin-bottom: 0.5rem;
-    }
-    .slide-heading {
-      font-family: var(--font-display);
-      font-size: 2.35rem;
-      font-weight: 900;
-      line-height: 1.15;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.65rem;
-      background: linear-gradient(180deg, #FFFFFF 0%, #CBD5E1 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-    .slide-lead {
-      font-size: 1.05rem;
-      color: var(--tinta-tenue);
-      max-width: 960px;
-      line-height: 1.55;
-      margin-bottom: 1.8rem;
-    }
-
-    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1.5rem; width: 100%; }
-    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.3rem; width: 100%; }
-    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.1rem; width: 100%; }
-    .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.9rem; width: 100%; }
-
-    .card-vidrio {
-      background: var(--vidrio);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--vidrio-borde);
-      border-radius: 20px;
-      padding: 1.5rem;
-      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-      position: relative;
-      overflow: hidden;
-    }
-    .card-vidrio:hover {
-      background: var(--vidrio-hover);
-      border-color: rgba(128, 192, 255, 0.4);
-      transform: translateY(-3px);
-      box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.5);
-    }
-    .card-vidrio::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    }
-
-    .card-title {
-      font-family: var(--font-display);
-      font-size: 0.96rem;
-      font-weight: 700;
-      letter-spacing: 0.02em;
-      margin-bottom: 0.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      color: #fff;
-    }
-    .card-text {
-      font-size: 0.88rem;
-      color: var(--tinta-tenue);
-      line-height: 1.6;
-    }
-
-    .chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      padding: 0.2rem 0.65rem;
-      border-radius: 9999px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      font-family: var(--font-mono);
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-    .chip-azul { background: rgba(10, 132, 255, 0.15); color: #60a5fa; border: 1px solid rgba(10, 132, 255, 0.35); }
-    .chip-verde { background: rgba(48, 209, 88, 0.15); color: #4ade80; border: 1px solid rgba(48, 209, 88, 0.35); }
-    .chip-ambar { background: rgba(255, 159, 10, 0.15); color: #fbbf24; border: 1px solid rgba(255, 159, 10, 0.35); }
-    .chip-rosa { background: rgba(255, 55, 95, 0.15); color: #f43f5e; border: 1px solid rgba(255, 55, 95, 0.35); }
-    .chip-morado { background: rgba(191, 90, 242, 0.15); color: #c084fc; border: 1px solid rgba(191, 90, 242, 0.35); }
-
-    pre.code-card {
-      background: rgba(3, 7, 18, 0.8);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      border-radius: 14px;
-      padding: 1.1rem 1.3rem;
-      font-family: var(--font-mono);
-      font-size: 0.81rem;
-      line-height: 1.55;
-      color: #e2e8f0;
-      overflow-x: auto;
-    }
-    .tok-kw { color: #f43f5e; font-weight: 600; }
-    .tok-fn { color: #38bdf8; }
-    .tok-str { color: #4ade80; }
-    .tok-comm { color: #64748b; font-style: italic; }
-
-    footer.deck-hud {
-      position: fixed;
-      bottom: 12px;
-      left: 2rem;
-      right: 2rem;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 1.5rem;
-      border-radius: 9999px;
-      background: rgba(13, 22, 40, 0.7);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid var(--vidrio-borde);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-      z-index: 50;
-    }
-
-    .hud-controls {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-    }
-    .hud-btn {
-      background: var(--vidrio);
-      border: 1px solid var(--vidrio-borde);
-      color: #fff;
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      font-size: 0.95rem;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .hud-btn:hover {
-      background: rgba(56, 189, 248, 0.2);
-      border-color: var(--azul-claro);
-      color: var(--azul-claro);
-      transform: scale(1.08);
-    }
-    .hud-btn:disabled { opacity: 0.3; cursor: not-allowed; transform: none; }
-
-    .counter-tag {
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      color: var(--tinta-tenue);
-      margin: 0 0.5rem;
-    }
-    .counter-tag span.active-num {
-      color: #fff;
-      font-weight: 700;
-    }
-
-    .key-hints {
-      display: flex;
-      align-items: center;
-      gap: 1.25rem;
-      font-size: 0.78rem;
-      color: var(--tinta-tenue);
-    }
-    kbd {
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      border-radius: 6px;
-      padding: 0.15rem 0.45rem;
-      font-family: var(--font-mono);
-      font-size: 0.72rem;
-      color: #fff;
-    }
-
-    .sim-panel {
-      background: rgba(5, 11, 24, 0.75);
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      border-radius: 16px;
-      padding: 1.2rem;
-      margin-top: 1rem;
-    }
-
-    /* Modal de Vista General */
-    .overview-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(4, 7, 14, 0.92);
-      backdrop-filter: blur(20px);
-      z-index: 200;
-      display: none;
-      flex-direction: column;
-      padding: 3rem 4rem;
-      overflow-y: auto;
-    }
-    .overview-backdrop.open { display: flex; }
-    .overview-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 1.3rem;
-      margin-top: 1.5rem;
-    }
-    .overview-card {
-      background: var(--vidrio);
-      border: 1px solid var(--vidrio-borde);
-      border-radius: 16px;
-      padding: 1.4rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .overview-card:hover {
-      border-color: var(--azul-claro);
-      transform: translateY(-4px);
-      background: rgba(255, 255, 255, 0.12);
-    }
-    .overview-card.active {
-      border-color: var(--azul-claro);
-      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
-    }
-
-    /* Pestañas Interactivas para C4 */
-    .c4-tab-btn {
-      background: var(--vidrio);
-      border: 1px solid var(--vidrio-borde);
-      color: var(--tinta-tenue);
-      padding: 0.45rem 1rem;
-      border-radius: 9999px;
-      font-size: 0.82rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .c4-tab-btn:hover { color: #fff; border-color: var(--azul-claro); }
-    .c4-tab-btn.active {
-      background: rgba(10, 132, 255, 0.25);
-      border-color: #0a84ff;
-      color: #fff;
-    }
-
-    @keyframes flowPulse {
-      0% { stroke-dashoffset: 40; }
-      100% { stroke-dashoffset: 0; }
-    }
-    .pulse-line {
-      stroke-dasharray: 8, 8;
-      animation: flowPulse 2s linear infinite;
-    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
   </style>
 </head>
 <body>
@@ -529,211 +267,70 @@
         <span>tiendautb.iscoutb.dev</span>
       </a>
     </div>
+    <button id="themeToggle" class="theme-toggle" type="button" onclick="alternarTema()" aria-label="Cambiar a tema claro" aria-pressed="false">
+      <span aria-hidden="true">☼</span> Tema claro
+    </button>
   </header>
 
   <!-- Escenario de Diapositivas -->
   <main class="deck-stage">
 
-    <!-- SLIDE 0: HERO VIBRANTE (Sin tabla de rúbrica, con la esencia visual de la web) -->
+    <!-- PORTADA -->
     <section class="slide active" data-index="0" data-title="Portada · Arquitectura">
-      <div class="slide-eyebrow">
-        <span>Defensa de Arquitectura</span>
-        <span>·</span>
-        <span>Universidad Tecnológica de Bolívar</span>
+      <div class="slide-eyebrow">UTB · Arquitectura de software · API 0.5.0</div>
+      <h1 class="slide-heading" style="font-size: 3rem; margin-bottom: 0.8rem;">Tienda Virtual UTB</h1>
+      <p class="slide-lead" style="font-size: 1.2rem; max-width: 880px;">Una aplicación. Límites de dominio explícitos. Seguridad aplicada en la base de datos.</p>
+      <div class="cover-architecture" aria-label="Topología de la aplicación">
+        <div class="cover-flow">
+          <div class="flow-node"><strong>Cliente web</strong><small>HTTPS · JWT</small></div><div class="flow-arrow">→</div>
+          <div class="flow-node"><strong>Next.js 15</strong><small>SSR · proxy same-origin</small></div><div class="flow-arrow">→</div>
+          <div class="flow-node"><strong>FastAPI</strong><small>identity · catalog · inventory · orders</small></div><div class="flow-arrow">→</div>
+          <div class="flow-node"><strong>PostgreSQL 17</strong><small>RLS · transacción ACID</small></div>
+        </div>
+        <p class="cover-note">Despliegue en contenedores · API y base de datos en red privada · módulos en un único proceso</p>
       </div>
-      <h1 class="slide-heading" style="font-size: 3rem; margin-bottom: 0.8rem;">
-        Tienda Virtual UTB
-      </h1>
-      <p class="slide-lead" style="font-size: 1.2rem; max-width: 880px;">
-        Diseño, justificación y verificación de una arquitectura de software desacoplada, resiliente y transaccionalmente segura para las 5 cafeterías del campus.
-      </p>
-
-      <!-- Los 5 Puntos de Venta del Campus con sus Colores Oficiales -->
-      <div style="margin-bottom: 2rem;">
-        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--azul-claro); font-family: var(--font-display); font-weight: 700; margin-bottom: 0.8rem;">
-          Puntos de Venta Operando en el Sistema
-        </div>
-        <div class="grid-5">
-          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(255, 159, 10, 0.4); text-align: center;">
-            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🥟</div>
-            <div style="font-weight: 700; font-size: 0.88rem; color: #ff9f0a;">Antojos</div>
-            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Snacks y fritos</div>
-          </div>
-          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(48, 209, 88, 0.4); text-align: center;">
-            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🥗</div>
-            <div style="font-weight: 700; font-size: 0.88rem; color: #30d158;">Punto Fit</div>
-            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Saludable y batidos</div>
-          </div>
-          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(255, 55, 95, 0.4); text-align: center;">
-            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">☕</div>
-            <div style="font-weight: 700; font-size: 0.88rem; color: #ff375f;">Alegría</div>
-            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Café y repostería</div>
-          </div>
-          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(10, 132, 255, 0.4); text-align: center;">
-            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🍲</div>
-            <div style="font-weight: 700; font-size: 0.88rem; color: #60a5fa;">Almuerzo 01</div>
-            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Menú del día</div>
-          </div>
-          <div class="card-vidrio" style="padding: 1rem; border-color: rgba(191, 90, 242, 0.4); text-align: center;">
-            <div style="font-size: 1.5rem; margin-bottom: 0.3rem;">🍱</div>
-            <div style="font-weight: 700; font-size: 0.88rem; color: #c084fc;">Almuerzo 02</div>
-            <div style="font-size: 0.72rem; color: var(--tinta-tenue); margin-top: 0.2rem;">Menú ejecutivo</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Resumen de Decisiones Clave -->
-      <div class="grid-3" style="margin-bottom: 1.8rem;">
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Monolito Modular</span>
-            <span class="chip chip-azul">ADR 0001 · 0010</span>
-          </div>
-          <div class="card-text">
-            Rechazo de microservicios prematuros por la <em>Ley de Conway</em>. 4 Bounded Contexts independientes con barreras de importación protegidas por AST.
-          </div>
-        </div>
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Aislamiento RLS</span>
-            <span class="chip chip-verde">ADR 0014</span>
-          </div>
-          <div class="card-text">
-            Seguridad en profundidad con <strong>PostgreSQL Row Level Security</strong>. El motor de base de datos aísla físicamente los pedidos de cada tienda.
-          </div>
-        </div>
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Transacción ACID</span>
-            <span class="chip chip-ambar">ADR 0018</span>
-          </div>
-          <div class="card-text">
-            Reserva y descuento de existencias con bloqueo pesimista en un solo proceso. Garantía estricta de cero sobreventa bajo concurrencia.
-          </div>
-        </div>
-      </div>
-
-      <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(10, 63, 224, 0.12); border: 1px solid rgba(128, 192, 255, 0.25); border-radius: 16px; padding: 1rem 1.6rem;">
-        <div>
-          <div style="font-weight: 700; font-size: 0.95rem; color: #fff;">Equipo: Alejandro Patron · Jasen Yukopila · Levis Ortiz · Shalom Arrieta</div>
-          <div style="font-size: 0.82rem; color: var(--tinta-tenue);">Navega con las flechas del teclado o los controles inferiores.</div>
-        </div>
-        <button onclick="deck.next()" class="hud-btn" style="width: auto; height: auto; padding: 0.6rem 1.4rem; border-radius: 9999px; font-weight: 700; gap: 0.6rem; font-size: 0.85rem;">
-          Iniciar Recorrido <kbd>→</kbd>
-        </button>
-      </div>
+      <p class="cover-note" style="margin-top:1.3rem">Alejandro Patron · Jasen Yukopila · Levis Ortiz · Shalom Arrieta <button onclick="deck.next()">Iniciar recorrido →</button></p>
     </section>
 
     <!-- SLIDE 1: Elemento 1 · Contexto y Drivers ATAM -->
     <section class="slide" data-index="1" data-title="1. Contexto y Árbol ATAM">
       <div class="slide-eyebrow">Elemento 1 de 8 · Drivers Arquitectónicos</div>
-      <h2 class="slide-heading">Justificación: ¿Por qué estos 4 Atributos de Calidad?</h2>
+      <h2 class="slide-heading">Los atributos que guían el diseño</h2>
       <p class="slide-lead">
-        El campus no necesitaba "una página web bonita"; necesitaba resolver congestiones severas en descansos de 15 minutos con cobro físico en mostrador.
+        En hora pico, el sistema debe mantener datos actuales, separar tiendas y evitar pedidos inconsistentes.
       </p>
 
-      <div class="grid-4" style="margin-bottom: 1.5rem;">
-        <div class="card-vidrio" style="border-left: 4px solid #f43f5e;">
-          <div class="card-title">
-            <span>Seguridad (AC-01)</span>
-            <span class="chip chip-rosa">IN: H · RA: M</span>
-          </div>
-          <div class="card-text">
-            <strong>Justificación:</strong> Cada cafetería es una concesión privada independiente. Si el personal de Antojos pudiera alterar precios o stock de Punto Fit, generaría disputas comerciales graves.
-          </div>
-          <div style="margin-top: 0.8rem; font-size: 0.78rem; color: #f43f5e; font-weight: 600;">
-            ✔ 100% de operaciones fuera de rol rechazadas con 403.
-          </div>
-        </div>
-
-        <div class="card-vidrio" style="border-left: 4px solid #60a5fa;">
-          <div class="card-title">
-            <span>Usabilidad (AC-02)</span>
-            <span class="chip chip-azul">IN: H · RA: L</span>
-          </div>
-          <div class="card-text">
-            <strong>Justificación:</strong> Los estudiantes compran entre clases en menos de 3 minutos. Un flujo complejo de 8 pantallas provocaría abandono del carrito.
-          </div>
-          <div style="margin-top: 0.8rem; font-size: 0.78rem; color: #60a5fa; font-weight: 600;">
-            ✔ Máximo 4 pasos: Catálogo → Carrito → Hora → Reserva.
-          </div>
-        </div>
-
-        <div class="card-vidrio" style="border-left: 4px solid #fbbf24;">
-          <div class="card-title">
-            <span>Rendimiento (AC-03)</span>
-            <span class="chip chip-ambar">IN: H · RA: M</span>
-          </div>
-          <div class="card-text">
-            <strong>Justificación:</strong> Si un estudiante reserva la última empanada, otra persona no puede verla disponible al recargar su teléfono segundos después.
-          </div>
-          <div style="margin-top: 0.8rem; font-size: 0.78rem; color: #fbbf24; font-weight: 600;">
-            ✔ Stock reflejado en &lt; 2,0 s mediante lecturas no-store.
-          </div>
-        </div>
-
-        <div class="card-vidrio" style="border-left: 4px solid #4ade80;">
-          <div class="card-title">
-            <span>Disponibilidad (AC-04)</span>
-            <span class="chip chip-verde">IN: M · RA: M</span>
-          </div>
-          <div class="card-text">
-            <strong>Justificación:</strong> A las 12:00 m el tráfico se multiplica por 20. El catálogo no puede caerse ni responder errores 500 durante el almuerzo.
-          </div>
-          <div style="margin-top: 0.8rem; font-size: 0.78rem; color: #4ade80; font-weight: 600;">
-            ✔ 5 usuarios concurrentes atendidos en ~42 ms con 0 errores.
-          </div>
-        </div>
+      <div class="quality-grid" aria-label="Drivers de calidad y respuesta arquitectónica">
+        <div class="quality-item"><b>Seguridad</b><span>RLS limita filas por tienda; roles y contexto viajan con la transacción.</span></div>
+        <div class="quality-item"><b>Consistencia</b><span>Pedido y descuento de existencias se confirman en la misma transacción.</span></div>
+        <div class="quality-item"><b>Rendimiento</b><span>Next.js consulta catálogo e inventario en paralelo y sin caché obsoleta.</span></div>
+        <div class="quality-item"><b>Disponibilidad</b><span>Readiness consulta PostgreSQL; si falla, la API informa que no está lista.</span></div>
       </div>
 
-      <div class="sim-panel">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
-          <span style="font-weight: 700; font-size: 0.9rem; color: #fff;">Tensión Arquitectónica Clave (Trade-off Fundamental)</span>
-          <span class="chip chip-morado">Seguridad vs Sobrecosto</span>
-        </div>
-        <div style="font-size: 0.85rem; color: var(--tinta-tenue); line-height: 1.5;">
-          <strong>Alternativa A:</strong> Crear 5 bases de datos PostgreSQL separadas (1 por tienda) ➔ Costo de infraestructura y mantenimiento quintuplicado.<br>
-          <strong>Solución Adoptada:</strong> 1 sola base de datos PostgreSQL 17 gobernada por <strong>Row Level Security (RLS)</strong> ➔ Mismo aislamiento absoluto con cero costo adicional.
-        </div>
-      </div>
+      <p class="cover-note"><strong>Trade-off:</strong> aislamiento por tienda en PostgreSQL (RLS) frente a una base por concesionario. Se conserva una BD y se aplica el contexto de tienda por transacción. <code>ADR 0014</code></p>
     </section>
 
     <!-- SLIDE 2: Elemento 2 · Estilo Monolito Modular -->
-    <section class="slide" data-index="2" data-title="2. Monolito Modular vs Microservicios">
+    <section class="slide" data-index="2" data-title="2. Monolito modular">
       <div class="slide-eyebrow">Elemento 2 de 8 · Estilo Arquitectónico</div>
-      <h2 class="slide-heading">Justificación: ¿Por qué NO Microservicios?</h2>
+      <h2 class="slide-heading">Un proceso. Cuatro módulos.</h2>
       <p class="slide-lead">
-        En arquitectura de software, elegir la solución más compleja sin justificación se llama <em>sobreingeniería</em>. Demostramos por qué el Monolito Modular es la decisión correcta.
+        Los dominios están separados por contratos públicos y comparten proceso y transacción. La prueba AST hace cumplir esos límites.
       </p>
 
-      <div class="grid-2" style="margin-bottom: 1.5rem;">
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Microservicios Distribuidos</span>
-            <span class="chip chip-rosa">Descartado</span>
+      <div class="domain-boundary" aria-label="Límite del proceso FastAPI y contratos entre módulos">
+        <span class="boundary-label">CONTENEDOR · FastAPI · un proceso</span>
+        <div class="domain-identity"><strong>identity</strong><span>valida JWT · resuelve roles · fija principal de la petición</span></div>
+        <div class="domain-call-map" aria-label="orders consume dos contratos públicos dentro del monolito modular">
+          <div class="provider-stack">
+            <div class="domain-node"><strong>catalog.public</strong><span>lectura de productos y precios</span></div>
+            <div class="domain-node"><strong>inventory.public</strong><span>reserva condicional de existencias</span></div>
           </div>
-          <div class="card-text" style="font-size: 0.84rem;">
-            ❌ <strong>Latencia de red:</strong> Checkout requiriendo llamadas HTTP encadenadas.<br>
-            ❌ <strong>Fallos parciales:</strong> El pedido se crea pero el inventario se cae en la red.<br>
-            ❌ <strong>Consistencia eventual:</strong> Requiere Sagas asíncronas y colas complejas.<br>
-            ❌ <strong>Sobrecarga para 4 personas:</strong> Monitorear 4 contenedores, 4 pipelines y Service Mesh.
-          </div>
+          <div class="contract-lines"><div>← consultar catálogo</div><div>← descontar inventario</div></div>
+          <div class="domain-node order-node"><strong>orders</strong><span>orquesta checkout, pedido y estados</span></div>
         </div>
-
-        <div class="card-vidrio" style="border-color: rgba(48, 209, 88, 0.4);">
-          <div class="card-title">
-            <span>Monolito Modular en FastAPI</span>
-            <span class="chip chip-verde">Implementado (ADR 0001 · 0010)</span>
-          </div>
-          <div class="card-text" style="font-size: 0.84rem;">
-            ✔ <strong>Llamadas en memoria:</strong> Latencia interna de checkout inferior a 1 milisegundo.<br>
-            ✔ <strong>Transaccionalidad ACID atómica:</strong> O se descuenta el stock o se revierte el pedido.<br>
-            ✔ <strong>Despliegue en 1 comando:</strong> Un solo contenedor en Dokploy.<br>
-            ✔ <strong>Preparado para evolucionar:</strong> Módulos con Bounded Contexts listos para extracción futura.
-          </div>
-        </div>
+        <p class="diagram-caption">Llamadas en memoria · una sesión SQLAlchemy · reglas de importación AST protegen los límites internos.</p>
       </div>
-
       <div class="card-vidrio">
         <div class="card-title">
           <span>Barrera Automatizada: El Aislamiento se Prueba con AST</span>
@@ -757,16 +354,20 @@
     <!-- SLIDE 3: Elemento 3 · Vistas C4 Interactivas y arc42 -->
     <section class="slide" data-index="3" data-title="3. Vistas C4 Interactivas y arc42">
       <div class="slide-eyebrow">Elemento 3 de 8 · Representación Visual</div>
-      <h2 class="slide-heading">Vistas de Arquitectura: Explorador C4 Interactivo</h2>
+      <h2 class="slide-heading">Del contexto al componente</h2>
       <p class="slide-lead">
-        Explora los diagramas reales del sistema. Haz clic en las pestañas para ver el Contexto, los Contenedores en Dokploy, los Componentes de la API y las 12 secciones de arc42.
+        Explora las vistas C4 y sigue las relaciones entre actores, contenedores y módulos del sistema.
       </p>
 
       <!-- Selector de Pestañas C4 -->
-      <div style="display: flex; gap: 0.6rem; margin-bottom: 1rem;">
+      <div style="display: flex; flex-wrap: wrap; gap: 0.45rem 0.6rem; margin-bottom: 1rem;">
         <button id="tabBtnC1" onclick="cambiarC4Tab('c1')" class="c4-tab-btn active">Nivel 1: Contexto</button>
         <button id="tabBtnC2" onclick="cambiarC4Tab('c2')" class="c4-tab-btn">Nivel 2: Contenedores</button>
         <button id="tabBtnC3" onclick="cambiarC4Tab('c3')" class="c4-tab-btn">Nivel 3: Componentes API</button>
+        <button id="tabBtnLectura" onclick="cambiarC4Tab('lectura')" class="c4-tab-btn">Flujo de consulta</button>
+        <button id="tabBtnReserva" onclick="cambiarC4Tab('reserva')" class="c4-tab-btn">Flujo de reserva</button>
+        <button id="tabBtnComponentes" onclick="cambiarC4Tab('componentes')" class="c4-tab-btn">Interacción de componentes</button>
+        <button id="tabBtnAuth" onclick="cambiarC4Tab('authflow')" class="c4-tab-btn">Autenticación y RLS</button>
         <button id="tabBtnArc42" onclick="cambiarC4Tab('arc42')" class="c4-tab-btn">Estructura arc42</button>
       </div>
 
@@ -783,64 +384,51 @@
     <!-- SLIDE 4: Elemento 4 · Consistencia Transaccional y Tácticas -->
     <section class="slide" data-index="4" data-title="4. Tácticas y Consistencia ACID">
       <div class="slide-eyebrow">Elemento 4 de 8 · Consistencia y Resiliencia</div>
-      <h2 class="slide-heading">Táctica: Transacción ACID vs. Sobreventa</h2>
+      <h2 class="slide-heading">Una reserva, una transacción</h2>
       <p class="slide-lead">
-        Demostración interactiva: cómo el bloqueo pesimista en PostgreSQL 17 impide que dos estudiantes compren el último producto al mismo milisegundo.
+        La función SQL aplica un UPDATE condicional de inventario dentro de la transacción del pedido; dos solicitudes no pueden llevar el stock bajo cero.
       </p>
 
-      <div class="sim-panel" style="margin-bottom: 1.5rem;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-          <div>
-            <div style="font-weight: 800; font-size: 1rem; color: #fff;">Simulador de Reserva Concurrente (1 unidad en stock)</div>
-            <div style="font-size: 0.8rem; color: var(--tinta-tenue);">Estudiante A y Estudiante B pulsan «Confirmar Reserva» exactamente al mismo tiempo.</div>
-          </div>
-          <button id="btnSimular" onclick="simularTransaccion()" class="hud-btn" style="width: auto; height: auto; padding: 0.5rem 1.2rem; border-radius: 9999px; font-weight: 700; gap: 0.5rem; font-size: 0.82rem;">
-            ▶ Ejecutar Simulación
-          </button>
+      <div class="sequence-diagram" aria-label="Diagrama de secuencia: dos reservas compiten por una unidad">
+        <svg viewBox="0 0 1050 300" role="img" aria-labelledby="sequenceTitle sequenceDesc">
+          <title id="sequenceTitle">Concurrencia al reservar la última unidad</title>
+          <desc id="sequenceDesc">Dos clientes envían una reserva. PostgreSQL serializa el UPDATE condicional: A confirma; B recibe cero filas y se revierte.</desc>
+          <defs>
+            <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#b4c7ff"/></marker>
+            <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#b4d7bd"/></marker>
+          </defs>
+          <rect x="75" y="10" width="180" height="42" class="lock"/><rect x="435" y="10" width="180" height="42" class="lock"/><rect x="795" y="10" width="180" height="42" class="lock"/>
+          <text x="165" y="37" text-anchor="middle">Solicitudes A/B</text><text x="525" y="37" text-anchor="middle">orders.service</text><text x="885" y="37" text-anchor="middle">PostgreSQL</text>
+          <line x1="165" y1="52" x2="165" y2="286" class="lifeline"/><line x1="525" y1="52" x2="525" y2="286" class="lifeline"/><line x1="885" y1="52" x2="885" y2="286" class="lifeline"/>
+          <line x1="165" y1="80" x2="525" y2="80" class="call"/><text x="345" y="71" text-anchor="middle" class="subtext">POST /orders · A</text>
+          <line x1="525" y1="112" x2="885" y2="112" class="call"/><text x="705" y="103" text-anchor="middle" class="subtext">UPDATE stock−1 WHERE stock≥1</text>
+          <rect x="864" y="119" width="42" height="27" fill="#263a2d" stroke="#b4d7bd"/><text x="885" y="137" text-anchor="middle" class="subtext">lock</text>
+          <line x1="885" y1="158" x2="525" y2="158" class="return"/><text x="705" y="149" text-anchor="middle" class="subtext">1 row → COMMIT · pedido creado</text>
+          <line x1="525" y1="180" x2="165" y2="180" class="return"/><text x="345" y="171" text-anchor="middle" class="subtext">HTTP 201</text>
+          <line x1="165" y1="210" x2="525" y2="210" class="call"/><text x="345" y="201" text-anchor="middle" class="subtext">POST /orders · B simultáneo</text>
+          <line x1="525" y1="237" x2="885" y2="237" class="call"/><text x="705" y="228" text-anchor="middle" class="subtext">UPDATE tras liberar el bloqueo</text>
+          <line x1="885" y1="259" x2="525" y2="259" class="return"/><text x="705" y="250" text-anchor="middle" class="subtext">0 rows → ROLLBACK · stock intacto</text>
+          <line x1="525" y1="280" x2="165" y2="280" class="return"/><text x="345" y="271" text-anchor="middle" class="subtext">HTTP 400 · sin pedido parcial</text>
+        </svg>
+        <div class="simulation-control">
+          <div class="simulation-title">Simulador · una unidad disponible<small>Reproduce las dos solicitudes concurrentes y su resultado transaccional.</small></div>
+          <button id="btnSimular" onclick="simularTransaccion()" class="simulation-play" type="button">▶ Ejecutar simulación</button>
         </div>
-
-        <div class="grid-2" style="gap: 1.2rem;">
-          <div id="panelUserA" class="card-vidrio" style="padding: 1rem; border-color: rgba(255, 255, 255, 0.1);">
-            <div style="font-weight: 700; font-size: 0.88rem; color: #60a5fa; margin-bottom: 0.3rem;">Estudiante A (Hilo 1)</div>
-            <div id="statusA" style="font-size: 0.8rem; color: var(--tinta-tenue); font-family: var(--font-mono);">Esperando inicio...</div>
-          </div>
-          <div id="panelUserB" class="card-vidrio" style="padding: 1rem; border-color: rgba(255, 255, 255, 0.1);">
-            <div style="font-weight: 700; font-size: 0.88rem; color: #f43f5e; margin-bottom: 0.3rem;">Estudiante B (Hilo 2)</div>
-            <div id="statusB" style="font-size: 0.8rem; color: var(--tinta-tenue); font-family: var(--font-mono);">Esperando inicio...</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="grid-2">
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Sondas de Salud Desacopladas</span>
-            <span class="chip chip-verde">Liveness vs Readiness</span>
-          </div>
-          <div class="card-text">
-            • <code>/health</code>: Responde 200 inmediatamente confirmando que el proceso Python está vivo.<br>
-            • <code>/health/ready</code>: Ejecuta un <code>SELECT 1</code> real en PostgreSQL. Si la BD está caída, devuelve 503 impidiendo tráfico a un contenedor roto.
-          </div>
-        </div>
-
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Recuperación de Reservas Huérfanas</span>
-            <span class="chip chip-ambar">vencer_pedidos.py</span>
-          </div>
-          <div class="card-text">
-            Si un usuario aparta un almuerzo y nunca lo recoge, un comando programado cancela las reservas mayores a 24 horas y restituye el stock al inventario automáticamente.
-          </div>
+        <div class="simulator-lanes">
+          <div class="simulator-lane"><strong>Solicitud A · primera en bloquear la fila</strong><span id="statusA">Esperando inicio…</span></div>
+          <div class="simulator-lane"><strong>Solicitud B · llega en paralelo</strong><span id="statusB">Esperando inicio…</span></div>
         </div>
       </div>
+
+      <p class="cover-note"><code>/health</code> liveness · <code>/health/ready</code> verifica PostgreSQL · vencimientos cancelan pedidos y reponen stock.</p>
     </section>
 
     <!-- SLIDE 5: Elemento 5 · Seguridad y PostgreSQL RLS -->
     <section class="slide" data-index="5" data-title="5. Seguridad y Aislamiento RLS">
       <div class="slide-eyebrow">Elemento 5 de 8 · Seguridad en Profundidad</div>
-      <h2 class="slide-heading">Justificación: Aislamiento Multitienda con RLS</h2>
+      <h2 class="slide-heading">El aislamiento vive en la base de datos</h2>
       <p class="slide-lead">
-        No confiamos la seguridad exclusivamente a los filtros de Python. El motor de PostgreSQL fuerza las políticas de aislamiento a nivel de kernel de datos.
+        Cada transacción establece el principal antes de ejecutar consultas. PostgreSQL aplica la política en cada fila.
       </p>
 
       <div class="sim-panel" style="margin-bottom: 1.5rem;">
@@ -879,10 +467,8 @@
           </div>
           <pre class="code-card" style="font-size: 0.78rem;"><code><span class="tok-keyword">CREATE POLICY</span> pedidos_tienda_admin <span class="tok-keyword">ON</span> pedidos
   <span class="tok-keyword">FOR ALL TO</span> tienda_app
-  <span class="tok-keyword">USING</span> (
-    tienda_id = <span class="tok-fn">current_setting</span>(<span class="tok-str">'app.current_store_id'</span>, <span class="tok-keyword">true</span>)::int
-    <span class="tok-keyword">OR</span> <span class="tok-fn">current_setting</span>(<span class="tok-str">'app.is_supervisor'</span>, <span class="tok-keyword">true</span>) = <span class="tok-str">'true'</span>
-  );</code></pre>
+  <span class="tok-keyword">USING</span> (tienda_id = current_setting(<span class="tok-str">'app.current_store_id'</span>, true)::int
+    <span class="tok-keyword">OR</span> current_setting(<span class="tok-str">'app.is_supervisor'</span>, true) = <span class="tok-str">'true'</span>);</code></pre>
         </div>
 
         <div class="card-vidrio">
@@ -891,277 +477,80 @@
             <span class="chip chip-morado">ADR 0017</span>
           </div>
           <div class="card-text">
-            El administrador general tiene visibilidad de las 5 cafeterías para control de colas y métricas institucionales, pero <strong>no tiene permisos de edición ni alteración de pedidos</strong> para evitar interferencias comerciales en tiendas concesionadas.
+            El supervisor consulta las cinco tiendas, pero no modifica pedidos ni catálogo (ADR 0017).
           </div>
         </div>
       </div>
     </section>
 
     <!-- SLIDE 6: Elemento 6 · Decisiones ADR en Lenguaje Claro y Humano -->
-    <section class="slide" data-index="6" data-title="6. 18 ADRs Explicados en Claro">
+    <section class="slide" data-index="6" data-title="6. Decisiones arquitectónicas">
       <div class="slide-eyebrow">Elemento 6 de 8 · Decisiones y Trade-offs Reales</div>
-      <h2 class="slide-heading">Las 4 Decisiones Críticas explicadas sin rodeos</h2>
+      <h2 class="slide-heading">Decisiones y compromisos de diseño</h2>
       <p class="slide-lead">
-        Documentamos 18 ADRs en el repositorio. Cada decisión fue una elección consciente donde preferimos resolver el problema real antes que adoptar tecnologías complejas de moda.
+        Cuatro trade-offs del diseño, expresados como estructura, propiedad de datos y comportamiento transaccional.
       </p>
 
-      <div class="grid-2" style="margin-bottom: 1.5rem;">
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Monolito en vez de Microservicios</span>
-            <span class="chip chip-azul">ADR 0001 · 0010</span>
-          </div>
-          <div class="card-text" style="font-size: 0.86rem;">
-            <strong>El dilema:</strong> Éramos cuatro personas programando para cinco cafeterías. Partir la aplicación en cuatro microservicios significaba llamadas HTTP internas que podían fallar a mitad de camino y cuatro veces más trabajo de despliegue.<br>
-            <strong>La decisión:</strong> Un monolito modular. Las funciones se llaman en memoria en milisegundos y todo corre en un solo contenedor.<br>
-            <strong>Lo que asumimos:</strong> Los módulos no se pueden escalar por separado en máquinas distintas, algo innecesario para la carga del campus.
-          </div>
-        </div>
+      <table class="decision-list" aria-label="Decisiones arquitectónicas y compromisos">
+        <thead><tr><th>DECISIÓN</th><th>RESPUESTA ARQUITECTÓNICA</th><th>COMPROMISO</th></tr></thead>
+        <tbody>
+          <tr><td>Monolito modular<br><small>ADR 0001 · 0010</small></td><td>Cuatro dominios en un proceso; contratos públicos entre módulos.</td><td>Escala horizontal del sistema completo, no por módulo.</td></tr>
+          <tr><td>RLS en PostgreSQL<br><small>ADR 0014</small></td><td>El contexto de seguridad se fija en la transacción; la política filtra filas.</td><td>El contexto debe establecerse en cada sesión de petición.</td></tr>
+          <tr><td>Supervisor de solo lectura<br><small>ADR 0017</small></td><td>Puede consultar todas las tiendas; cada concesionario conserva sus cambios.</td><td>Los errores de catálogo se corrigen desde la tienda propietaria.</td></tr>
+          <tr><td>Transacción compartida<br><small>ADR 0018</small></td><td>Pedidos e inventario usan PostgreSQL y confirman juntos.</td><td>Ambos módulos dependen de la misma base de datos.</td></tr>
+        </tbody>
+      </table>
 
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Aislamiento en Base de Datos (RLS)</span>
-            <span class="chip chip-verde">ADR 0014</span>
-          </div>
-          <div class="card-text" style="font-size: 0.86rem;">
-            <strong>El dilema:</strong> Si solo filtras tiendas con un <code>WHERE tienda_id = X</code> en Python, el día que alguien olvide esa línea en una consulta nueva, un administrador verá los pedidos de la cafetería de al lado.<br>
-            <strong>La decisión:</strong> Dejarle el filtro a PostgreSQL mediante Row Level Security. Si la sesión es de Antojos, la base de datos físicamente no devuelve filas de Punto Fit.<br>
-            <strong>Lo que asumimos:</strong> Tuvimos que configurar variables de contexto al abrir cada sesión de base de datos.
-          </div>
-        </div>
-
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Supervisor solo para mirar, no para editar</span>
-            <span class="chip chip-morado">ADR 0017</span>
-          </div>
-          <div class="card-text" style="font-size: 0.86rem;">
-            <strong>El dilema:</strong> La administración de la universidad quería un superusuario, pero cada punto de comida es un concesionario privado independiente.<br>
-            <strong>La decisión:</strong> El administrador general tiene una pantalla donde ve todas las colas y métricas, pero no tiene botones para cambiar precios ni pedidos ajenos.<br>
-            <strong>Lo que asumimos:</strong> Si una tienda comete un error en su carta, debe corregirlo su propio personal.
-          </div>
-        </div>
-
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Transacción directa en vez de colas asíncronas</span>
-            <span class="chip chip-ambar">ADR 0018</span>
-          </div>
-          <div class="card-text" style="font-size: 0.86rem;">
-            <strong>El dilema:</strong> Descontar existencias con colas tipo Kafka suena moderno, pero si dos personas piden el último almuerzo a la vez, una cola tarda segundos en procesar y permite vender dos veces lo mismo.<br>
-            <strong>La decisión:</strong> Bloqueo transaccional directo en PostgreSQL con <code>FOR UPDATE</code>. O hay existencias y se crea el pedido, o se cancela todo al instante.<br>
-            <strong>Lo que asumimos:</strong> Pedidos e inventario dependen de la misma base de datos.
-          </div>
-        </div>
-      </div>
     </section>
 
-    <!-- SLIDE 7: Elemento 7 · Validación Empírica y Pruebas -->
-    <section class="slide" data-index="7" data-title="7. Medición Empírica y Pruebas">
-      <div class="slide-eyebrow">Elemento 7 de 8 · Evidencia Numérica</div>
-      <h2 class="slide-heading">Validación Empírica del Escenario 4 (AC-04)</h2>
-      <p class="slide-lead">
-        No asumimos que el sistema soporta la hora pico: medimos la concurrencia con el script automatizado <code>measure_catalog_availability.py</code>.
-      </p>
-
-      <div class="grid-3" style="margin-bottom: 1.5rem;">
-        <div class="card-vidrio" style="border-color: rgba(48, 209, 88, 0.4);">
-          <div class="card-title">
-            <span>Resultados de Concurrencia</span>
-            <span class="chip chip-verde">30/30 Cargas OK</span>
-          </div>
-          <div class="card-text">
-            • <strong>5 usuarios simultáneos</strong> (6 corridas).<br>
-            • <strong>0 errores</strong> (0 timeouts, 0 5xx).<br>
-            • Latencia promedio: <strong>32,8 ms</strong>.<br>
-            • Peor caso observado: <strong>41,78 ms</strong>.<br>
-            • Salud post-carga: <code>/health</code> en 1,12 ms.
-          </div>
+    <!-- SLIDE 7: Evidencia de calidad y pruebas -->
+    <section class="slide" data-index="7" data-title="7. Evidencia y métricas">
+      <div class="slide-eyebrow">Elemento 7 de 8 · Evidencia reproducible</div>
+      <h2 class="slide-heading">Qué medimos y bajo qué condiciones</h2>
+      <p class="slide-lead">Los resultados tienen alcance y fecha. Las métricas locales no describen por sí solas el comportamiento de producción.</p>
+      <div class="metric-layout">
+        <div class="metric-chart" aria-label="Latencia máxima por corrida, en milisegundos">
+          <div class="bar-row"><span>R1</span><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div><b>41,78 ms</b></div>
+          <div class="bar-row"><span>R2</span><div class="bar-track"><div class="bar-fill" style="width:81%"></div></div><b>33,87 ms</b></div>
+          <div class="bar-row"><span>R3</span><div class="bar-track"><div class="bar-fill" style="width:81%"></div></div><b>33,86 ms</b></div>
+          <div class="bar-row"><span>R4</span><div class="bar-track"><div class="bar-fill" style="width:73%"></div></div><b>30,69 ms</b></div>
+          <div class="bar-row"><span>R5</span><div class="bar-track"><div class="bar-fill" style="width:85%"></div></div><b>35,36 ms</b></div>
+          <div class="bar-row"><span>R6</span><div class="bar-track"><div class="bar-fill" style="width:77%"></div></div><b>31,95 ms</b></div>
+          <p class="diagram-caption">Máxima latencia observada por carga de catálogo + inventario · seis corridas · 5 usuarios concurrentes</p>
         </div>
-
-        <div class="card-vidrio" style="border-color: rgba(10, 132, 255, 0.4);">
-          <div class="card-title">
-            <span>119 Pruebas E2E (TestSprite)</span>
-            <span class="chip chip-azul">testsprite_tests/</span>
-          </div>
-          <div class="card-text">
-            • TC001–TC080: Flujos completos de compra.<br>
-            • TC015: Admin solo gestiona su local.<br>
-            • TC029: El inventario nunca baja de cero.<br>
-            • TC038: Bloqueo de compradores a /admin.
-          </div>
-        </div>
-
-        <div class="card-vidrio" style="border-color: rgba(191, 90, 242, 0.4);">
-          <div class="card-title">
-            <span>Contratos OpenAPI 3.1</span>
-            <span class="chip chip-morado">test_openapi.py</span>
-          </div>
-          <div class="card-text">
-            • Contrato exportado en <code>openapi.json</code>.<br>
-            • Validación estricta de esquemas en CI.<br>
-            • Sincronización entre Pydantic y TypeScript.
-          </div>
+        <div class="metric-summary">
+          <div class="metric-value"><strong>30/30</strong><span>cargas correctas</span></div>
+          <div class="metric-value"><strong>0</strong><span>errores</span></div>
+          <div class="metric-value"><strong>113</strong><span>casos TestSprite</span></div>
+          <div class="metric-value"><strong>1,58 ms</strong><span>peor /health</span></div>
         </div>
       </div>
-
-      <div class="sim-panel" style="padding: 1.2rem;">
-        <div style="font-weight: 700; font-size: 0.88rem; color: #fff; margin-bottom: 0.8rem;">
-          Latencia Observada en las 6 Corridas del Escenario 4 (Umbral: Cero Errores)
-        </div>
-        <div style="display: flex; align-items: flex-end; gap: 1.5rem; height: 120px; padding: 0 1rem; border-bottom: 1px solid var(--vidrio-borde);">
-          <div style="flex: 1; text-align: center;">
-            <div style="height: 85px; background: linear-gradient(180deg, #38bdf8, #0a84ff); border-radius: 6px 6px 0 0;"></div>
-            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C1: 41,7 ms</div>
-          </div>
-          <div style="flex: 1; text-align: center;">
-            <div style="height: 68px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
-            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C2: 33,8 ms</div>
-          </div>
-          <div style="flex: 1; text-align: center;">
-            <div style="height: 68px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
-            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C3: 33,8 ms</div>
-          </div>
-          <div style="flex: 1; text-align: center;">
-            <div style="height: 60px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
-            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C4: 30,6 ms</div>
-          </div>
-          <div style="flex: 1; text-align: center;">
-            <div style="height: 72px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
-            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C5: 35,3 ms</div>
-          </div>
-          <div style="flex: 1; text-align: center;">
-            <div style="height: 64px; background: linear-gradient(180deg, #4ade80, #10b981); border-radius: 6px 6px 0 0;"></div>
-            <div style="font-size: 0.72rem; font-family: var(--font-mono); margin-top: 0.4rem;">C6: 31,9 ms</div>
-          </div>
-        </div>
-      </div>
+      <p class="cover-note">TestSprite · 24 oct 2026: frontend 77/77 (76 automáticas + 1 manual) y API 36/36. La medición de carga es local sobre PostgreSQL 17; no define SLO.</p>
+      <p class="cover-note">Alcance: PostgreSQL 17 y API en loopback, 5 usuarios; no mide frontend, red real, Dokploy ni más de 5 usuarios. TestSprite usó datos demo locales; no es una corrida del commit actual. Sin umbral de latencia definido.</p>
+      <p class="cover-note">Evidencia: <code>docs/medicion-escenario-4.md</code> · <code>testsprite_tests/testsprite-mcp-test-report.md</code> · <code>backend/tests/test_concurrencia.py</code></p>
     </section>
 
-    <!-- SLIDE 8: Elemento 8 · Despliegue, Deuda Técnica y Colaboración por Áreas -->
-    <section class="slide" data-index="8" data-title="8. Despliegue y Equipo">
-      <div class="slide-eyebrow">Elemento 8 de 8 · Operatividad y Trabajo en Equipo</div>
-      <h2 class="slide-heading">Despliegue Dokploy y Organización del Equipo</h2>
-      <p class="slide-lead">
-        El sistema está en producción institucional y el trabajo se dividió por áreas técnicas especializadas entre los cuatro integrantes.
-      </p>
-
-      <div class="grid-2" style="margin-bottom: 1.5rem;">
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Producción en Dokploy</span>
-            <span class="chip chip-verde">tiendautb.iscoutb.dev</span>
-          </div>
-          <div class="card-text">
-            • <strong>Dominio Institucional:</strong> TLS wildcard renovado con Let's Encrypt.<br>
-            • <strong>Compose Declarativo:</strong> <code>deploy/compose.lab.yaml</code> orquestando Next.js, FastAPI y Postgres 17.<br>
-            • <strong>Red Aislada:</strong> La BD no expone puertos a Internet.<br>
-            • <strong>Secretos Seguros:</strong> Variables inyectadas en Dokploy sin contraseñas en Git.
-          </div>
-        </div>
-
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>Radar de Deuda Técnica (arc42 §11)</span>
-            <span class="chip chip-ambar">Gestión Madura</span>
-          </div>
-          <div class="card-text">
-            • <strong style="color: #4ade80;">Resuelto:</strong> Migraciones con Alembic (ADR 0013) y políticas RLS.<br>
-            • <strong style="color: #fbbf24;">Asumido:</strong> Host único de Dokploy (si el servidor físico cae, todo se detiene; adecuado para escala de campus).<br>
-            • <strong style="color: #f43f5e;">Pendiente:</strong> Endpoint de borrado formal de datos personales (hábeas data).
-          </div>
-        </div>
+    <!-- SLIDE 8: Despliegue, observabilidad y deuda -->
+    <section class="slide" data-index="8" data-title="8. Despliegue y riesgos">
+      <div class="slide-eyebrow">Elemento 8 de 8 · Operación y límites conocidos</div>
+      <h2 class="slide-heading">La topología también define los fallos</h2>
+      <p class="slide-lead">Next.js es la entrada pública. FastAPI y PostgreSQL se comunican por red interna; una base de datos compartida conserva atomicidad entre pedidos e inventario.</p>
+      <div class="deployment-zone">
+        <span class="zone-label">Entrada pública</span>
+        <div class="deploy-node"><strong>Navegador</strong><small>HTTPS · sesión/JWT</small></div>
+        <div class="deploy-node"><strong>Next.js 15</strong><small>SSR · proxy same-origin</small></div>
       </div>
-
-      <!-- Organización del Equipo por Secciones/Áreas (Sin conteo de commits) -->
-      <div class="card-vidrio">
-        <div class="card-title">Áreas de Trabajo y Aporte Técnico por Integrante</div>
-        <div class="grid-4" style="margin-top: 0.6rem;">
-          <div style="background: rgba(255,255,255,0.04); padding: 1rem; border-radius: 14px; border: 1px solid rgba(10, 132, 255, 0.3);">
-            <div style="font-weight: 800; font-size: 0.95rem; color: #60a5fa; margin-bottom: 0.3rem;">Alejandro Patron</div>
-            <div style="font-size: 0.78rem; color: var(--tinta-tenue); line-height: 1.5;">
-              • Backend: Módulo de Identidad y seguridad.<br>
-              • Implementación de RLS en PostgreSQL.<br>
-              • Despliegue en Dokploy y contratos OpenAPI.
-            </div>
-          </div>
-          <div style="background: rgba(255,255,255,0.04); padding: 1rem; border-radius: 14px; border: 1px solid rgba(48, 209, 88, 0.3);">
-            <div style="font-weight: 800; font-size: 0.95rem; color: #4ade80; margin-bottom: 0.3rem;">Jasen Yukopila</div>
-            <div style="font-size: 0.78rem; color: var(--tinta-tenue); line-height: 1.5;">
-              • Frontend: Arquitectura Next.js y SSR.<br>
-              • Sistema de diseño, tokens y vidrio.<br>
-              • Flujo interactivo del carrito y pase.
-            </div>
-          </div>
-          <div style="background: rgba(255,255,255,0.04); padding: 1rem; border-radius: 14px; border: 1px solid rgba(255, 159, 10, 0.3);">
-            <div style="font-weight: 800; font-size: 0.95rem; color: #fbbf24; margin-bottom: 0.3rem;">Levis Ortiz</div>
-            <div style="font-size: 0.78rem; color: var(--tinta-tenue); line-height: 1.5;">
-              • Backend: Módulo de Pedidos y estados.<br>
-              • Panel de administración de colas en mostrador.<br>
-              • Documentación de cierre y trazabilidad.
-            </div>
-          </div>
-          <div style="background: rgba(255,255,255,0.04); padding: 1rem; border-radius: 14px; border: 1px solid rgba(191, 90, 242, 0.3);">
-            <div style="font-weight: 800; font-size: 0.95rem; color: #c084fc; margin-bottom: 0.3rem;">Shalom Arrieta</div>
-            <div style="font-size: 0.78rem; color: var(--tinta-tenue); line-height: 1.5;">
-              • Frontend: Componentes de UI y vitrinas.<br>
-              • Pruebas automatizadas y consistencia.<br>
-              • Auditoría de revisión arquitectónica de pares.
-            </div>
-          </div>
-        </div>
+      <div class="flow-arrow" style="text-align:center">API_URL · HTTP/JSON por red interna ↓</div>
+      <div class="deployment-zone private">
+        <span class="zone-label">Red privada · Dokploy</span>
+        <div class="deploy-node"><strong>FastAPI</strong><small>un proceso · 4 módulos</small></div>
+        <div class="deploy-node"><strong>PostgreSQL 17</strong><small>RLS · no expuesto a Internet</small></div>
       </div>
-    </section>
-
-    <!-- SLIDE 9: Cierre y Preguntas Difíciles del Jurado -->
-    <section class="slide" data-index="9" data-title="Tribunal · Preguntas Clave">
-      <div class="slide-eyebrow">Sesión de Defensa · Tribunal Evaluador</div>
-      <h2 class="slide-heading">Preparados para las Preguntas del Jurado</h2>
-      <p class="slide-lead">
-        Respuestas técnicas y concisas a las preguntas conceptuales que formularán los jurados graduados.
-      </p>
-
-      <div class="grid-2">
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>"¿Por qué no usaron Microservicios?"</span>
-            <span class="chip chip-azul">Jurado #1</span>
-          </div>
-          <div class="card-text">
-            <strong>Respuesta:</strong> Por la <em>Ley de Conway</em>. Para 4 desarrolladores y 5 locales de cafetería, un monolito modular con contratos <code>public.py</code> y validación AST nos da la misma modularidad lógica sin latencia de red, sin 2-Phase Commit y con una sola base de datos PostgreSQL.
-          </div>
-        </div>
-
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>"¿Cómo evitan la sobreventa bajo concurrencia?"</span>
-            <span class="chip chip-verde">Jurado #2</span>
-          </div>
-          <div class="card-text">
-            <strong>Respuesta:</strong> Con el ADR 0018: Pedidos e Inventario comparten la misma transacción ACID en PostgreSQL con bloqueo pesimista en existencias (<code>FOR UPDATE</code>). Si no hay stock, se revierte toda la operación inmediatamente en memoria.
-          </div>
-        </div>
-
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>"¿Cómo garantizan que un admin no vea otra tienda?"</span>
-            <span class="chip chip-ambar">Jurado #3</span>
-          </div>
-          <div class="card-text">
-            <strong>Respuesta:</strong> Con el ADR 0014: no confiamos solo en la capa web. Configuramos Row Level Security (RLS) en PostgreSQL con el rol <code>tienda_app</code> y <code>SET LOCAL app.current_store_id</code>. Cualquier intento de consulta sin ese filtro es rechazado por el propio motor.
-          </div>
-        </div>
-
-        <div class="card-vidrio">
-          <div class="card-title">
-            <span>"¿Dónde está la medición del Atributo de Calidad?"</span>
-            <span class="chip chip-morado">Jurado #4 y #5</span>
-          </div>
-          <div class="card-text">
-            <strong>Respuesta:</strong> En <code>docs/medicion-escenario-4.md</code> y el script <code>backend/scripts/measure_catalog_availability.py</code>. Medimos 5 usuarios concurrentes en 6 corridas: 30 de 30 cargas completadas con 0 errores y latencia de ~42 ms.
-          </div>
-        </div>
+      <div class="quality-grid compact-quality">
+        <div class="quality-item"><b>Readiness</b><span><code>/health/ready</code> prueba conexión a PostgreSQL.</span></div>
+        <div class="quality-item"><b>Pendiente</b><span>Medir caída de DB, recuperación, más de 5 usuarios y latencia externa.</span></div>
       </div>
+      <p class="cover-note">Topología: <code>deploy/compose.lab.yaml</code> · ADR 0007 · C4 y evidencia en <code>docs/evidencia-arquitectura.md</code></p>
     </section>
 
   </main>
@@ -1171,7 +560,7 @@
     <div class="hud-controls">
       <button id="prevBtn" class="hud-btn" onclick="deck.prev()" title="Anterior (Flecha Izquierda)">←</button>
       <div class="counter-tag">
-        <span id="currentNum" class="active-num">01</span> / <span id="totalNum">10</span>
+        <span id="currentNum" class="active-num">01</span> / <span id="totalNum">09</span>
       </div>
       <button id="nextBtn" class="hud-btn" onclick="deck.next()" title="Siguiente (Flecha Derecha o Espacio)">→</button>
       <button class="hud-btn" onclick="deck.toggleOverview()" title="Mapa de diapositivas (Tecla M)">☰</button>
@@ -1205,6 +594,21 @@
   </div>
 
   <script>
+    function ajustarSlideActiva() {
+      const slide = document.querySelector('.slide.active');
+      const stage = document.querySelector('.deck-stage');
+      if (!slide || !stage) return;
+
+      slide.style.zoom = '1';
+      const stageStyle = getComputedStyle(stage);
+      const available = window.innerHeight
+        - parseFloat(stageStyle.paddingTop)
+        - parseFloat(stageStyle.paddingBottom);
+      const needed = Math.max(slide.scrollHeight, slide.offsetHeight);
+      const scale = Math.min(1, available / needed);
+      slide.style.zoom = Math.max(0.35, scale).toFixed(3);
+    }
+
     class PresentationDeck {
       constructor() {
         this.slides = document.querySelectorAll('.slide');
@@ -1236,6 +640,7 @@
         this.currentIndex = index;
         this.slides[this.currentIndex].classList.add('active');
         this.updateState();
+        requestAnimationFrame(ajustarSlideActiva);
         if (this.overviewModal.classList.contains('open')) {
           this.toggleOverview();
         }
@@ -1269,7 +674,7 @@
           const card = document.createElement('div');
           card.className = `overview-card ${idx === this.currentIndex ? 'active' : ''}`;
           card.innerHTML = `
-            <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--azul-claro); margin-bottom: 0.4rem;">DIAPOSITIVA ${String(idx).padStart(2, '0')}</div>
+            <div style="font-family: var(--font-mono); font-size: 0.7rem; color: var(--azul-claro); margin-bottom: 0.4rem;">DIAPOSITIVA ${String(idx + 1).padStart(2, '0')}</div>
             <div style="font-weight: 700; font-size: 0.95rem; line-height: 1.3;">${title}</div>
           `;
           card.onclick = () => this.goTo(idx);
@@ -1307,7 +712,7 @@
             this.toggleFullscreen();
           } else if (e.key >= '0' && e.key <= '9') {
             const num = parseInt(e.key, 10);
-            if (num < this.total) this.goTo(num);
+            if (num > 0 && num <= this.total) this.goTo(num - 1);
           }
         });
       }
@@ -1402,8 +807,88 @@
             </div>
           </div>
           <div style="margin-top: 0.8rem; background: rgba(5,8,14,0.7); border-radius: 10px; padding: 0.7rem 1rem; font-family: var(--font-mono); font-size: 0.76rem; color: #e2e8f0;">
-            orders/service.py ➔ invoca <strong>inventory.public.descontar_existencias()</strong> en la misma transacción de BD.
+            orders/service.py → invoca <strong>inventory.public.descontar_para_pedido()</strong> en la misma transacción de BD.
           </div>
+        `;
+      } else if (tab === 'componentes') {
+        document.getElementById('tabBtnComponentes').classList.add('active');
+        caption.innerHTML = '<strong>Interacción de extremo a extremo:</strong> hay dos rutas de entrada. SSR consulta la API desde el servidor Next.js; las acciones del navegador usan el proxy same-origin. Ambas convergen en FastAPI y PostgreSQL.';
+        area.innerHTML = `
+          <div class="flow-heading">DOS RUTAS DE ENTRADA · MISMO BACKEND · RESPONSABILIDADES DISTINTAS</div>
+          <div class="interaction-routes">
+            <div class="interaction-route">
+              <span class="route-label">Lectura SSR</span>
+              <div class="route-flow">
+                <div class="route-node"><strong>Navegador</strong><small>GET /tienda/:slug</small></div><span class="route-arrow">HTTPS →</span>
+                <div class="route-node"><strong>Next.js Server Component</strong><small>renderiza página · cache no-store</small></div><span class="route-arrow">API_URL →</span>
+                <div class="route-node"><strong>FastAPI</strong><small>GET catálogo + inventario en paralelo</small></div><span class="route-arrow">SQL →</span>
+                <div class="route-node"><strong>PostgreSQL</strong><small>SELECT productos + existencias</small></div>
+              </div>
+            </div>
+            <div class="interaction-route">
+              <span class="route-label">Escritura</span>
+              <div class="route-flow">
+                <div class="route-node"><strong>Navegador</strong><small>POST /api/proxy/orders · JWT</small></div><span class="route-arrow">same-origin →</span>
+                <div class="route-node"><strong>Next.js Proxy</strong><small>reenvía a API_URL</small></div><span class="route-arrow">HTTP/JSON →</span>
+                <div class="route-node"><strong>FastAPI orders</strong><small>valida y coordina pedido</small></div><span class="route-arrow">SQL →</span>
+                <div class="route-node"><strong>PostgreSQL</strong><small>RLS · reserva atómica · commit</small></div>
+              </div>
+            </div>
+          </div>
+          <div class="component-row"><span class="component-layer">Dentro de FastAPI</span><div class="component-nodes"><div class="component-node"><strong>orders.service</strong><small>caso de uso</small></div><span class="component-connector">contratos Python ↙ ↘</span><div class="component-provider-stack"><div class="component-node"><strong>catalog.public</strong><small>valida producto y precio</small></div><div class="component-node"><strong>inventory.public</strong><small>UPDATE condicional de stock</small></div></div></div></div>
+          <p class="component-note">Los módulos no son servicios de red: comparten proceso y sesión SQLAlchemy. El commit devuelve éxito; cualquier error revierte pedido y existencias.</p>
+        `;
+      } else if (tab === 'authflow') {
+        document.getElementById('tabBtnAuth').classList.add('active');
+        caption.innerHTML = '<strong>Autorización en profundidad:</strong> la aplicación fija el principal en el contexto local de la transacción; PostgreSQL filtra cada fila incluso si una consulta no incluye filtro de tienda en Python.';
+        area.innerHTML = `
+          <div class="flow-heading">PETICIÓN AUTENTICADA · CONTEXTO TRANSACCIONAL · POLÍTICA POR FILA</div>
+          <div class="component-map">
+            <div class="component-row"><span class="component-layer">Identidad</span><div class="component-nodes"><div class="component-node"><strong>Authorization: Bearer</strong><small>JWT firmado</small></div><span class="component-connector">→</span><div class="component-node"><strong>identity.public</strong><small>verifica firma · resuelve usuario y tiendas</small></div></div></div>
+            <div class="component-connector">↓ principal (usuario, rol, tienda) ↓</div>
+            <div class="component-row"><span class="component-layer">Request scope</span><div class="component-nodes"><div class="component-node"><strong>FastAPI dependency</strong><small>autoriza operación</small></div><span class="component-connector">→</span><div class="component-node"><strong>RutaConSesion</strong><small>abre/cierra sesión en el hilo de ejecución</small></div><span class="component-connector">→</span><div class="component-node"><strong>set_config(..., true)</strong><small>contexto limitado a la transacción</small></div></div></div>
+            <div class="component-connector">↓ cada SELECT / UPDATE atraviesa la política ↓</div>
+            <div class="component-row"><span class="component-layer">Persistencia</span><div class="component-nodes"><div class="component-node"><strong>PostgreSQL RLS</strong><small>tienda_id = contexto OR supervisor</small></div><span class="component-connector">→</span><div class="component-node"><strong>Filas visibles</strong><small>solo alcance autorizado; supervisor consulta sin editar</small></div></div></div>
+          </div>
+          <p class="component-note">La opción <code>true</code> de <code>set_config</code> hace que el contexto desaparezca al terminar la transacción y reduce contaminación entre peticiones del pool.</p>
+        `;
+      } else if (tab === 'lectura') {
+        document.getElementById('tabBtnLectura').classList.add('active');
+        caption.innerHTML = '<strong>Consulta SSR:</strong> el navegador solicita una página; Next.js lee productos e inventario en paralelo con <code>cache: no-store</code>, compone el catálogo y devuelve HTML. El navegador no consulta directamente la API.';
+        area.innerHTML = `
+          <div class="flow-heading">LECTURA DEL CATÁLOGO · DOS CONSULTAS PARALELAS · RESPUESTA SSR</div>
+          <div class="architecture-flow">
+            <div class="flow-node"><strong>1 · Navegador</strong><small>GET página de tienda</small></div>
+            <div class="flow-arrow">HTTPS →</div>
+            <div class="flow-node"><strong>2 · Next.js SSR</strong><small>Server Component · petición dinámica</small></div>
+            <div class="flow-arrow">API_URL →</div>
+            <div class="flow-node"><strong>3 · FastAPI</strong><small>GET /catalog/products<br>GET /inventory · en paralelo</small></div>
+            <div class="flow-arrow">SQLAlchemy →</div>
+            <div class="flow-node"><strong>4 · PostgreSQL</strong><small>SELECT catálogo y existencias</small></div>
+            <div class="flow-arrow">filas ← API → JSON</div>
+            <div class="flow-node"><strong>5 · Next.js SSR</strong><small>combina productos + stock; devuelve HTML</small></div>
+          </div>
+          <div class="flow-outcomes"><span><strong>Éxito:</strong> productos + stock actual</span><span><strong>Fallo API:</strong> respaldo visible; no permite reservar</span></div>
+        `;
+      } else if (tab === 'reserva') {
+        document.getElementById('tabBtnReserva').classList.add('active');
+        caption.innerHTML = '<strong>Escritura transaccional:</strong> la API obtiene los productos, crea el pedido y llama a Inventario por contrato público. La respuesta solo confirma éxito después del commit.';
+        area.innerHTML = `
+          <div class="flow-heading">POST /api/proxy/orders · MISMA SESIÓN Y TRANSACCIÓN LOCAL</div>
+          <div class="architecture-flow six-step">
+            <div class="sequence-row">
+              <div class="flow-node"><strong>1 · Cliente</strong><small>carrito · JWT · Idempotency-Key</small></div><div class="flow-arrow">HTTPS →</div>
+              <div class="flow-node"><strong>2 · Next proxy</strong><small>/api/proxy/orders → API_URL</small></div><div class="flow-arrow">HTTP/JSON →</div>
+              <div class="flow-node"><strong>3 · orders.router</strong><small>sesión SQL · contexto RLS</small></div>
+            </div>
+            <div class="sequence-turn">↓ mismo proceso · misma transacción SQLAlchemy ↓</div>
+            <div class="sequence-row">
+              <div class="flow-node"><strong>4 · orders.service</strong><small>coordina el caso de uso</small></div><div class="flow-arrow">contrato público →</div>
+              <div class="flow-node"><strong>5 · inventory.public</strong><small>reserva stock de forma condicional</small></div><div class="flow-arrow">SQL →</div>
+              <div class="flow-node"><strong>6 · PostgreSQL</strong><small>UPDATE · movimiento · COMMIT</small></div>
+            </div>
+          </div>
+          <div class="flow-outcomes"><span><strong>Con stock:</strong> commit → HTTP 201</span><span><strong>Sin stock:</strong> rollback → HTTP 400</span><span><strong>Reintento idempotente:</strong> mismo pedido → HTTP 200</span></div>
         `;
       } else if (tab === 'arc42') {
         document.getElementById('tabBtnArc42').classList.add('active');
@@ -1425,6 +910,7 @@
           </div>
         `;
       }
+      requestAnimationFrame(ajustarSlideActiva);
     }
 
     // Simulaciones Interactivas
@@ -1433,17 +919,22 @@
       const statusB = document.getElementById('statusB');
       const btn = document.getElementById('btnSimular');
       btn.disabled = true;
+      btn.textContent = '⏳ Simulando…';
 
-      statusA.innerHTML = '<span style="color: #38bdf8;">Ejecutando SELECT ... FOR UPDATE en existencia...</span>';
-      statusB.innerHTML = '<span style="color: #fbbf24;">En cola de espera de lock en PostgreSQL...</span>';
+      const diagram = document.querySelector('.sequence-diagram');
+      diagram.classList.add('running');
+      statusA.textContent = 'A · UPDATE condicional · fila afectada: 1';
+      statusB.textContent = 'B · esperando bloqueo de fila…';
 
       setTimeout(() => {
-        statusA.innerHTML = '<span style="color: #4ade80;">✔ Lock adquirido ➔ Stock descontado de 1 a 0 ➔ COMMIT OK (201 Created)</span>';
-        statusB.innerHTML = '<span style="color: #38bdf8;">Lock adquirido ➔ Comprobando existencia: cantidad = 0...</span>';
+        statusA.textContent = 'A · stock 1 → 0 · COMMIT · HTTP 201';
+        statusB.textContent = 'B · bloqueo liberado · UPDATE reanudando…';
         
         setTimeout(() => {
-          statusB.innerHTML = '<span style="color: #f43f5e;">✖ Error: StockInsuficienteError ➔ ROLLBACK automático ➔ (409 Conflict)</span>';
+          statusB.textContent = 'B · 0 filas · ROLLBACK · HTTP 400';
+          diagram.classList.remove('running');
           btn.disabled = false;
+          btn.textContent = '▶ Ejecutar simulación';
         }, 900);
       }, 800);
     }
@@ -1491,7 +982,30 @@
       }
     }
 
+    const themeToggle = document.getElementById('themeToggle');
+    function aplicarTema(theme, guardar = true) {
+      const seleccionado = theme === 'light' ? 'light' : 'dark';
+      document.body.dataset.theme = seleccionado;
+      themeToggle.innerHTML = seleccionado === 'dark'
+        ? '<span aria-hidden="true">☼</span> Tema claro'
+        : '<span aria-hidden="true">◐</span> Tema oscuro';
+      themeToggle.setAttribute('aria-label', seleccionado === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro');
+      themeToggle.setAttribute('aria-pressed', String(seleccionado === 'light'));
+      if (guardar) {
+        try { localStorage.setItem('sustentacion-theme', seleccionado); } catch (_) { /* almacenamiento opcional */ }
+      }
+      requestAnimationFrame(ajustarSlideActiva);
+    }
+    function alternarTema() {
+      aplicarTema(document.body.dataset.theme === 'dark' ? 'light' : 'dark');
+    }
+    let temaInicial = 'dark';
+    try { temaInicial = localStorage.getItem('sustentacion-theme') || 'dark'; } catch (_) { /* almacenamiento opcional */ }
+    aplicarTema(temaInicial, false);
+
     const deck = new PresentationDeck();
+    window.addEventListener('resize', ajustarSlideActiva);
+    requestAnimationFrame(ajustarSlideActiva);
   </script>
 </body>
 </html>
